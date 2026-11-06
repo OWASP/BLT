@@ -1748,7 +1748,8 @@ def test_refresh_workspace_channels_fetches_pages_and_persists_metadata():
         worker.d1_run = original_d1_run
         worker.SCHEMA_READY = original_schema_ready
 
-    assert result == {"channel_count": 2, "member_count": 44}
+    # Both channels are stored; the team counts open public channels and #general's members.
+    assert result == {"channel_count": 1, "member_count": 42}
     assert calls["app_params"] == ["A089A036135"]
     assert len(calls["fetch_urls"]) == 2
     assert calls["channel_params"][0][1] == "T123"
@@ -1760,8 +1761,8 @@ def test_refresh_workspace_channels_fetches_pages_and_persists_metadata():
     assert '"name":"general"' in calls["channel_params"][0][21]
     assert calls["channel_params"][1][2] == "G123"
     assert calls["channel_params"][1][7] == 1
-    assert calls["count_params"][0] == 2
-    assert calls["count_params"][1] == 44
+    assert calls["count_params"][0] == 1
+    assert calls["count_params"][1] == 42
     assert calls["count_params"][3] == 7
 
 

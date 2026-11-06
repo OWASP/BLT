@@ -2013,7 +2013,8 @@ async def db_upsert_workspace(
             "icon_url, invite_link, manifest_yaml, installer_slack_user_id, installer_name, created_at, updated_at"
             ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) "
             "ON CONFLICT(team_id) DO UPDATE SET "
-            "team_name = excluded.team_name, "
+            "team_name = CASE WHEN excluded.team_name != '' AND excluded.team_name != excluded.team_id "
+            "THEN excluded.team_name ELSE teams.team_name END, "
             "app_id = CASE WHEN excluded.app_id != '' THEN excluded.app_id ELSE teams.app_id END, "
             "app_name = CASE WHEN excluded.app_name != '' THEN excluded.app_name ELSE teams.app_name END, "
             "app_icon_url = CASE WHEN excluded.app_icon_url != '' THEN excluded.app_icon_url ELSE teams.app_icon_url END, "
@@ -2198,15 +2199,13 @@ async def refresh_workspace_channels_from_slack(
         if not cursor:
             break
 
-    channel_count = 0
-    member_total = 0
+    team_id = str(workspace.get("team_id") or "").strip()
+    channels = [channel for channel in channels if channel_in_team(channel, team_id)]
     for channel in channels:
         metadata = slack_channel_metadata(channel)
         channel_id = str(metadata.get("channel_id") or "").strip()
         if not channel_id:
             continue
-        channel_count += 1
-        member_total += int(metadata.get("member_count") or 0)
         await db_upsert_channel(
             env,
             workspace_id,
@@ -2232,10 +2231,141 @@ async def refresh_workspace_channels_from_slack(
             locale=str(metadata.get("locale") or ""),
             metadata_json=str(metadata.get("metadata_json") or ""),
         )
+    counts = slack_team_counts(channels, team_id)
     await db_update_workspace_channel_member_counts(
-        env, workspace_id, channel_count, member_total
+        env, workspace_id, counts["channel_count"], counts["member_count"]
     )
-    return {"channel_count": channel_count, "member_count": member_total}
+    return counts
+
+
+def channel_in_team(channel: Dict[str, Any], team_id: str) -> bool:
+    # A token lists its own workspace's channels whatever team it is asked about, so a
+    # channel from another team is left out rather than counted under this one.
+    context_team_id = str(channel.get("context_team_id") or "").strip()
+    return not (context_team_id and team_id and context_team_id != team_id)
+
+
+def slack_team_counts(channels: List[Dict[str, Any]], team_id: str = "") -> Dict[str, int]:
+    """The public page's counts from conversations.list: open public channels, and members
+    as the general channel's num_members, since every member is in it."""
+    channel_count = 0
+    member_count = 0
+    for channel in channels:
+        if not isinstance(channel, dict) or not channel_in_team(channel, team_id):
+            continue
+        if any(channel.get(flag) for flag in ("is_archived", "is_private", "is_im", "is_mpim")):
+            continue
+        channel_count += 1
+        if channel.get("is_general"):
+            member_count = int(channel.get("num_members") or 0)
+    return {"channel_count": channel_count, "member_count": member_count}
+
+
+# One run costs an auth.test per bot token, then a team.info and up to
+# WORKSPACE_CHANNEL_PAGES conversations.list pages per workspace.
+WORKSPACE_CHANNEL_PAGES = 4
+WORKSPACE_SYNC_MIN_SUBREQUESTS = 8
+
+
+def workspace_name_missing(workspace: Dict[str, Any]) -> bool:
+    name = str(workspace.get("team_name") or "").strip()
+    return not name or name == str(workspace.get("team_id") or "").strip()
+
+
+async def db_update_workspace_details(
+    env: Any, workspace_id: Any, team_name: str = "", icon_url: str = ""
+) -> bool:
+    await ensure_schema(env)
+    await d1_run(
+        env,
+        (
+            "UPDATE teams SET "
+            "team_name = CASE WHEN ? != '' THEN ? ELSE team_name END, "
+            "icon_url = CASE WHEN ? != '' AND COALESCE(icon_url, '') = '' THEN ? ELSE icon_url END, "
+            "updated_at = ? WHERE id = ?"
+        ),
+        [team_name, team_name, icon_url, icon_url, utc_now(), workspace_id],
+    )
+    return True
+
+
+async def slack_get(token: str, method: str, query: Dict[str, str]) -> Dict[str, Any]:
+    ok, payload, _ = await fetch_json(
+        "https://slack.com/api/{0}?{1}".format(method, urlencode(query)),
+        headers={"Authorization": "Bearer {0}".format(token)},
+    )
+    return payload if ok and payload.get("ok", False) else {}
+
+
+async def sync_workspace_details(env: Any, budget: int = 50) -> Dict[str, Any]:
+    """Fill in each workspace's name and icon (team.info) and its channel and member counts
+    (conversations.list), which Slack events don't carry. Counts need a bot token issued by
+    that workspace; without one a workspace keeps the counts it has."""
+    workspaces = await db_get_user_workspaces(env, None)
+    summary = {"workspaces": len(workspaces), "named": 0, "counted": 0, "subrequests": 0}
+    if not workspaces:
+        return summary
+    tokens: List[str] = []
+    for workspace in workspaces:
+        token = await db_get_workspace_bot_token(
+            env,
+            team_id=str(workspace.get("team_id") or ""),
+            app_id=str(workspace.get("app_id") or ""),
+        )
+        tokens.append(str(token or "").strip())
+    tokens.append(str(env_value(env, "SLACK_BOT_TOKEN", "") or "").strip())
+    tokens = list(dict.fromkeys(token for token in tokens if token))
+    token_by_team: Dict[str, str] = {}
+    for token in tokens:
+        if summary["subrequests"] >= budget:
+            return summary
+        summary["subrequests"] += 1
+        token_team_id = str((await slack_get(token, "auth.test", {})).get("team_id") or "")
+        if token_team_id:
+            token_by_team.setdefault(token_team_id, token)
+    for workspace in workspaces:
+        team_id = str(workspace.get("team_id") or "").strip()
+        token = token_by_team.get(team_id) or (tokens[0] if tokens else "")
+        if not team_id or not token or summary["subrequests"] >= budget:
+            continue
+        summary["subrequests"] += 1
+        team = (await slack_get(token, "team.info", {"team": team_id})).get("team") or {}
+        if str(team.get("id") or "") == team_id:
+            icon = team.get("icon") or {}
+            await db_update_workspace_details(
+                env,
+                workspace.get("id"),
+                team_name=str(team.get("name") or "").strip(),
+                icon_url=str(icon.get("image_132") or icon.get("image_88") or "").strip(),
+            )
+            summary["named"] += 1 if team.get("name") else 0
+        if team_id not in token_by_team:
+            continue
+        channels: List[Dict[str, Any]] = []
+        cursor = ""
+        complete = False
+        for _ in range(WORKSPACE_CHANNEL_PAGES):
+            if summary["subrequests"] >= budget:
+                break
+            summary["subrequests"] += 1
+            query = {"types": "public_channel", "exclude_archived": "true", "limit": "1000"}
+            if cursor:
+                query["cursor"] = cursor
+            payload = await slack_get(token, "conversations.list", query)
+            if not payload:
+                break
+            channels.extend(c for c in payload.get("channels") or [] if isinstance(c, dict))
+            cursor = str((payload.get("response_metadata") or {}).get("next_cursor") or "")
+            if not cursor:
+                complete = True
+                break
+        if complete:
+            counts = slack_team_counts(channels, team_id)
+            await db_update_workspace_channel_member_counts(
+                env, workspace.get("id"), counts["channel_count"], counts["member_count"]
+            )
+            summary["counted"] += 1
+    return summary
 
 
 async def db_update_workspace_invite_link(
@@ -3707,7 +3837,7 @@ async def upsert_connected_workspace(
         installer_slack_user_id=installer_user_id,
         invite_link=invite_link,
     )
-    if workspace_id:
+    if workspace_id and (channel_count or member_count):
         await db_update_workspace_channel_member_counts(
             env, workspace_id, channel_count, member_count
         )
@@ -5328,8 +5458,25 @@ async def handle_cron_dispatch(request: Any, env: Any) -> Any:
     except Exception as error:
         log_exception_one_line(error, "scheduled_event_retention_failed")
         retention = {"error": "event_retention_failed"}
+    workspaces: Dict[str, Any] = {"skipped": True}
+    sync_budget = REMINDER_DELIVERY_BATCH - int(summary.get("due") or 0) - 4 * max(nudge_limit, 0)
+    try:
+        if sync_budget >= WORKSPACE_SYNC_MIN_SUBREQUESTS and (
+            time.gmtime(time.time()).tm_min < 5
+            or any(workspace_name_missing(w) for w in await db_get_user_workspaces(env, None))
+        ):
+            workspaces = await sync_workspace_details(env, budget=sync_budget)
+    except Exception as error:
+        log_exception_one_line(error, "scheduled_workspace_sync_failed")
+        workspaces = {"error": "workspace_sync_failed"}
     return json_response(
-        {"ok": True, "reminders": summary, "pr_review_nudges": nudges, "event_retention": retention}
+        {
+            "ok": True,
+            "reminders": summary,
+            "pr_review_nudges": nudges,
+            "event_retention": retention,
+            "workspaces": workspaces,
+        }
     )
 
 
