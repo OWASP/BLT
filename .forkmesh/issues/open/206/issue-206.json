@@ -31,6 +31,17 @@
             "sig": "s-fB4etJdFfHofDiqzrCfcYShHudybmGIowrwcevGdks63B3oKwbi5BvhUqwHmVsDD279VPkh41d9gICJ0esAw",
             "ts": 1792782010878,
             "type": "labels"
+        },
+        {
+            "attachments": [],
+            "author": "Cu6HYOAI_KXF_0n4il24bXIniH5dBGJ0ELffhPIkLLQ",
+            "authorName": "vanshika2720",
+            "authorVerified": true,
+            "body": "I am working on this issue.",
+            "id": "comment-web-1793938473468",
+            "sig": "ah972UWWT-bvmhrqd4uC7qYgvJRTe8OCB9EiFDHPDW9P4W5dL0w8D1_JjQYPLN59zoiSXmXx15jdZfB9byQZAQ",
+            "ts": 1793938473468,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -46,6 +57,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-home: reach the gold standard (silver today, 2 steps)",
-    "updatedAt": 1792782010878,
+    "updatedAt": 1793938473468,
     "votes": 0
 }
