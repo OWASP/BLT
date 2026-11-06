@@ -66,6 +66,17 @@
             "sig": "ESb4dMf-bjFAgqWuM_L8iUQfJx4WTJjpF3CQZhYx-3RMLvdoaq9xe47FkyH6TrunJvIxxXqN4ujPMxH5dF-PBw",
             "ts": 1793928839942,
             "type": "claim"
+        },
+        {
+            "attachments": [],
+            "author": "SGh0ruiiSbMr6HnnBX9nyTbCrQaWVYtZs6sxfr4JSRg",
+            "authorName": "lahama-blt",
+            "authorVerified": true,
+            "body": "/assign",
+            "id": "comment-web-1793929775495",
+            "sig": "rW27jP96_WFc7nxsP5XNVr-uXjiH1RtcXOsKaA9gdQVUXL9SrV7paKLA1Qdob8nCgFG0Qo2YnkiIqcM8DnzdBw",
+            "ts": 1793929775495,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -81,6 +92,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-vanish: manage focus in the broker details dialog and label the password field",
-    "updatedAt": 1793928839942,
+    "updatedAt": 1793929775495,
     "votes": 0
 }
