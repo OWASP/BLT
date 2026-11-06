@@ -644,7 +644,6 @@
       const k = l.toLowerCase();
       if (k === 'good first issue') return 'lbl gfi';
       if (k === 'bug') return 'lbl bug';
-      if (k === 'hacktoberfest') return 'lbl hf';
       return 'lbl';
     }
 

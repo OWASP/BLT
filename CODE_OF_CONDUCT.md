@@ -3,7 +3,7 @@
 OWASP BLT is an OWASP Foundation project, and everyone who takes part in it follows the
 **[OWASP Code of Conduct](https://policy.owasp.org/operational/code-of-conduct)**. That covers the forge at
 git.owaspblt.org (issues, pull requests, discussions, reviews and comments), the OWASP Slack channels,
-BLT sites, events, GSoC and Hacktoberfest work, and any other place you represent the project.
+BLT sites, events, GSoC work, and any other place you represent the project.
 
 In short: be respectful and professional, assume good faith, welcome newcomers, keep criticism about the work
 rather than the person, and don't harass, threaten or discriminate against anyone.

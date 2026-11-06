@@ -28,7 +28,6 @@ BLT is one monorepo. Each project is a top-level folder with its own README, tes
 ## Find something to work on
 
 - [Good first issues](https://git.owaspblt.org/BLT/issues?label=good%20first%20issue): small, well-scoped tasks for newcomers.
-- [Hacktoberfest issues](https://git.owaspblt.org/BLT/issues?label=hacktoberfest): contributor issues across every project.
 - One project's issues: `https://git.owaspblt.org/BLT/issues?label=<folder>`, for example [`?label=blt-leaf`](https://git.owaspblt.org/BLT/issues?label=blt-leaf). The issue list filters on one label at a time.
 
 To claim an issue, comment `/assign` on it (you need to be signed in). You can hold one open assignment at a time;

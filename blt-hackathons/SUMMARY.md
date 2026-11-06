@@ -185,7 +185,7 @@ Each guide is comprehensive and user-friendly:
 - Corporate coding competitions
 - University coding events
 - Community contribution drives
-- Hacktoberfest-style events
+- Month-long contribution events
 
 ## Success Metrics
 

@@ -40,15 +40,9 @@ test("fetched data is only inserted as text", () => {
 });
 
 test("no stale banner or GitLab-era links", () => {
-  for (const s of ["April 15, 2026", "Design context", "contest now live", "gitlab.com", "owaspblt.slack.com", "owaspblt.org/leaderboard.html", "legacy.owaspblt.org"]) {
+  for (const s of ["April 15, 2026", "Design context", "contest now live", "gitlab.com", "owaspblt.slack.com", "owaspblt.org/leaderboard.html", "legacy.owaspblt.org", "Hacktoberfest", "label=hacktoberfest", "cyborg-pumpkin"]) {
     assert.ok(!html.includes(s), s);
   }
-});
-
-test("the announcement banner is one element with a real link", () => {
-  const banner = html.match(/<a id="announcement"[^>]*href="([^"]+)"/);
-  assert.ok(banner, "announcement link");
-  assert.match(banner[1], /^https:\/\/git\.owaspblt\.org\/BLT\/issues\?label=hacktoberfest$/);
 });
 
 test("every local src/href exists under public/", () => {

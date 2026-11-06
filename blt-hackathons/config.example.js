@@ -10,7 +10,7 @@ const EXAMPLE_CONFIG = {
     // BASIC INFORMATION
     // =====================
     
-    name: "Hacktoberfest 2024 - OWASP Edition",
+    name: "OWASP BLT Open Source Month 2024",
     
     description: `
         Join us for an exciting month of open source contributions! 

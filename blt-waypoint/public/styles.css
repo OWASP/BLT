@@ -276,7 +276,6 @@ html.dark .input, html.dark .select { border-color: var(--border-strong); }
 }
 .lbl.gfi { background: var(--ok-soft); border-color: transparent; color: var(--ok); }
 .lbl.bug { background: var(--brand-soft); border-color: transparent; color: var(--brand-text); }
-.lbl.hf { background: var(--warn-soft); border-color: transparent; color: var(--warn); }
 
 /* ---------- project symbol (round symbol over a monogram) ---------- */
 .sym {
