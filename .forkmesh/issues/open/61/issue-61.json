@@ -77,6 +77,17 @@
             "sig": "rW27jP96_WFc7nxsP5XNVr-uXjiH1RtcXOsKaA9gdQVUXL9SrV7paKLA1Qdob8nCgFG0Qo2YnkiIqcM8DnzdBw",
             "ts": 1793929775495,
             "type": "comment"
+        },
+        {
+            "attachments": [],
+            "author": "6I64fbHumctKTTTVZW0cDPBfOLWC46GD_JhZa7h9aX8",
+            "authorName": "owasp-blt-actions",
+            "authorVerified": true,
+            "body": "@lahama-blt you are already assigned to this issue. \u003c!-- blt-assign-refused:lahama-blt --\u003e \u003c!-- blt-assign:4daef9015800369d920f --\u003e",
+            "id": "actions-1793929795530-vYEN5p-m",
+            "sig": "agGFPdvQXw_Ov7cxUwbliYkDkDvH5XFUfaZjbi__piCfBwIuQ8RR4biqhgWpalTn9V52Vf3l0eoYtvWtqmLJBg",
+            "ts": 1793929795530,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -92,6 +103,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-vanish: manage focus in the broker details dialog and label the password field",
-    "updatedAt": 1793929775495,
+    "updatedAt": 1793929795530,
     "votes": 0
 }
