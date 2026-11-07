@@ -50,17 +50,33 @@ def test_sensitive_key_with_list_value_is_redacted_whole():
     assert redact_payload({"token": ["a", "b"]}) == {"token": "[REDACTED]"}
 
 
-@pytest.mark.parametrize("payload", [{}, {"items": []}, {"auth": {}}])
-def test_empty_collections_are_unchanged(payload):
-    assert redact_payload(payload) == payload
+@pytest.mark.parametrize(
+    "payload, expected",
+    [({}, {}), ({"items": []}, {"items": []}), ({"auth": {}}, {"auth": {}})],
+)
+def test_empty_collections_are_unchanged(payload, expected):
+    assert redact_payload(payload) == expected
+
+
+def test_redact_value_redacts_dict_input():
+    assert redact_value({"token": "t", "host": "h"}) == {"token": "[REDACTED]", "host": "h"}
+
+
+def test_redact_value_redacts_top_level_list():
+    # redact_payload expects a dict; a top-level list goes through redact_value.
+    assert redact_value([{"secret": "s"}, "plain"]) == [{"secret": "[REDACTED]"}, "plain"]
 
 
 # Only exact key names are matched, so these variants currently leak.
-@pytest.mark.xfail(reason="access_token is not an exact match for 'token'", strict=True)
+@pytest.mark.xfail(
+    reason="access_token is not an exact match for 'token'", strict=True, raises=AssertionError
+)
 def test_access_token_is_redacted():
     assert redact_payload({"access_token": "t"}) == {"access_token": "[REDACTED]"}
 
 
-@pytest.mark.xfail(reason="api-key uses a hyphen; REDACT_KEYS has api_key", strict=True)
+@pytest.mark.xfail(
+    reason="api-key uses a hyphen; REDACT_KEYS has api_key", strict=True, raises=AssertionError
+)
 def test_hyphenated_api_key_is_redacted():
     assert redact_payload({"api-key": "k"}) == {"api-key": "[REDACTED]"}
