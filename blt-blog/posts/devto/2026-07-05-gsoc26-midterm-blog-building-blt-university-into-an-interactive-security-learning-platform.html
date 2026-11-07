@@ -1,0 +1,261 @@
+---
+title: "GSoC'26 Midterm Blog: Building BLT University Into an Interactive Security Learning Platform"
+slug: "gsoc26-midterm-blog-building-blt-university-into-an-interactive-security-learning-platform"
+date: "2026-07-05"
+updated: "2026-07-06"
+author: "saksh"
+author_url: "https://dev.to/saksh_ee"
+author_avatar: "/images/authors/saksh_ee.webp"
+description: "Overview   This summer, I got the chance to contribute to OWASP BLT, a project under the..."
+tags: ["opensource", "gsoc", "owasp", "programming"]
+cover: "/images/gsoc26-midterm-blog-building-blt-university-into-an-interactive-security-learning-platform/00.webp"
+reading_time: 5
+canonical: "https://dev.to/owaspblt/gsoc26-midterm-blog-building-blt-university-into-an-interactive-security-learning-platform-30ho"
+source: "https://dev.to/owaspblt/gsoc26-midterm-blog-building-blt-university-into-an-interactive-security-learning-platform-30ho"
+---
+<h3>
+  <a name="overview" href="#overview">
+  </a>
+  Overview
+</h3>
+
+<p>This summer, I got the chance to contribute to OWASP BLT, a project under the OWASP umbrella organization, through Google Summer of Code 2026. My project is focused on BLT University, a security learning platform that helps learners and contributors understand web vulnerabilities through hands-on labs.</p>
+
+<p>The main idea behind this project is simple: instead of only reading about vulnerabilities, learners should be able to identify vulnerable code, explain why it is unsafe, and then fix it. This makes security learning more practical and closer to real open-source contribution work.</p>
+
+<p>BLT University is part of the OWASP BLT ecosystem and aims to make cybersecurity education more accessible through open learning material and practical labs.</p>
+
+<p>During the first half of GSoC, most of my work went into building the foundation for this experience: structuring labs, creating an interactive lab engine, adding validation, improving contributor workflows, and setting up tests so the platform can grow safely.</p>
+
+<h3>
+  <a name="what-is-my-gsoc-all-about" href="#what-is-my-gsoc-all-about">
+  </a>
+  What is my GSoC all about?
+</h3>
+
+<p>My GSoC project is about transforming BLT University from a mostly static educational site into an interactive cybersecurity learning platform.</p>
+
+<p>The core learning flow I am building is:</p>
+
+<ol>
+<li>Identify the vulnerable part of a code snippet.</li>
+<li>Explain why the code is vulnerable.</li>
+<li>Fix the issue using safer code.</li>
+</ol>
+
+<p>This flow is being built on top of a static Jekyll site, so a big part of the work has been designing a system that works without a traditional backend while still supporting structured content, validation, progress tracking, and future dashboard features.</p>
+
+<p>The main tech stack for this phase included Jekyll, Markdown, YAML frontmatter, JavaScript, JSON Schema, Python validation scripts, Jest, jsdom, GitLab CI, and browser <code>localStorage</code>.</p>
+
+<h3>
+  <a name="key-deliverables" href="#key-deliverables">
+  </a>
+  Key deliverables
+</h3>
+
+<p><strong>Lab content and platform structure</strong></p>
+
+<ul>
+<li>Created 10 labs across major web security topics.</li>
+<li>Moved lab content into <code>_labs/</code> using Markdown and YAML frontmatter.</li>
+<li>Added lab listing and lab detail pages.</li>
+</ul>
+
+<p><a href="https://media2.dev.to/dynamic/image/width=800%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.us-east-2.amazonaws.com%2Fuploads%2Farticles%2Fz76wkxlr9fnvq9w4gl18.png" class="article-body-image-wrapper"><img src="/images/gsoc26-midterm-blog-building-blt-university-into-an-interactive-security-learning-platform/01.webp" alt="Lab preview" loading="lazy" width="800" height="473"></a></p>
+
+<p><strong>Interactive learning experience</strong></p>
+
+<ul>
+<li>Built an interactive lab engine with Identify, Explain, and Fix stages.</li>
+<li>Added line-selection based vulnerability identification.</li>
+<li>Added explanation and fix validation.</li>
+<li>Added browser-side progress storage using <code>localStorage</code>.</li>
+</ul>
+
+<p>  <iframe src="https://www.youtube.com/embed/5jCfPt3sg4E" style="width: 100%; aspect-ratio: 16 / 9;" allowfullscreen loading="lazy">
+  </iframe>
+</p>
+
+<p><strong>Contributor workflow</strong></p>
+
+<ul>
+<li>Added schema validation for labs.</li>
+<li>Added a lab validation script for contributors.</li>
+<li>Added contributor documentation and a reusable lab template.</li>
+</ul>
+
+<p><strong>Gitlab CIs &amp; Tests</strong></p>
+
+<ul>
+<li>Added GitLab CI checks for validation, build, and tests.</li>
+<li>Added a Jest test baseline for lab behavior, validators, progress storage, and state transitions.</li>
+</ul>
+
+<h3>
+  <a name="progress-vs-proposal" href="#progress-vs-proposal">
+  </a>
+  Progress vs proposal
+</h3>
+
+<p>At midterm, the strongest progress is in the foundation layer. BLT University now has a structured lab platform and the core interactive learning flow is mostly in place.</p>
+
+<div class="table-wrapper-paragraph"><table>
+<thead>
+<tr>
+<th>Proposal area</th>
+<th>Current progress</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Structured labs</td>
+<td>Labs live in <code>_labs/</code> and render through Jekyll.</td>
+<td>Mostly complete</td>
+</tr>
+<tr>
+<td>Interactive flow</td>
+<td>Identify, Explain, Fix, feedback, hints, and progress storage are working.</td>
+<td>Mostly complete</td>
+</tr>
+<tr>
+<td>Contributor workflow</td>
+<td>Schema validation, docs, and a reusable lab template are in place.</td>
+<td>Mostly complete</td>
+</tr>
+<tr>
+<td>Quality checks</td>
+<td>GitLab CI and Jest test coverage have been added.</td>
+<td>In progress</td>
+</tr>
+<tr>
+<td>Intelligence dashboard</td>
+<td>Planned for the second half.</td>
+<td>Upcoming</td>
+</tr>
+<tr>
+<td>Personalisation</td>
+<td>Recommendations, analytics, badges, and streaks are planned next.</td>
+<td>In second half</td>
+</tr>
+</tbody>
+</table></div>
+
+<h3>
+  <a name="architecture" href="#architecture">
+  </a>
+  Architecture
+</h3>
+
+<p>The main challenge was connecting the different parts of BLT University into a reusable system.</p>
+
+<p>Lab content begins in <code>_labs/</code>, where each lab is defined using Markdown and YAML frontmatter. During the Jekyll build process, these files are transformed into static pages. A shared JavaScript engine then powers the interactive Identify, Explain, and Fix workflow by loading the lab configuration, rendering the simulation, validating learner submissions, and tracking progress in the browser using <code>localStorage</code>.<br>
+</p>
+
+<div class="highlight js-code-highlight">
+<pre class="highlight plaintext"><code>flowchart LR
+    author["Contributor writes lab&lt;br/&gt;Markdown + YAML frontmatter"] --&gt; labs["_labs/ collection"]
+    labs --&gt; schema["Schema validation&lt;br/&gt;and lab checks"]
+    schema --&gt; ci["GitLab CI&lt;br/&gt;validate, build, test"]
+    labs --&gt; jekyll["Jekyll build"]
+    jekyll --&gt; page["Static lab page"]
+    page --&gt; data["Embedded lab data"]
+    data --&gt; engine["JavaScript lab engine"]
+    engine --&gt; identify["Identify vulnerable code"]
+    identify --&gt; explain["Explain the issue"]
+    explain --&gt; fix["Fix with safer code"]
+    fix --&gt; progress["Browser progress&lt;br/&gt;localStorage"]
+    engine --&gt; feedback["Hints and validation feedback"]
+</code></pre>
+<div class="highlight__panel js-actions-panel">
+<div class="highlight__panel-action js-fullscreen-code-action">
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewbox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-on"><title>Enter fullscreen mode</title>
+    <path d="M16 3h6v6h-2V5h-4V3zM2 3h6v2H4v4H2V3zm18 16v-4h2v6h-6v-2h4zM4 19h4v2H2v-6h2v4z"></path>
+</svg>
+
+    <svg xmlns="http://www.w3.org/2000/svg" width="20px" height="20px" viewbox="0 0 24 24" class="highlight-action crayons-icon highlight-action--fullscreen-off"><title>Exit fullscreen mode</title>
+    <path d="M18 7h4v2h-6V3h2v4zM8 9H2V7h4V3h2v6zm10 8v4h-2v-6h6v2h-4zM8 15v6H6v-4H2v-2h6z"></path>
+</svg>
+
+</div>
+</div>
+</div>
+
+
+
+<h3>
+  <a name="merge-requests" href="#merge-requests">
+  </a>
+  Merge requests
+</h3>
+
+<ol>
+<li>
+<a href="https://gitlab.com/owasp-blt/blt-university/-/merge_requests/1" target="_blank" rel="noopener noreferrer">MR !1</a> introduced the first interactive simulation work and helped move the project from static reading material toward hands-on labs.</li>
+<li>
+<a href="https://gitlab.com/owasp-blt/blt-university/-/merge_requests/2" target="_blank" rel="noopener noreferrer">MR !2</a> improved the lab page structure and site integration so labs could be rendered more consistently.</li>
+<li>
+<a href="https://gitlab.com/owasp-blt/blt-university/-/merge_requests/3" target="_blank" rel="noopener noreferrer">MR !3</a> added schema validation, the lab validation script, and contributor-facing lab documentation.</li>
+<li>
+<a href="https://gitlab.com/owasp-blt/blt-university/-/merge_requests/4" target="_blank" rel="noopener noreferrer">MR !4</a> expanded the lab with additional web security labs such as command injection, file upload vulnerabilities, open redirect, sensitive data exposure, and SSRF.</li>
+<li>
+<a href="https://gitlab.com/owasp-blt/blt-university/-/merge_requests/5" target="_blank" rel="noopener noreferrer">MR !5</a> added automated test coverage for validators, simulation state transitions, progress storage, and lab engine behavior.</li>
+<li>
+<a href="https://gitlab.com/owasp-blt/blt-university/-/merge_requests/6" target="_blank" rel="noopener noreferrer">MR !6</a> refined the lab simulation experience and addressed review feedback around reusable simulation behavior.</li>
+</ol>
+
+<p>Links:</p>
+
+<ul>
+<li>Repository: <a href="https://gitlab.com/owasp-blt/blt-university" target="_blank" rel="noopener noreferrer">BLT University on GitLab</a>
+</li>
+<li>Live demo: <a href="https://blt-university-250f70.gitlab.io/" target="_blank" rel="noopener noreferrer">BLT University</a>
+</li>
+</ul>
+
+<h3>
+  <a name="challenges-amp-what-i-learned" href="#challenges-amp-what-i-learned">
+  </a>
+  Challenges &amp; What I Learned
+</h3>
+
+<p>One of the main challenges was building interactive experiences on a static Jekyll site without relying on a backend. The lab pages are static, but the learner experience still needs dynamic behaviour: selecting lines, validating answers, showing feedback, and tracking progress. This pushed me to think carefully about what should live in Markdown, what should be handled by Jekyll, and what should be handled by JavaScript.</p>
+
+<p>Another challenge was designing reusable validators. Security fixes can be written in many valid ways, so the validators cannot simply check for one exact answer. They need to focus on secure coding patterns, such as parameterised queries or restricted redirects, while still giving useful feedback to learners.</p>
+
+<p>I also learned how important state management is in an interactive learning flow. A step being unlocked is different from a step being completed, and learners should be able to restart earlier stages without the UI showing later stages as complete. Fixing these details made the lab engine feel more reliable and less confusing.</p>
+
+<h3>
+  <a name="next-phase-after-midterm" href="#next-phase-after-midterm">
+  </a>
+  Next phase after midterm
+</h3>
+
+<p>After midterm, the focus will move from the foundation layer to the intelligence and personalisation layer.</p>
+
+<p>It will include:</p>
+
+<ul>
+<li>Building the vulnerability intelligence dashboard to show vulnerability trends, OWASP category patterns, and related BLT University labs.</li>
+<li>Creating data files for vulnerability trends and OWASP category weights.</li>
+<li>Mapping vulnerability patterns to relevant labs.</li>
+<li>Building a recommendation system based on learner progress and vulnerability frequency.</li>
+<li>Improving the lab dashboard experience.</li>
+<li>Adding learner analytics across categories.</li>
+<li>Improving accessibility and keyboard navigation.</li>
+<li>Adding badges, streaks, and static hint fallbacks.</li>
+</ul>
+
+<p>The long-term goal is for BLT University to become a platform where contributors can learn security through practice and understand which vulnerabilities matter most based on real patterns from open-source development.</p>
+
+<p>The first half of GSoC was about building the foundation: labs, validation, reusable interactions, contributor workflows, and tests. In the second half, I'll be building smarter learning experience where BLT University not only teaches individual vulnerabilities, but also helps learners understand what to practice next and why it matters.</p>
+
+<h3>
+  <a name="acknowledgement" href="#acknowledgement">
+  </a>
+  Acknowledgement
+</h3>
+
+<p>I would like to thank all my mentors, for their guidance, review feedback, and support throughout this period.</p>
+
+<p>Thank you for reading :) </p>

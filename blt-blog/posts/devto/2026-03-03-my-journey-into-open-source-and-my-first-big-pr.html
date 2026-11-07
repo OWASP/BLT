@@ -1,0 +1,163 @@
+---
+title: "My Journey Into Open Source and My First Big PR"
+slug: "my-journey-into-open-source-and-my-first-big-pr"
+date: "2026-03-03"
+updated: "2026-03-03"
+author: "Nachiket Roy"
+author_url: "https://dev.to/nachiket-roy"
+author_avatar: "/images/authors/nachiket-roy.webp"
+description: "I heard about open source around a year ago, and honestly, I didn’t jump in out of excitement - it..."
+tags: ["opensource", "owasp", "gsoc"]
+cover: "/images/my-journey-into-open-source-and-my-first-big-pr/00.webp"
+reading_time: 3
+canonical: "https://dev.to/owaspblt/my-journey-into-open-source-and-my-first-big-pr-5h4i"
+source: "https://dev.to/owaspblt/my-journey-into-open-source-and-my-first-big-pr-5h4i"
+---
+<p>I heard about open source around a year ago, and honestly, I didn’t jump in out of excitement - it was pure curiosity. I just wanted to see how things worked behind the scenes. So I started exploring the good-first-issue label on GitHub, picked some random repos, forked them, committed a few changes, and slowly figured out the whole contribution workflow.<br>
+Back then, I also knew about GSoC - Google Summer of Code - but only at a surface level. To me, it was simply “contribute → get selected.” I had no idea how big real-world codebases could be or how overwhelming they might feel.</p>
+<h2>
+  <a name="finding-my-direction-owasp" href="#finding-my-direction-owasp">
+  </a>
+  Finding My Direction: OWASP
+</h2>
+
+<p>While browsing blogs about how to get started, almost everyone suggested reading previous years’ GSoC write-ups. So I did. And while reading those posts, one organization suddenly stood out: OWASP.</p>
+
+<p>The reason was simple - I already knew about the OWASP Top 10. Out of hundreds of unfamiliar organizations, OWASP felt like a place where I at least understood the purpose.</p>
+
+<p>As I explored further, projects like NEST, CRE, and BLT started popping up. I leaned toward NEST at first because I’m more comfortable with TypeScript. BLT looked really interesting, but I had zero experience with Django or Python.</p>
+
+<p>And then came the twist.</p>
+<h2>
+  <a name="the-blog-that-changed-everything" href="#the-blog-that-changed-everything">
+  </a>
+  The Blog That Changed Everything
+</h2>
+
+<p>I found a GSoC blog written by a contributor. They had built four security labs for the BLT project and the write-up was so friendly that it gave me confidence:</p>
+
+<p>“I may not know the stack, but I can surely replicate this and extend it.”</p>
+
+<p>That belief was strong enough for me to try. Plus, I knew I could use AI tools to understand things. How hard could it be?</p>
+
+<p>Well… harder than I expected.</p>
+<h2>
+  <a name="my-first-pr-the-reality-check" href="#my-first-pr-the-reality-check">
+  </a>
+  My First PR: The Reality Check
+</h2>
+
+<p>I replicated the labs, joined the Slack workspace, got confirmation, and made my PR in October:</p>
+
+
+<div class="ltag_github-liquid-tag">
+  <h1>
+    <a href="https://github.com/OWASP-BLT/BLT/pull/4628" target="_blank" rel="noopener noreferrer">
+      <img class="github-logo" alt="GitHub logo" src="/images/my-journey-into-open-source-and-my-first-big-pr/01.svg">
+      <span class="issue-title">
+        Added Labs: Under Security Labs Added More Labs
+      </span>
+      <span class="issue-number">#4628</span>
+    </a>
+  </h1>
+  <div class="github-thread">
+    <div class="timeline-comment-header">
+      <a href="https://github.com/Nachiket-Roy" target="_blank" rel="noopener noreferrer">
+        <img class="github-liquid-tag-img" src="/images/my-journey-into-open-source-and-my-first-big-pr/02.webp" alt="Nachiket-Roy avatar" loading="lazy">
+      </a>
+      <div class="timeline-comment-header-text">
+        <strong>
+          <a href="https://github.com/Nachiket-Roy" target="_blank" rel="noopener noreferrer">Nachiket-Roy</a>
+        </strong> posted on <a href="https://github.com/OWASP-BLT/BLT/pull/4628" target="_blank" rel="noopener noreferrer"><time datetime="2025-10-14T18:36:48Z">Oct 14, 2025</time></a>
+      </div>
+    </div>
+    <div class="ltag-github-body">
+      <p>Added  more labs in security labs section closes #4784
+<a target="_blank" rel="noopener noreferrer" href="https://github.com/user-attachments/assets/75239ef9-0277-48b2-9b54-930d719074fe"><img width="1284" height="656" alt="2025-10-15_00-00" src="/images/my-journey-into-open-source-and-my-first-big-pr/03.webp" style="max-width: 100%; height: auto; max-height: 656px;" loading="lazy"></a>
+<a target="_blank" rel="noopener noreferrer" href="https://github.com/user-attachments/assets/d2bcc17f-e747-4dcf-8e85-025b6c48ce40"><img width="1259" height="826" alt="2025-10-15_00-01" src="/images/my-journey-into-open-source-and-my-first-big-pr/04.webp" style="max-width: 100%; height: auto; max-height: 826px;" loading="lazy"></a></p>
+<p>To seed labs and their tasks simply run :
+<code>python manage.py seed_all_security_lab</code></p>
+
+<div class="markdown-heading">
+<h2 class="heading-element">Summary by CodeRabbit</h2>
+<a id="user-content-summary-by-coderabbit" class="anchor" aria-label="Permalink: Summary by CodeRabbit" href="#summary-by-coderabbit"><span aria-hidden="true" class="octicon octicon-link"></span></a>
+</div>
+<ul>
+<li>
+<p><strong>Refactor</strong></p>
+<ul>
+<li>Restructured task detail page into clear, per-lab sections for payload exercises (SQLi, XSS, CSRF, Command Injection, Broken Auth, IDOR, File Upload, Sensitive Data Exposure, Open Redirect, SSRF)</li>
+<li>Unified and simplified MCQ and simulation submission flows and result display with consistent styling driven by correctness</li>
+<li>Minor formatting and structural template cleanups</li>
+</ul>
+</li>
+<li>
+<p><strong>Chores</strong></p>
+<ul>
+<li>Added a management command to seed the six security labs and their tasks for testing/dev environments</li>
+</ul>
+</li>
+</ul>
+
+
+    </div>
+    <div class="gh-btn-container"><a class="gh-btn" href="https://github.com/OWASP-BLT/BLT/pull/4628" target="_blank" rel="noopener noreferrer">View on GitHub</a></div>
+  </div>
+</div>
+
+
+<p>The moment I asked for a review, reality hit.<br>
+Replication wasn’t as simple as copy → paste → commit.</p>
+
+<p>I had:</p>
+
+<ul>
+<li>added irrelevant files</li>
+<li>failed pre-commit checks</li>
+<li>triggered Sentry and CodeRabbit warnings I didn’t even understand</li>
+<li>and generally made every beginner mistake possible</li>
+</ul>
+
+<p>After a lot (and I mean a lot) of back-and-forth, and with patient help from the maintainer - Donnie, I finally cleared everything. One month later, the PR was merged. And that changed everything for me.</p>
+
+<h2>
+  <a name="from-zero-momentum-to-light-speed" href="#from-zero-momentum-to-light-speed">
+  </a>
+  From Zero Momentum to Light Speed
+</h2>
+
+<p>Once that first PR got merged, it was a massive boost.</p>
+
+<p>I started reading issues, picking tasks, opening PRs, getting reviews, fixing things, and before I knew it, I had multiple PRs merged in the same month. The slow start turned into full-speed progress.</p>
+
+<p>We were also encouraged to review others’ PRs. I didn’t really know how to do that, so I watched how other contributors reviewed code and followed their patterns. Tools like CodeRabbit and Sentry helped; they taught me how to reason about code warnings.</p>
+
+<p>I also started recognizing common patterns in the backend:</p>
+
+<ul>
+<li>N+1 query problems</li>
+<li>cache stampede issues</li>
+<li>repeated logic patterns</li>
+<li>places where optimizations were needed</li>
+</ul>
+
+<p>I wasn’t an expert, but I was learning how to spot things. I used Copilot and CodeRabbit to understand unfamiliar parts of the repo and slowly built a mental map of its workflow.</p>
+
+<h2>
+  <a name="where-i-am-now" href="#where-i-am-now">
+  </a>
+  Where I Am Now
+</h2>
+
+<p>From that first confused PR to today, the journey has been wild.<br>
+I now:</p>
+
+<ul>
+<li>understand the repo’s structure</li>
+<li>can navigate issues, commits, and workflows confidently</li>
+<li>know how reviews function</li>
+<li>contribute regularly</li>
+<li>and feel genuinely connected to the project</li>
+</ul>
+
+<p>What started as a random attempt to explore open source turned into something meaningful that i want to continue growing in.</p>

@@ -1,0 +1,114 @@
+---
+title: "Building an AI-Powered Security TUI with Rust and MCP"
+slug: "building-an-ai-powered-security-tui-with-rust-and-mcp"
+date: "2026-08-19"
+updated: "2026-08-19"
+author: "Nachiket Roy"
+author_url: "https://dev.to/nachiket-roy"
+author_avatar: "/images/authors/nachiket-roy.webp"
+description: "Picking up where I left off   In my midterm update, I introduced the two main parts I was..."
+tags: ["ai", "cli", "rust", "security"]
+cover: "/images/building-an-ai-powered-security-tui-with-rust-and-mcp/00.webp"
+reading_time: 3
+canonical: "https://dev.to/owaspblt/building-an-ai-powered-security-tui-with-rust-and-mcp-oj9"
+source: "https://dev.to/owaspblt/building-an-ai-powered-security-tui-with-rust-and-mcp-oj9"
+---
+<h2>
+  <a name="picking-up-where-i-left-off" href="#picking-up-where-i-left-off">
+  </a>
+  Picking up where I left off
+</h2>
+
+<p>In my <a href="https://dev.to/owaspblt/connecting-ai-and-security-with-blt-mcp-2cgb">midterm update</a>, I introduced the two main parts I was working on for OWASP BLT: <strong>BLT-MCP</strong>, which connects AI models with the BLT API, and <strong>BLT-CLI</strong>, a Rust-based terminal interface for working with BLT.</p>
+
+<p>At that point, most of the foundation was there, but some of the features were still being worked on. The triage workflow was still coming together, and the screenshot analysis feature was only an early experiment. Since then, both have come together quite a bit, so here is where the project is now.</p>
+
+<h2>
+  <a name="what-bltcli-can-do-now" href="#what-bltcli-can-do-now">
+  </a>
+  What BLT-CLI can do now
+</h2>
+
+<p>The CLI has grown quite a bit since the midterm version. You can browse vulnerabilities, search and filter reports, view bounty hunts, check contributor rankings, inspect individual vulnerabilities, submit new reports, and use the AI features for analysis and screenshots.</p>
+
+<p>There are also logs and health information available from the interface. Guest mode is available as well, so you can explore the application without having to configure everything first.<br>
+Here is a small demo of BLT-CLI running in guest mode - <br>
+  <iframe src="https://www.youtube.com/embed/psd66flmThI" style="width: 100%; aspect-ratio: 16 / 9;" allowfullscreen loading="lazy">
+  </iframe>
+</p>
+
+<h2>
+  <a name="how-it-works" href="#how-it-works">
+  </a>
+  How it works
+</h2>
+
+<p>There are currently two ways to use the CLI. In the basic mode, it talks directly to the BLT API.</p>
+
+<p>When AI features are needed, it can use BLT-MCP, which sits between the CLI, the BLT API, and the AI models. This keeps the terminal interface focused on the actual user experience while the MCP server handles the connection between the different services.</p>
+
+<h2>
+  <a name="aiassisted-triage" href="#aiassisted-triage">
+  </a>
+  AI-assisted triage
+</h2>
+
+<p>One of the main things I wanted to experiment with was using AI to help with triage. When looking at a vulnerability, the AI can analyze the available information and provide suggestions around severity, attack vectors, potential impact, duplicate risk, and other things worth considering.</p>
+
+<p>The AI does not automatically change the vulnerability. It gives you an analysis that you can review and decide what to do with. I think this is an important distinction. AI can save time when doing repetitive analysis, but I did not want it making changes behind the scenes.</p>
+
+<h2>
+  <a name="submitting-reports-from-the-terminal" href="#submitting-reports-from-the-terminal">
+  </a>
+  Submitting reports from the terminal
+</h2>
+
+<p>The report submission workflow is also now part of the CLI. You can fill in the usual information such as the title, URL, severity, bug type, description, and proof of concept.</p>
+
+<p>The form can be filled out entirely from the terminal and submitted directly to BLT. So the workflow can now go from looking at a vulnerability, analyzing it, writing the report, and submitting it without having to constantly move between different applications.</p>
+
+<h2>
+  <a name="from-a-screenshot-to-a-report" href="#from-a-screenshot-to-a-report">
+  </a>
+  From a screenshot to a report
+</h2>
+
+<p>This was probably the feature I was most interested in when I started working on the project. At the time of the midterm update, the vision part was still very experimental. Now it works as part of the normal workflow.</p>
+
+<p>You can provide a screenshot and the vision model can analyze it and help fill in parts of a vulnerability report, including the title and reproduction steps.</p>
+
+<h2>
+  <a name="what-comes-next" href="#what-comes-next">
+  </a>
+  What comes next
+</h2>
+
+<p>There is still plenty to improve. Some of them are better AI analysis, more reliable MCP tools, smoother TUI workflows, better error handling, and more functionality in the CLI.</p>
+
+<p>I also want to keep experimenting with how AI can fit into security workflows without turning everything into an automatic black box. The current version is really just a starting point.</p>
+
+<h2>
+  <a name="wrapping-up" href="#wrapping-up">
+  </a>
+  Wrapping up
+</h2>
+
+<p>This also concludes my summer term project. It was genuinely fun to spend the term building and testing new things, especially getting to work with Rust, MCP, AI models, and the terminal UI together.</p>
+
+<p>Not everything worked on the first try, and there were plenty of things I had to rethink along the way, but that was probably one of the best parts of the project. I got to experiment with different ideas and see what actually made sense once everything was put together.</p>
+
+<p>There is still a lot that can be improved, but I am happy with where the project ended up compared to where it started.</p>
+
+<h2>
+  <a name="try-it-out" href="#try-it-out">
+  </a>
+  Try it out
+</h2>
+
+<p>The project is still evolving, so there are definitely some rough edges.</p>
+
+<p>BLT-CLI and BLT-MCP will be published soon, and once they are available, you will be able to try them out yourself. If you find something that does not work or have an idea for improving the workflow, feel free to open an issue or merge request.</p>
+
+<p>The project is still being built, and feedback from people actually using it is probably the most useful thing it can get.</p>
+
+<p>Thank you for reading and following along!!</p>

@@ -1,0 +1,254 @@
+---
+title: "Eleven Projects, One Remarkable Team: Celebrating OWASP BLT’s GSoC 2026"
+slug: "eleven-projects-one-remarkable-team-celebrating-owasp-blts-gsoc-2026"
+date: "2026-08-31"
+updated: "2026-10-20"
+author: "Donnie Brown"
+author_url: "https://dev.to/donnieblt"
+author_avatar: "/images/authors/donnieblt.webp"
+description: "Meet the contributors and mentors who turned OWASP BLT’s 2026 summer into working security tools, learning platforms, and edge-native infrastructure."
+tags: ["opensource", "security", "gsoc", "webdev"]
+cover: "/images/eleven-projects-one-remarkable-team-celebrating-owasp-blts-gsoc-2026/00.webp"
+reading_time: 6
+canonical: "https://gsoc.owaspblt.org/gsoc2026.html"
+source: "https://dev.to/owaspblt/eleven-projects-one-remarkable-team-celebrating-owasp-blts-gsoc-2026-4dck"
+---
+<p>Open source is often measured in commits. The better measure is what those commits make possible.</p>
+
+<p>During GSoC 2026, the OWASP BLT community worked across <strong>11 projects</strong>: four Google Summer of Code projects and seven paid internship projects. The team built zero-trust security pipelines, practical learning experiences, privacy tools, AI-assisted contributor workflows, edge-native services, and the infrastructure needed to run them in production.</p>
+
+<p>By the end of the summer, the portfolio was not a collection of slide decks. Nine projects had live applications or documentation sites, Hackerhouse had a new production domain and healthy database-backed deployment, and the Cloudflare-backed projects had current deployments and completed migrations.</p>
+
+<p>This is the team behind that progress.</p>
+
+<h2>
+  <a name="the-gsoc-projects" href="#the-gsoc-projects">
+  </a>
+  The GSoC projects
+</h2>
+
+<h3>
+  <a name="preetham-poojari-bltnetguardian" href="#preetham-poojari-bltnetguardian">
+  </a>
+  Preetham Poojari — BLT-NetGuardian
+</h3>
+
+<p>Preetham helped turn NetGuardian into a serious zero-trust ingestion and triage pipeline. The system verifies signed finding envelopes, applies replay protection and role-based access, stores metadata in D1, and supports CVE-aware review. The result is a working bridge between distributed security research and accountable triage.</p>
+
+<p>The repository records <strong>90 commits by Preetham during the coding period</strong>, and the deployed service now has scheduled maintenance running through BLT Monitor without consuming another Cloudflare cron slot.</p>
+
+<p>Mentors: <strong>Jisan</strong> and <strong>CarlaV</strong>.</p>
+
+<p><a href="https://media2.dev.to/dynamic/image/width=800%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.us-east-2.amazonaws.com%2Fuploads%2Farticles%2Fuqgn8x72myb82qc23sg3.png" class="article-body-image-wrapper"><img src="/images/eleven-projects-one-remarkable-team-celebrating-owasp-blts-gsoc-2026/01.webp" alt="BLT-NetGuardian live site" loading="lazy" width="800" height="500"></a></p>
+
+<p><a href="https://netguardian.owaspblt.org/" target="_blank" rel="noopener noreferrer">Try NetGuardian</a> · <a href="https://gitlab.com/owasp-blt/blt-netguardian" target="_blank" rel="noopener noreferrer">Source code</a></p>
+
+<h3>
+  <a name="sakshee-suman-bltuniversity" href="#sakshee-suman-bltuniversity">
+  </a>
+  Sakshee Suman — BLT-University
+</h3>
+
+<p>Sakshee advanced BLT-University as a hands-on security learning platform built around a clear loop: identify a vulnerability, explain it, and fix it. The project connects practical labs with real vulnerability insights and makes security education something learners can actively do.</p>
+
+<p>The local history shows <strong>40 coding-period commits across Sakshee’s author identities</strong>. The result is live, browsable, and designed to make the next generation of security contributors more capable from day one.</p>
+
+<p>Mentors: <strong>BishalDas</strong> and <strong>Chigorin.1337</strong>.</p>
+
+<p><a href="https://media2.dev.to/dynamic/image/width=800%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.us-east-2.amazonaws.com%2Fuploads%2Farticles%2Fvkn52xf83v6hixn532t9.png" class="article-body-image-wrapper"><img src="/images/eleven-projects-one-remarkable-team-celebrating-owasp-blts-gsoc-2026/02.webp" alt="BLT-University live site" loading="lazy" width="800" height="500"></a></p>
+
+<p><a href="https://university.owaspblt.org/" target="_blank" rel="noopener noreferrer">Explore BLT-University</a> · <a href="https://gitlab.com/owasp-blt/blt-university" target="_blank" rel="noopener noreferrer">Source code</a></p>
+
+<h3>
+  <a name="md-kaif-ansari-bltnext" href="#md-kaif-ansari-bltnext">
+  </a>
+  Md Kaif Ansari — BLT-Next
+</h3>
+
+<p>Md Kaif worked on the broadest architectural challenge in the programme: moving BLT from a tightly coupled Django application toward modular, edge-first services. BLT-Next demonstrates the direction with a static frontend, Cloudflare Workers, D1-backed services, and independently deployable capabilities.</p>
+
+<p>That work reaches beyond one repository. The programme roster credits Md Kaif across BLT-Next and supporting BLT services including API, docs, hackathons, jobs, monitor, newsletter, and Zero. The success here is architectural: a clearer path to a capable platform with dramatically lower hosting overhead.</p>
+
+<p>Mentors: <strong>DonnieBLT</strong> and <strong>Rinkit Adhana</strong>.</p>
+
+<p><a href="https://media2.dev.to/dynamic/image/width=800%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.us-east-2.amazonaws.com%2Fuploads%2Farticles%2Fre7asfiymz3nkar7ifhb.png" class="article-body-image-wrapper"><img src="/images/eleven-projects-one-remarkable-team-celebrating-owasp-blts-gsoc-2026/03.webp" alt="BLT-Next live site" loading="lazy" width="800" height="500"></a></p>
+
+<p><a href="https://next.owaspblt.org/" target="_blank" rel="noopener noreferrer">Visit BLT-Next</a> · <a href="https://gitlab.com/owasp-blt/blt-next" target="_blank" rel="noopener noreferrer">Source code</a></p>
+
+<h3>
+  <a name="ananya-bltvanish" href="#ananya-bltvanish">
+  </a>
+  Ananya — BLT-Vanish
+</h3>
+
+<p>Ananya evolved BLT-Vanish toward a universal identity shield: phishing detection, credential hygiene, suspicious-login correlation, encrypted workflows, and explainable risk scoring across web and Flutter clients.</p>
+
+<p>With <strong>59 coding-period commits</strong> in the web repository, Ananya moved the project from an idea toward a cohesive privacy and personal-security experience. The production web app is now served from its dedicated OWASP BLT subdomain.</p>
+
+<p>Mentors: <strong>Ankitsinghsisodya</strong> and <strong>Ramansh</strong>.</p>
+
+<p><a href="https://media2.dev.to/dynamic/image/width=800%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.us-east-2.amazonaws.com%2Fuploads%2Farticles%2Fppxdtedo06wbtmnajne5.png" class="article-body-image-wrapper"><img src="/images/eleven-projects-one-remarkable-team-celebrating-owasp-blts-gsoc-2026/04.webp" alt="BLT-Vanish live site" loading="lazy" width="800" height="500"></a></p>
+
+<p><a href="https://vanish.owaspblt.org/" target="_blank" rel="noopener noreferrer">Try BLT-Vanish</a> · <a href="https://gitlab.com/owasp-blt/blt-vanish" target="_blank" rel="noopener noreferrer">Source code</a></p>
+
+<h2>
+  <a name="the-paid-internship-projects" href="#the-paid-internship-projects">
+  </a>
+  The paid internship projects
+</h2>
+
+<h3>
+  <a name="savio-dsouza-bltpreflight" href="#savio-dsouza-bltpreflight">
+  </a>
+  Savio D’souza — BLT-Preflight
+</h3>
+
+<p>Savio built an ambitious local-first contribution assistant spanning the editor, pre-commit checks, and CI. Its hybrid classifier and OWASP-documentation retrieval layer are designed to catch risk while a contributor can still act on the feedback—not after a review cycle has already stalled.</p>
+
+<p>Savio authored <strong>28 coding-period commits</strong> across his recorded identities. Preflight is deployed as a live interactive experience, with the repository retaining a second optional API target for future provisioning.</p>
+
+<p>Volunteer mentor: <strong>Raj Gupta</strong>.</p>
+
+<p><a href="https://media2.dev.to/dynamic/image/width=800%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.us-east-2.amazonaws.com%2Fuploads%2Farticles%2Fa9g26un9o67to2y0xhcy.png" class="article-body-image-wrapper"><img src="/images/eleven-projects-one-remarkable-team-celebrating-owasp-blts-gsoc-2026/05.webp" alt="BLT-Preflight live site" loading="lazy" width="800" height="500"></a></p>
+
+<p><a href="https://preflight.owaspblt.org/" target="_blank" rel="noopener noreferrer">Open BLT-Preflight</a> · <a href="https://gitlab.com/owasp-blt/blt-preflight" target="_blank" rel="noopener noreferrer">Source code</a></p>
+
+<h3>
+  <a name="ojaswa-blttoasty" href="#ojaswa-blttoasty">
+  </a>
+  Ojaswa — BLT-Toasty
+</h3>
+
+<p>Ojaswa’s Toasty tackles one of vulnerability management’s hardest operational problems: turning raw reports into safe, useful, structured intelligence. It combines fail-closed PII redaction, AI summarization, duplicate detection, webhook ingestion, durable state, and MCP export.</p>
+
+<p>The coding period includes <strong>74 commits by Ojaswa</strong>, ending with a polished architecture showcase and quick-start experience. Toasty’s Worker, state migrations, and public site are deployed and tested.</p>
+
+<p><a href="https://media2.dev.to/dynamic/image/width=800%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.us-east-2.amazonaws.com%2Fuploads%2Farticles%2Flh96gf4kgcr1e9hpwhpq.png" class="article-body-image-wrapper"><img src="/images/eleven-projects-one-remarkable-team-celebrating-owasp-blts-gsoc-2026/06.webp" alt="BLT-Toasty live site" loading="lazy" width="800" height="500"></a></p>
+
+<p><a href="https://toasty.owaspblt.org/" target="_blank" rel="noopener noreferrer">Meet Toasty</a> · <a href="https://gitlab.com/owasp-blt/blt-toasty" target="_blank" rel="noopener noreferrer">Source code</a></p>
+
+<h3>
+  <a name="nachiket-roy-bltmcp" href="#nachiket-roy-bltmcp">
+  </a>
+  Nachiket Roy — BLT-MCP
+</h3>
+
+<p>Nachiket made Model Context Protocol practical for the BLT contributor ecosystem. BLT-MCP gives tools and agents a consistent way to discover capabilities and work with project context instead of relying on brittle, one-off automation.</p>
+
+<p>With <strong>88 coding-period commits</strong>, Nachiket delivered one of the summer’s most active repositories. The live service makes the work immediately discoverable to both contributors and tool builders.</p>
+
+<p><strong>BLT-MCP project experience</strong></p>
+
+<p><a href="https://media2.dev.to/dynamic/image/width=800%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.us-east-2.amazonaws.com%2Fuploads%2Farticles%2Fwn7q34znm2mq54mjvl7v.png" class="article-body-image-wrapper"><img src="/images/eleven-projects-one-remarkable-team-celebrating-owasp-blts-gsoc-2026/07.webp" alt="BLT-MCP project experience" loading="lazy" width="800" height="500"></a></p>
+
+<p><strong>BLT-MCP live CLI and vulnerability triage view</strong></p>
+
+<p><a href="https://media2.dev.to/dynamic/image/width=800%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.us-east-2.amazonaws.com%2Fuploads%2Farticles%2Fs2pw48eygu5r6pqun3d3.png" class="article-body-image-wrapper"><img src="/images/eleven-projects-one-remarkable-team-celebrating-owasp-blts-gsoc-2026/08.webp" alt="BLT-MCP live CLI and vulnerability triage view" loading="lazy" width="800" height="419"></a></p>
+
+<p><a href="https://mcp.owaspblt.org/" target="_blank" rel="noopener noreferrer">Explore BLT-MCP</a> · <a href="https://gitlab.com/owasp-blt/blt-mcp" target="_blank" rel="noopener noreferrer">Source code</a></p>
+
+<h3>
+  <a name="karuna-rapolu-bltsafecloak" href="#karuna-rapolu-bltsafecloak">
+  </a>
+  Karuna Rapolu — BLT-SafeCloak
+</h3>
+
+<p>Karuna’s SafeCloak work focused on privacy guardrails and safer user workflows. The project gives users a security-focused place to reason about exposure and make better privacy decisions without turning the experience into an expert-only tool.</p>
+
+<p>The summer established a deployed, tested baseline and a public experience on its own subdomain—an important foundation for deeper privacy automation.</p>
+
+<p><a href="https://media2.dev.to/dynamic/image/width=800%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.us-east-2.amazonaws.com%2Fuploads%2Farticles%2Fbr8z542aq2gkckhi9n3o.png" class="article-body-image-wrapper"><img src="/images/eleven-projects-one-remarkable-team-celebrating-owasp-blts-gsoc-2026/09.webp" alt="BLT-SafeCloak live site" loading="lazy" width="800" height="500"></a></p>
+
+<p><a href="https://safecloak.owaspblt.org/" target="_blank" rel="noopener noreferrer">Visit SafeCloak</a> · <a href="https://gitlab.com/owasp-blt/blt-safecloak" target="_blank" rel="noopener noreferrer">Source code</a></p>
+
+<h3>
+  <a name="rudra-pratap-singh-blthackerhouse" href="#rudra-pratap-singh-blthackerhouse">
+  </a>
+  Rudra Pratap Singh — BLT-Hackerhouse
+</h3>
+
+<p>Rudra helped build Hackerhouse as a collaboration pipeline for hands-on offensive and defensive security work. The application now has a real production stack: a Python Worker, Durable Objects, a D1 database, queue-backed events, applied migrations, and regression-tested health reporting.</p>
+
+<p>Rudra authored <strong>48 coding-period commits</strong>. Hackerhouse also reached a particularly visible milestone this summer: a healthy production deployment at its new dedicated domain.</p>
+
+<p><a href="https://media2.dev.to/dynamic/image/width=800%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.us-east-2.amazonaws.com%2Fuploads%2Farticles%2Fu6dvuanxv2y5s68cajgp.png" class="article-body-image-wrapper"><img src="/images/eleven-projects-one-remarkable-team-celebrating-owasp-blts-gsoc-2026/10.webp" alt="BLT-Hackerhouse live site" loading="lazy" width="800" height="500"></a></p>
+
+<p><a href="https://hackerhouse.owaspblt.org/" target="_blank" rel="noopener noreferrer">Visit Hackerhouse</a> · <a href="https://gitlab.com/owasp-blt/blt-hackerhouse" target="_blank" rel="noopener noreferrer">Source code</a></p>
+
+<h3>
+  <a name="sidd190-bltautopatch" href="#sidd190-bltautopatch">
+  </a>
+  Sidd190 — BLT-Autopatch
+</h3>
+
+<p>Sidd190 took on automated patch generation and validation: an idea with enormous potential to shorten the distance between discovering a vulnerability and safely remediating it.</p>
+
+<p>Autopatch is the portfolio’s earliest-stage project. Its success this summer was establishing the project home and a clear direction for the work ahead. Calling that out honestly matters: healthy open source celebrates shipped systems and the people laying foundations for the next contributors.</p>
+
+<p><a href="https://media2.dev.to/dynamic/image/width=800%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.us-east-2.amazonaws.com%2Fuploads%2Farticles%2F0cp8n02chznj147d5ka2.png" class="article-body-image-wrapper"><img src="/images/eleven-projects-one-remarkable-team-celebrating-owasp-blts-gsoc-2026/11.webp" alt="BLT-Autopatch source project" loading="lazy" width="800" height="500"></a></p>
+
+<p><a href="https://gitlab.com/owasp-blt/blt-autopatch" target="_blank" rel="noopener noreferrer">Source code</a></p>
+
+<h3>
+  <a name="jayant-bltmayo" href="#jayant-bltmayo">
+  </a>
+  Jayant — BLT-MAYO
+</h3>
+
+<p>Jayant developed BLT-MAYO as a shell dangerous-execution analyzer—a practical quality and safety tool for BLT engineering workflows. The repository now contains its Python package, tests, documentation, configuration example, and a focused analyzer design.</p>
+
+<p>Jayant authored <strong>three coding-period commits across his recorded identities</strong>, progressing the project from initial structure into working analysis and test foundations.</p>
+
+<p><a href="https://media2.dev.to/dynamic/image/width=800%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.us-east-2.amazonaws.com%2Fuploads%2Farticles%2Fri4dlr4pii7v6kkfye4y.png" class="article-body-image-wrapper"><img src="/images/eleven-projects-one-remarkable-team-celebrating-owasp-blts-gsoc-2026/12.webp" alt="BLT-MAYO source project" loading="lazy" width="800" height="500"></a></p>
+
+<p><a href="https://gitlab.com/owasp-blt/blt-mayo" target="_blank" rel="noopener noreferrer">Source code</a></p>
+
+<h2>
+  <a name="what-the-team-achieved-together" href="#what-the-team-achieved-together">
+  </a>
+  What the team achieved together
+</h2>
+
+<p>The individual stories are impressive. The shared outcome is bigger:</p>
+
+<ul>
+<li>
+<strong>11 contributors</strong> received ownership of meaningful, security-focused projects.</li>
+<li>
+<strong>Nine projects</strong> now have live applications or documentation experiences.</li>
+<li>Cloudflare-backed releases were brought current and smoke-tested.</li>
+<li>D1 migrations were applied and verified with no pending migration queues.</li>
+<li>Hackerhouse gained a production database, queue, Durable Objects, and its own domain.</li>
+<li>NetGuardian’s maintenance schedule was integrated without exceeding the account’s five-cron limit.</li>
+<li>Project discovery now leads with live experiences and clearly identifies GitLab as the source-code home.</li>
+</ul>
+
+<p>Most importantly, the team produced multiple on-ramps into open-source security: learn with University, protect identities with Vanish, review findings with NetGuardian, improve reports with Toasty, guide contributions with Preflight, and build new automation through MCP.</p>
+
+<h2>
+  <a name="from-the-contributors" href="#from-the-contributors">
+  </a>
+  From the contributors
+</h2>
+
+<p>The strongest account of a programme comes from the people who built it. Continue with these contributor stories, demos, and community reflections:</p>
+
+<ul>
+<li><a href="https://dev.to/owaspblt/my-gsoc-journey-with-owasp-blt-4lm8">My GSoC Journey with OWASP BLT</a></li>
+<li><a href="https://dev.to/owaspblt/building-an-ai-powered-security-tui-with-rust-and-mcp-oj9">Building an AI-Powered Security TUI with Rust and MCP</a></li>
+<li><a href="https://lnkd.in/p/gQkmQWXM" target="_blank" rel="noopener noreferrer">GSoC 2026 contributor reflection on LinkedIn</a></li>
+<li><a href="https://www.linkedin.com/feed/update/urn:li:activity:7497988651306430465/" target="_blank" rel="noopener noreferrer">GSoC 2026 project progress shared on LinkedIn</a></li>
+<li><a href="https://lnkd.in/p/dQgYPZfM" target="_blank" rel="noopener noreferrer">GSoC 2026 project showcase on LinkedIn</a></li>
+</ul>
+
+<h2>
+  <a name="thank-you" href="#thank-you">
+  </a>
+  Thank you
+</h2>
+
+<p>Thank you to every contributor, GSoC mentor, volunteer mentor, reviewer, tester, and community member who made room for this work to grow. Great mentoring is invisible in a diff, but visible everywhere in a project that becomes clearer, safer, and more welcoming over time.</p>
+
+<p>Explore the <a href="https://gsoc.owaspblt.org/gsoc2026.html" target="_blank" rel="noopener noreferrer">full OWASP BLT GSoC 2026 team and project page</a>, visit the <a href="https://waypoint.owaspblt.org/" target="_blank" rel="noopener noreferrer">live project directory</a>, and find the complete <a href="https://gitlab.com/owasp-blt" target="_blank" rel="noopener noreferrer">source-code organization on GitLab</a>.</p>
+
+<p>The summer is over. The work—and the community behind it—is just getting started.</p>

@@ -99,6 +99,7 @@
     ["BLT-Profiles", "https://profiles.owaspblt.org/", "blt-profiles.svg"],
     ["BLT-Jobs", "https://jobs.owaspblt.org/", "blt-jobs.svg"],
     ["BLT-Newsletter", "https://newsletter.owaspblt.org/", "blt-newsletter.svg"],
+    ["BLT-Blog", "https://blog.owaspblt.org/", "blt-blog.svg"],
     ["BLT-Lettuce", "https://lettuce.owaspblt.org/", "blt-lettuce.svg"],
     ["BLT-Sammich", "https://sammich.owaspblt.org/", "blt-sammich.svg"],
     ["BLT-Design-Contest", "https://contest.owaspblt.org/", "blt-design-contest.svg"],

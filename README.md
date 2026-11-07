@@ -45,6 +45,7 @@ BLT is a pro-AI project: coding agents and AI assistants are welcome for issues,
 | [BLT-Action](https://git.owaspblt.org/BLT/BLT-Action) | Issue automation for BLT: /assign and /unassign on git.owaspblt.org issues and the daily release of stale claims (forge workflows), plus the original GitHub Action for other repositories. |  |
 | [BLT-API](https://git.owaspblt.org/BLT/BLT-API) | REST API for OWASP BLT, written in Python on Cloudflare Workers: bugs, users, domains, organizations, projects, bug hunts, leaderboards and statistics. | [api.owaspblt.org](https://api.owaspblt.org/) |
 | [BLT-Autopatch](https://git.owaspblt.org/BLT/BLT-Autopatch) | Automated patching: proposes fixes for detected security issues. |  |
+| [BLT-Blog](https://git.owaspblt.org/BLT/BLT-Blog) | The OWASP BLT blog: news, release notes and contributor stories, written as Markdown files in this folder and built into a static site. | [blog.owaspblt.org](https://blog.owaspblt.org/) |
 | [BLT-Byte](https://git.owaspblt.org/BLT/BLT-Byte) | AI-powered assistant for bug bounty hunting and security research on the BLT (Bug Logging Tool) platform. | [byte.owaspblt.org](https://byte.owaspblt.org/) |
 | [BLT-CLI](https://git.owaspblt.org/BLT/BLT-CLI) | Terminal (TUI) client for OWASP BLT, written in Rust with Ratatui: browse and triage issues, follow bug hunts and submit vulnerability reports, directly against the BLT API or through BLT-MCP. |  |
 | [blt-core](https://git.owaspblt.org/BLT/blt-core) | The main OWASP BLT platform: a Django app for gamified, crowd-sourced bug reporting and vulnerability disclosure across websites, apps and Git repositories. | [owaspblt.org](https://owaspblt.org/) |
@@ -158,6 +159,7 @@ Secrets are set per Worker with `wrangler secret put` (see each project's README
 | blt-action | `blt-action/` | worker | blt-action |  |
 | blt-api | `blt-api/` | worker | blt-api |  |
 | blt-autopatch | `blt-autopatch/` | worker | blt-autopatch |  |
+| blt-blog | `blt-blog/` | worker | blt-blog |  |
 | blt-byte | `blt-byte/` | pywrangler | blt-byte |  |
 | blt-cli | `blt-cli/` | worker | blt-cli |  |
 | blt-cve | `blt-cve/` | worker | blt-cve |  |

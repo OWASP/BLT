@@ -1,0 +1,13 @@
+# Static site: `npm ci && npm run build` (scripts/deploy/projects.tsv) writes dist/ from posts/ and
+# public/; Cloudflare serves it as Workers static assets on blog.owaspblt.org.
+name = "blt-blog"
+compatibility_date = "2026-10-01"
+
+[assets]
+directory = "./dist"
+html_handling = "auto-trailing-slash"
+not_found_handling = "404-page"
+
+[[routes]]
+pattern = "blog.owaspblt.org"
+custom_domain = true

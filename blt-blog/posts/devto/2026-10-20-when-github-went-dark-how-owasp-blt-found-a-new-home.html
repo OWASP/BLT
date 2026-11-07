@@ -1,0 +1,306 @@
+---
+title: "When GitHub Went Dark: How OWASP BLT Found a New Home"
+slug: "when-github-went-dark-how-owasp-blt-found-a-new-home"
+date: "2026-10-20"
+updated: "2026-10-20"
+author: "Donnie Brown"
+author_url: "https://dev.to/donnieblt"
+author_avatar: "/images/authors/donnieblt.webp"
+description: "50+ repositories went offline in the middle of Google Summer of Code. Here's how our community kept..."
+tags: ["opensource", "github", "devops", "community"]
+cover: "/images/when-github-went-dark-how-owasp-blt-found-a-new-home/00.webp"
+reading_time: 6
+canonical: "https://dev.to/owaspblt/when-github-went-dark-how-owasp-blt-found-a-new-home-56o9"
+source: "https://dev.to/owaspblt/when-github-went-dark-how-owasp-blt-found-a-new-home-56o9"
+---
+<p><em>50+ repositories went offline in the middle of Google Summer of Code. Here's how our community kept moving, and how an unexpected project became our new home.</em></p>
+
+<p>This one is a bit of a rollercoaster, so buckle up. 🎢</p>
+
+<h2>
+  <a name="the-calm-before-the-storm" href="#the-calm-before-the-storm">
+  </a>
+  The calm before the storm
+</h2>
+
+<p>It was the middle of <strong>Google Summer of Code (GSoC)</strong>.</p>
+
+<p>OWASP BLT (Bug Logging Tool) had more than 50 repositories under a single GitHub organization. We had everything from the core application to Slack bots, a browser extension, a hackathon platform, a GSoC tracker, and a long list of tools built and maintained by our contributors.</p>
+
+<p>Things were moving along nicely.</p>
+
+<p>Mentors were reviewing. Contributors were shipping. Leaderboards were updating. The usual open-source chaos, but the good kind.</p>
+
+<p>Then we decided to do some housekeeping.</p>
+
+<p>Good security hygiene, right?</p>
+
+<p>We applied an <strong>organization-wide GitHub ruleset</strong> to enforce consistent repository protections across all our projects.</p>
+
+<p>A security-focused project enforcing security rules on its own organization.</p>
+
+<p>What could possibly go wrong?</p>
+
+<h2>
+  <a name="the-morning-after-everything-was-gone" href="#the-morning-after-everything-was-gone">
+  </a>
+  The morning after: everything was gone
+</h2>
+
+<p>We woke up to find our GitHub repositories offline.</p>
+
+<p><strong>All 50+ of them.</strong></p>
+
+<p>And here's where things got confusing.</p>
+
+<p>At almost exactly the same time, GitHub itself was experiencing an outage.</p>
+
+<p>So for several hours, we genuinely had no idea what was happening.</p>
+
+<p>Was it our new ruleset? Was something wrong with the BLT organization? Was it GitHub's outage? Or was the timing just a coincidence?</p>
+
+<p>We contacted GitHub support.</p>
+
+<p>Then we followed up.</p>
+
+<p>And followed up again.</p>
+
+<p>Days passed, and we never received a clear explanation for what had happened to our organization.</p>
+
+<p>Mostly, we got silence.</p>
+
+<p>Meanwhile, <strong>Google Summer of Code wasn't going to pause for us</strong>.</p>
+
+<p>Contributors had active branches. Mentors had pull requests waiting for review. Projects had deadlines.</p>
+
+<p>When developers can't clone repositories or open pull requests, that's more than an inconvenience. It brings development to a halt.</p>
+
+<p>We needed another option.</p>
+
+<h2>
+  <a name="plan-b-moving-to-gitlab" href="#plan-b-moving-to-gitlab">
+  </a>
+  Plan B: moving to GitLab
+</h2>
+
+<p>Rather than keep waiting for answers, we moved our repositories to GitLab.</p>
+
+<p>We pushed the code, redirected contributors to the new location, and worked on getting everything running again.</p>
+
+<p>Repositories were accessible. CI pipelines were migrated where possible. Contributors could get back to work.</p>
+
+<p>It wasn't the migration we'd planned.</p>
+
+<p>Actually, we hadn't planned a migration at all.</p>
+
+<p>But the community adapted, and development continued.</p>
+
+<p>We still wanted our original GitHub organization restored, of course.</p>
+
+<p>We kept reaching out to GitHub over the following months.</p>
+
+<p>Unfortunately, we still didn't get a clear answer.</p>
+
+<h2>
+  <a name="an-unexpected-plot-twist-kaif-built-a-git-forge" href="#an-unexpected-plot-twist-kaif-built-a-git-forge">
+  </a>
+  An unexpected plot twist: Kaif built a Git forge
+</h2>
+
+<p>Here's where the story gets interesting.</p>
+
+<p><strong>Some time later, we learned that one of our community members, Kaif, had built something of his own.</strong></p>
+
+<p>While we had been dealing with the fallout of losing access to our GitHub organization, Kaif had turned the situation into a project.</p>
+
+<p>He built <strong><a href="https://forkmesh.com" target="_blank" rel="noopener noreferrer">ForkMesh</a></strong>, a self-hosted Git forge.</p>
+
+<p>Think of it as having your own GitHub-like platform, with:</p>
+
+<ul>
+<li>Git repositories and code hosting</li>
+<li>Issues and pull requests</li>
+<li>Actions-style CI/CD workflows</li>
+<li>Support for AI agents as first-class collaborators</li>
+<li>The ability to run your own instance</li>
+</ul>
+
+<p>The funny part?</p>
+
+<p>We hadn't set out to build or commission our own Git hosting platform.</p>
+
+<p>We had moved to GitLab to keep things going, and later discovered that someone in our community had built an entirely different option.</p>
+
+<p>So we gave ForkMesh a try.</p>
+
+<p>And it stuck.</p>
+
+<h2>
+  <a name="from-50-repositories-to-one-home" href="#from-50-repositories-to-one-home">
+  </a>
+  From 50+ repositories to one home
+</h2>
+
+<p>Today, OWASP BLT has a very different setup.</p>
+
+<p><strong>Our official source of truth is now <a href="https://git.owaspblt.org/BLT" target="_blank" rel="noopener noreferrer">git.owaspblt.org/BLT</a>, running on ForkMesh.</strong></p>
+
+<p>And we took the opportunity to do something we'd wanted to do for a while: consolidate our projects.</p>
+
+<p>### One repository, all our history</p>
+
+<p>Instead of maintaining 50+ separate repositories, BLT projects now live together in one repository, organized into their own folders.</p>
+
+<p>We preserved their commit histories along the way.</p>
+
+<p>That means:</p>
+
+<ul>
+<li>
+<strong>45,000+ commits</strong> preserved</li>
+<li>
+<strong>260+ contributors</strong> represented</li>
+<li>Projects organized in one place</li>
+<li>One central home for issues, contributions, and development</li>
+</ul>
+
+<p>That's a lot of community history, and we wanted to make sure it came with us.</p>
+
+<p>### GitHub is now our mirror</p>
+
+<p>Yes, you read that correctly.</p>
+
+<p><strong>GitHub went from being our primary home to being our backup.</strong></p>
+
+<p>Our repository at <a href="https://github.com/OWASP/BLT" target="_blank" rel="noopener noreferrer">github.com/OWASP/BLT</a> is now a read-only mirror, automatically synchronized from our forge.</p>
+
+<p>The source of truth is the forge we host.</p>
+
+<p>Funny how things turn around.</p>
+
+<p>### GitLab is archived, not forgotten</p>
+
+<p>We didn't just abandon our temporary GitLab home.</p>
+
+<p>Every open merge request was reviewed. Contributions worth bringing forward were merged into the new repository, with the original authors credited.</p>
+
+<p>Other merge requests were closed with explanations.</p>
+
+<p>Open issues were migrated to the forge, with references back to their original locations.</p>
+
+<p>The GitLab repositories remain archived so old links and project history are still accessible.</p>
+
+<p>### A little cleanup along the way</p>
+
+<p>We also used the migration as an opportunity to clean up some technical debt.</p>
+
+<p>For example, scheduled data jobs now write to Cloudflare storage instead of filling the Git history with automated bot commits.</p>
+
+<p>A bunch of little improvements that might not have happened otherwise.</p>
+
+<p>Sometimes an unexpected migration gives you a good excuse to fix things you've been putting off.</p>
+
+<h2>
+  <a name="what-this-taught-us" href="#what-this-taught-us">
+  </a>
+  What this taught us
+</h2>
+
+<p>There are a few lessons we're taking away from the experience.</p>
+
+<h3>
+  <a name="1-dont-put-all-your-eggs-in-one-platform" href="#1-dont-put-all-your-eggs-in-one-platform">
+  </a>
+  1. Don't put all your eggs in one platform
+</h3>
+
+<p>GitHub is an important part of the open-source ecosystem, but relying entirely on one platform introduces risks.</p>
+
+<p>Your source code, issues, contributions, and project history represent years of community effort.</p>
+
+<p><strong>Having a backup is inexpensive. Losing access without an explanation can be extremely costly.</strong></p>
+
+<p>We now have much more control over where our work lives.</p>
+
+<h3>
+  <a name="2-test-organizationwide-changes-on-a-smaller-scope-first" href="#2-test-organizationwide-changes-on-a-smaller-scope-first">
+  </a>
+  2. Test organization-wide changes on a smaller scope first
+</h3>
+
+<p>We still don't know exactly what caused our GitHub organization to become unavailable.</p>
+
+<p>It would be unfair to claim the ruleset was responsible without confirmation.</p>
+
+<p>But we learned something important regardless.</p>
+
+<p>When making changes that affect more than 50 repositories, start small.</p>
+
+<p>Test the behavior, understand the impact, and expand gradually.</p>
+
+<p>Because when a large change goes wrong, the consequences can be just as large.</p>
+
+<h3>
+  <a name="3-opensource-communities-are-remarkably-resilient" href="#3-opensource-communities-are-remarkably-resilient">
+  </a>
+  3. Open-source communities are remarkably resilient
+</h3>
+
+<p>This is probably the biggest takeaway.</p>
+
+<p>What kept BLT going wasn't a particular platform.</p>
+
+<p>It was the people.</p>
+
+<p>Contributors continued working. Mentors kept supporting students. The community found alternatives.</p>
+
+<p>And one community member went a step further and built a Git forge that eventually became our new home.</p>
+
+<p><strong>That's the part of open source we love most: people turning problems into opportunities to build something useful.</strong></p>
+
+<h2>
+  <a name="come-build-with-us" href="#come-build-with-us">
+  </a>
+  Come build with us 🐝
+</h2>
+
+<p>If you already contribute to OWASP BLT, or you've been thinking about getting started, our new forge is where the action happens.</p>
+
+<p>👉 <strong><a href="https://git.owaspblt.org/BLT" target="_blank" rel="noopener noreferrer">Explore the OWASP BLT repository</a></strong></p>
+
+<p>You can browse the projects, clone the repository, open issues, submit pull requests, and help us improve both BLT and the contributor experience.</p>
+
+<p>We're still learning what works best with our new setup, and we'd genuinely appreciate feedback.</p>
+
+<h2>
+  <a name="one-more-thing-we-have-a-world" href="#one-more-thing-we-have-a-world">
+  </a>
+  One more thing: we have a world 🌍
+</h2>
+
+<p>Because apparently moving 50+ repositories wasn't adventurous enough, there's also something fun to explore.</p>
+
+<p><strong>The forge comes with its own virtual world.</strong></p>
+
+<p>OWASP BLT has its own hex, complete with:</p>
+
+<ul>
+<li>A <strong>bug terrarium</strong> filled with websites that people have reported bugs on. You can walk inside through the door.</li>
+<li>A <strong>Hacker House</strong> you can enter and explore.</li>
+<li>A road connecting the BLT world to the neighboring ForkMesh world.</li>
+</ul>
+
+<p>It's a playful little addition to what started as a pretty frustrating situation.</p>
+
+<p>👉 <strong><a href="https://git.owaspblt.org/world/" target="_blank" rel="noopener noreferrer">Take a walk around the BLT World</a></strong></p>
+
+
+<hr>
+
+<p>We started with more than 50 GitHub repositories, lost access to them in the middle of GSoC, moved to GitLab to keep development going, and eventually found a new home thanks to something a community member built.</p>
+
+<p>Not exactly the infrastructure roadmap we'd imagined.</p>
+
+<p>But here we are: <strong>45,000+ commits, 260+ contributors, one forge, and a community still building.</strong></p>
+
+<p>See you on the forge. 🐝</p>

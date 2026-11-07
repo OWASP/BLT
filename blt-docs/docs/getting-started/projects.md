@@ -22,6 +22,7 @@ It means BLT-docs does not currently have enough evidence to publish a canonical
 | BLT Docs | [blt-docs](https://git.owaspblt.org/BLT/BLT-Docs) | [docs.owaspblt.org](https://docs.owaspblt.org) | MkDocs documentation served as Worker static assets. |
 | BLT Next | [blt-next](https://git.owaspblt.org/BLT/BLT-Next) | [next.owaspblt.org](https://next.owaspblt.org) | Static frontend with Python Worker application routes. |
 | BLT API | [blt-api](https://git.owaspblt.org/BLT/BLT-API) | [api.owaspblt.org](https://api.owaspblt.org) | D1-backed Python Worker API and API dashboard. |
+| BLT Blog | [blt-blog](https://git.owaspblt.org/BLT/BLT-Blog) | [blog.owaspblt.org](https://blog.owaspblt.org) | News, release notes and contributor stories, built from Markdown posts. |
 | BLT Jobs | [blt-jobs](https://git.owaspblt.org/BLT/BLT-Jobs) | [jobs.owaspblt.org](https://jobs.owaspblt.org) | Git-native jobs content served by Worker static assets. |
 | BLT Sizzle | [blt-sizzle](https://git.owaspblt.org/BLT/BLT-Sizzle) | [sizzle.owaspblt.org](https://sizzle.owaspblt.org) | Organization check-ins with Python Workers, D1, and scheduled reminders. |
 | BLT Toasty | [blt-toasty](https://git.owaspblt.org/BLT/BLT-Toasty) | [toasty.owaspblt.org](https://toasty.owaspblt.org) | AI code review application. |
@@ -50,6 +51,7 @@ Projects without a public URL in the previous table must not be assigned a guess
 | BLT Action | [blt-action](https://git.owaspblt.org/BLT/BLT-Action) |
 | BLT API | [blt-api](https://git.owaspblt.org/BLT/BLT-API) |
 | BLT Autopatch | [blt-autopatch](https://git.owaspblt.org/BLT/BLT-Autopatch) |
+| BLT Blog | [blt-blog](https://git.owaspblt.org/BLT/BLT-Blog) |
 | BLT Byte | [blt-byte](https://git.owaspblt.org/BLT/BLT-Byte) |
 | blt-cli | [blt-cli](https://git.owaspblt.org/BLT/BLT-CLI) |
 | BLT Cron | [blt-cron](https://git.owaspblt.org/BLT/BLT-Cron) |

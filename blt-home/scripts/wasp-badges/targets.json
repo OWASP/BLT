@@ -2,6 +2,9 @@
   "blt-api": [
     "blt-api/static/blt-api.svg"
   ],
+  "blt-blog": [
+    "blt-blog/public/logo.svg"
+  ],
   "blt-byte": [
     "blt-byte/public/static/byte-logo.svg"
   ],

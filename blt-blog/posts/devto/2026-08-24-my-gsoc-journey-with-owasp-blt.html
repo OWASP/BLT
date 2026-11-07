@@ -1,0 +1,96 @@
+---
+title: "My GSoC journey with OWASP BLT"
+slug: "my-gsoc-journey-with-owasp-blt"
+date: "2026-08-24"
+updated: "2026-08-31"
+author: "saksh"
+author_url: "https://dev.to/saksh_ee"
+author_avatar: "/images/authors/saksh_ee.webp"
+description: "The journey of Google Summer of Code has come to an end.  It is hard to believe how quickly the..."
+tags: ["owasp", "gsoc", "opensource"]
+reading_time: 3
+canonical: "https://dev.to/owaspblt/my-gsoc-journey-with-owasp-blt-4lm8"
+source: "https://dev.to/owaspblt/my-gsoc-journey-with-owasp-blt-4lm8"
+---
+<p><a href="https://media2.dev.to/dynamic/image/width=800%2Cheight=%2Cfit=scale-down%2Cgravity=auto/https%3A%2F%2Fdev-to-uploads.s3.us-east-2.amazonaws.com%2Fuploads%2Farticles%2Flcm43fc02983hy16u0oi.gif" class="article-body-image-wrapper"><img src="/images/my-gsoc-journey-with-owasp-blt/01.webp" alt="owasp gsoc" loading="lazy" width="200" height="200" data-animated="true"></a></p>
+
+<p>The journey of Google Summer of Code has come to an end.</p>
+
+<p>It is hard to believe how quickly the past few months have gone. When I first started contributing to OWASP BLT, I was simply trying to understand an unfamiliar open-source project and find a way to make my first meaningful contributions. I did not expect that journey to eventually lead me to GSoC and to working on BLT University.</p>
+
+<p>My journey with OWASP BLT started before GSoC, when I took my first steps into open source and began learning how to contribute to an existing project. I gradually became more comfortable with the codebase, the contribution process, and working through reviews and feedback. I documented those early experiences in my earlier post about getting started with open source.</p>
+
+<p>Over the course of the program, BLT University evolved significantly. What started as a small collection of interactive security labs grew into a broader security learning platform with interactive labs, courses, learning tracks, vulnerability insights, saved progress, recommendations, and automated browser testing.</p>
+
+<p>I shared the first half of my work in my <a href="https://dev.to/owaspblt/gsoc26-midterm-blog-building-blt-university-into-an-interactive-security-learning-platform-30ho">midterm post</a>. This final report brings together everything I built during GSoC, from the first interactive labs to learning tracks, vulnerability insights, saved progress, and browser tests.</p>
+
+<p>BLT University is now a static, interactive learning platform with 13 labs, five courses, two tracks, and a dashboard built from recent public vulnerability records. Progress is stored locally. You can explore the <a href="https://blt-university-sakshee-gsoc.pages.dev/" target="_blank" rel="noopener noreferrer">live website</a>, try the <a href="https://blt-university-sakshee-gsoc.pages.dev/labs/sql_injection/" target="_blank" rel="noopener noreferrer">SQL injection lab</a>, or explore the <a href="https://blt-university-sakshee-gsoc.pages.dev/dashboard/" target="_blank" rel="noopener noreferrer">Security Trends dashboard</a>.</p>
+
+<h2>
+  <a name="demo-video" href="#demo-video">
+  </a>
+  Demo video
+</h2>
+
+<p>  <iframe src="https://www.youtube.com/embed/Q-nQPiyHpg8" width="710" height="399" style="width: 100%; aspect-ratio: 16 / 9;" allowfullscreen loading="lazy">
+  </iframe>
+</p>
+
+<h2>
+  <a name="what-i-built" href="#what-i-built">
+  </a>
+  What I built
+</h2>
+
+<p>Over the course of GSoC, the project grew from a small set of interactive security labs into a broader learning platform. </p>
+
+<ul>
+<li>Built the first interactive SQL injection, XSS, and CSRF simulations using the Identify, Explain, Fix flow. <a href="https://gitlab.com/owasp-blt/blt-university/-/merge_requests/1" target="_blank" rel="noopener noreferrer">MR 1</a>
+</li>
+<li>Added the lab structure, validation script, contributor guide, reusable template, and automatic validation. <a href="https://gitlab.com/owasp-blt/blt-university/-/merge_requests/2" target="_blank" rel="noopener noreferrer">MR 2</a>
+</li>
+<li>Updated the main site pages and layouts to improve navigation, responsiveness, and consistency. <a href="https://gitlab.com/owasp-blt/blt-university/-/merge_requests/3" target="_blank" rel="noopener noreferrer">MR 3</a>
+</li>
+<li>Added tests for validators, state changes, hints, saved progress, and lab simulation flows. <a href="https://gitlab.com/owasp-blt/blt-university/-/merge_requests/4" target="_blank" rel="noopener noreferrer">MR 4</a>
+</li>
+<li>Added the IDOR lab and its guided simulation. <a href="https://gitlab.com/owasp-blt/blt-university/-/merge_requests/5" target="_blank" rel="noopener noreferrer">MR 5</a>
+</li>
+<li>Added six more security labs, expanding the initial lab collection. <a href="https://gitlab.com/owasp-blt/blt-university/-/merge_requests/6" target="_blank" rel="noopener noreferrer">MR 6</a>
+</li>
+<li>Added the complete Identify, Explain, Fix simulations and reorganised the lab engine into focused files. <a href="https://gitlab.com/owasp-blt/blt-university/-/merge_requests/8" target="_blank" rel="noopener noreferrer">MR 8</a>
+</li>
+<li>Built the NVD and CISA vulnerability pipeline, CWE-to-OWASP lab mappings, schema validation, pipeline tests, and the generated 90-day dataset. <a href="https://gitlab.com/owasp-blt/blt-university/-/merge_requests/10" target="_blank" rel="noopener noreferrer">MR 10</a>
+</li>
+<li>Hardened the lab engine, improved saved-progress handling, reorganised validation code, and documented the engine behaviour. <a href="https://gitlab.com/owasp-blt/blt-university/-/merge_requests/11" target="_blank" rel="noopener noreferrer">MR 11</a>
+</li>
+<li>Added AST validation for JavaScript lab answers, tests that reject unrelated code containing expected security keywords. <a href="https://gitlab.com/owasp-blt/blt-university/-/merge_requests/12" target="_blank" rel="noopener noreferrer">MR 12</a>
+</li>
+<li>Built the Security Trends dashboard with charts, search, filters, a CVE explorer, text fallbacks, and progress-aware lab recommendations. <a href="https://gitlab.com/owasp-blt/blt-university/-/merge_requests/13" target="_blank" rel="noopener noreferrer">MR 13</a>
+</li>
+<li>Added Cyber Hygiene and Professional Security tracks, three Cyber Hygiene labs, track filters, course-to-lab navigation, and adaptive recommendations. <a href="https://gitlab.com/owasp-blt/blt-university/-/merge_requests/14" target="_blank" rel="noopener noreferrer">MR 14</a>
+</li>
+<li>Expanded five courses with interactive activities and related labs, then added saved progress, streaks, badges, next-course suggestions, and cross-browser tests. <a href="https://gitlab.com/owasp-blt/blt-university/-/merge_requests/15" target="_blank" rel="noopener noreferrer">MR 15</a>
+</li>
+</ul>
+
+<h2>
+  <a name="future-enhancements" href="#future-enhancements">
+  </a>
+  Future enhancements
+</h2>
+
+<ul>
+<li>Automate regular vulnerability-data updates while keeping validation and review checks.</li>
+<li>Add more courses and labs across both learning tracks.</li>
+<li>Improve lab-authoring tools so contributors can create exercises more easily.</li>
+<li>Expand accessibility and browser testing across complete learning journeys.</li>
+<li>Add Python-based exercises and more adaptive hints.</li>
+</ul>
+
+<h2>
+  <a name="acknowledgements" href="#acknowledgements">
+  </a>
+  Acknowledgements
+</h2>
+
+<p>I would like to thank Google Summer of Code, OWASP, and the entire OWASP BLT community for giving me this opportunity and supporting me throughout my journey. A special thank you to Donnie Brown for his guidance, feedback, and support throughout the project. I am grateful to have worked with and contributed to this community.</p>

@@ -1,6 +1,7 @@
 # project	toolchain	command (bash, run inside the project folder; Python commands run in a fresh virtualenv)
 blt-action	node	npm_install && npm test
 blt-api	python	pip install -e '.[dev]' && python -m pytest -q
+blt-blog	node	npm ci && npm test && npm run build
 blt-byte	python	pip install -e . --group dev && python -m pytest tests/ -q
 blt-cli	rust	cargo test --quiet
 blt-cve	python	pip install jsonschema && python -m unittest discover -s tests && python scripts/validate_cves.py && python scripts/build_index.py && git diff --exit-code -I '"updated"' -- public/index.json public/feed.json; rc=$?; git checkout -- public/index.json public/feed.json; exit $rc

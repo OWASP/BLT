@@ -1,0 +1,42 @@
+---
+title: "Connecting AI and Security with BLT-MCP"
+slug: "connecting-ai-and-security-with-blt-mcp"
+date: "2026-07-06"
+updated: "2026-07-06"
+author: "Nachiket Roy"
+author_url: "https://dev.to/nachiket-roy"
+author_avatar: "/images/authors/nachiket-roy.webp"
+description: "This summer i was given the opportunity to work on my BLT-MCP project with OWASP-BLT. Over the last..."
+tags: ["mcp", "owasp", "cli"]
+cover: "/images/connecting-ai-and-security-with-blt-mcp/00.webp"
+reading_time: 2
+canonical: "https://dev.to/owaspblt/connecting-ai-and-security-with-blt-mcp-2cgb"
+source: "https://dev.to/owaspblt/connecting-ai-and-security-with-blt-mcp-2cgb"
+---
+<p>This summer i was given the opportunity to work on my BLT-MCP project with OWASP-BLT. Over the last few months, I've been working on transforming how users interact with BLT. Now it marks the midpoint of the project, and there's been some interesting development i would like to share.</p>
+
+<p><strong>What is MCP?</strong><br>
+MCP (Model Context Protocol) is an emerging open standard that helps AI models securely interact with local tools and remote data sources. By building an MCP server for OWASP BLT, we're essentially teaching AI assistants (like Claude, Cursor) how to natively speak with BLT directly. Your AI can read issue context, browse repositories, and submit vulnerabilities, without ever leaving your IDE.</p>
+
+<p><strong>The Two Pillars So Far</strong></p>
+
+<ol>
+<li>
+<p>The MCP Server<br>
+Written in Python, the server acts as the translation layer between LLMs and the BLT API. It exposes two main capabilities to the AI:</p>
+
+<ul>
+<li>Resources (blt:// URIs) - the AI can fetch live data exactly when it needs context. For example, reading blt://issues/123 to get the details of a specific vulnerability.</li>
+<li>Tools - actionable endpoints that let the AI do things, like submit_issue and add_comment.</li>
+</ul>
+</li>
+<li><p>The BLT-CLI (Rust Terminal UI)</p></li>
+</ol>
+
+<p>While IDE integration is great, sometimes you just want a fast terminal experience. I built BLT-CLI in Rust using ratatui a Terminal UI (TUI) that connects directly to the MCP server and the BLT API. Triage logic is being built alongside it, so you can browse, review, and act on issues right from the terminal.</p>
+
+<p><a href="https://media2.dev.to/dynamic/image/width=800%2Cheight=%2Cfit=scale-down%2Cgravity=auto%2Cformat=auto/https%3A%2F%2Fdev-to-uploads.s3.us-east-2.amazonaws.com%2Fuploads%2Farticles%2F7fail4gc4myc0882dv50.png" class="article-body-image-wrapper"><img src="/images/connecting-ai-and-security-with-blt-mcp/01.webp" alt="BLT easter" loading="lazy" width="800" height="488"></a></p>
+
+<p><strong>What's Next</strong><br>
+The core logic and terminal are built. For the remaining sprint, I'll be focused on testing everything end-to-end, polishing the rough edges, and starting work on a vision pipeline that can turn a dropped screenshot into a drafted vulnerability report, which is still early and in progress.<br>
+Thanks for following along!</p>

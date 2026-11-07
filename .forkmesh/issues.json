@@ -86,6 +86,11 @@
       "url": "https://newsletter.owaspblt.org/",
       "description": "News and updates from OWASP BLT."
     },
+    "blt-blog": {
+      "title": "BLT-Blog",
+      "url": "https://blog.owaspblt.org/",
+      "description": "News, release notes and contributor stories."
+    },
     "blt-lettuce": {
       "title": "BLT-Lettuce",
       "url": "https://lettuce.owaspblt.org/",

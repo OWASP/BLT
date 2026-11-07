@@ -3,6 +3,7 @@
 blt-action	blt-action	worker	-	-
 blt-api	blt-api	worker	-	-
 blt-autopatch	blt-autopatch	worker	-	-
+blt-blog	blt-blog	worker	-	npm ci && npm run build
 blt-byte	blt-byte	pywrangler	-	-
 blt-cli	blt-cli	worker	-	-
 blt-cve	blt-cve	worker	-	-

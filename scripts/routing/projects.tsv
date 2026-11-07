@@ -3,6 +3,7 @@
 blt-action	BLT-Action	
 blt-api	BLT-API	OWASP-BLT-API,BLT-API-on-Cloudflare
 blt-autopatch	BLT-Autopatch	
+blt-blog	BLT-Blog	
 blt-byte	BLT-Byte	BLT--Byte
 blt-cli	BLT-CLI	
 blt-cron	BLT-Cron	

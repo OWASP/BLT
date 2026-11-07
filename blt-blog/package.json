@@ -1,0 +1,13 @@
+{
+  "name": "blt-blog",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "test": "node --test 'test/*.test.mjs'",
+    "import:devto": "python3 scripts/import_devto.py"
+  },
+  "dependencies": {
+    "marked": "18.1.1"
+  }
+}

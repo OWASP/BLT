@@ -1,0 +1,103 @@
+---
+title: "Why Owasp BLT ? Contribution from 5 to 50+ prs !"
+slug: "why-owasp-blt-contribution-from-5-to-50-prs"
+date: "2026-03-07"
+updated: "2026-03-07"
+author: "Md Kaif Ansari"
+author_url: "https://dev.to/mdkaifansari04"
+author_avatar: "/images/authors/mdkaifansari04.webp"
+description: "It was the time when I thought to get some open source contribution after I was done from my..."
+tags: ["beginners", "github", "opensource", "webdev"]
+cover: "/images/why-owasp-blt-contribution-from-5-to-50-prs/00.webp"
+reading_time: 4
+canonical: "https://dev.to/owaspblt/why-owasp-blt-contribution-from-5-to-50-prs--1j7o"
+source: "https://dev.to/owaspblt/why-owasp-blt-contribution-from-5-to-50-prs--1j7o"
+---
+<p>It was the time when I thought to get some open source contribution after I was done from my internship. I was heavily into TS/JS ecosystem and started finding projects for the same.</p>
+
+<p>So I went to <a href="https://www.gsocorganizations.dev/" target="_blank" rel="noopener noreferrer">gsocorganizations.dev</a> to find some organization, then I just applied the filter for web and started scrolling. Most of the orgs were either too big to get started or had zero activity; you know the type, last commit 8 months ago, issues with no responses.</p>
+
+<p>Then I saw OWASP BLT.</p>
+
+<p>Honestly my first reaction was, what even is this? A bug logging tool with BACON tokens and a leaderboard? Sounded like someone mixed a bug bounty platform with a gamified Reddit. I was skeptical. But the repo had recent commits, open issues with responses, and the maintainer (Donnie) was actually replying to people. That was enough for me to at least clone it.</p>
+
+
+<hr>
+
+<h2>
+  <a name="the-first-pr-small-but-it-counts" href="#the-first-pr-small-but-it-counts">
+  </a>
+  The First PR — Small But It Counts
+</h2>
+
+<p>I spent the first few days just reading the codebase. BLT runs Django on the backend, has a Cloudflare Workers API layer called BLT-API, a Chrome extension, a Flutter app, and about 30+ other sub-repos. It's not a small project.</p>
+
+<p>My first PR was tiny. A small bug fix; nothing fancy. I wasn't even sure it would get noticed. But it got reviewed, commented on, and merged within a couple days. That was the moment I thought okay, this is actually active, people are paying attention here.</p>
+
+<p>That one merged PR basically hooked me in.</p>
+
+
+<hr>
+
+<h2>
+  <a name="going-deeper-bltapi-and-the-d1-migration" href="#going-deeper-bltapi-and-the-d1-migration">
+  </a>
+  Going Deeper — BLT-API and the D1 Migration
+</h2>
+
+<p>After a few more small PRs I started digging into BLT-API; the Cloudflare Workers layer. This is where things got interesting and also where I spent most of my time.</p>
+
+<p>The project was in the middle of migrating from a traditional database setup to Cloudflare D1 (basically SQLite at the edge). Nobody had fully done it yet. I looked at the codebase, figured out what was missing, and just started doing it.</p>
+
+<p>The D1 migration ended up being a bigger chunk of work than I expected — schema design, migration files, bugs API, user schema, 2FA auth with Mailgun, domain routing. At some point I realized I had context on this entire layer that very few other contributors had.</p>
+
+<p>That's kind of how it happens with open source. You don't plan to become the person who knows X. You just keep pulling threads until suddenly you're the one explaining it to others.</p>
+
+
+<hr>
+
+<h2>
+  <a name="talking-to-donnie" href="#talking-to-donnie">
+  </a>
+  Talking to Donnie
+</h2>
+
+<p>One thing that kept me going was that Donnie was actually there. Not just merging PRs silently — actually talking, discussing direction, pushing back when something didn't make sense.</p>
+
+<p>I remember one conversation where I brought up whether we should migrate to wrangler@latest and clean up some of the utility functions. I laid out both sides; old version is stable and working, new version is cleaner for contributors but we might break things. He just said "I like this improvement" and we went from there.</p>
+
+<p>That kind of back and forth made it feel less like contributing to a repo and more like actually building something with someone. That changes how you approach the work.</p>
+
+
+<hr>
+
+<h2>
+  <a name="5-prs-to-50" href="#5-prs-to-50">
+  </a>
+  5 PRs to 50+
+</h2>
+
+<p>Looking back at how it went from 5 to 50+ PRs; it wasn't a strategy. I didn't sit down and think "I'm going to contribute a lot." It was more like every time I fixed something I found two more things that needed fixing. And every time I went deep on one layer I found connections to other layers I wanted to understand.</p>
+
+<p>BLT is genuinely a weird project in the best way. It has a bug bounty platform, blockchain rewards, a PR readiness checker, an AI code review bot, a Slack bot, a web scanner agent; all as separate repos that loosely connect. Once you start understanding how it fits together it's hard to stop.</p>
+
+<p>By the time I had 50+ PRs merged across 10+ repos I realized I wasn't just a contributor anymore, I actually understood the system. Not just one part of it, the whole thing.</p>
+
+<p>That's when I started thinking about GSoC.</p>
+
+
+<hr>
+
+<h2>
+  <a name="why-blt-specifically" href="#why-blt-specifically">
+  </a>
+  Why BLT Specifically
+</h2>
+
+<p>There are bigger projects. More popular ones. Ones with better documentation and easier onboarding.</p>
+
+<p>But BLT had something most of them didn't; room to actually build things. Not just fix typos or update dependencies, but design and implement real features. The kind of work where you're making decisions that actually affect how the platform works.</p>
+
+<p>If you're looking for an open source project to contribute to and you want to go from zero to genuinely understanding a real production system; BLT is worth the initial confusion. Push through the first few PRs, get into the codebase, find the thing that interests you and go deep on it.</p>
+
+<p>The BACON tokens are optional. The learning isn't.</p>
