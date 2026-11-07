@@ -3,7 +3,7 @@ import { mkdtempSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
-import { build, escapeHtml, loadPosts, parseFrontMatter, slugify } from "../scripts/build.mjs";
+import { build, escapeHtml, figures, loadPosts, parseFrontMatter, slugify } from "../scripts/build.mjs";
 
 test("front matter takes JSON values and plain text", () => {
   const { data, body } = parseFrontMatter('---\ntitle: "A: b"\ntags: ["x", "y"]\nauthor: Plain Name\ndraft: true\n---\n# Hi\n');
@@ -14,6 +14,13 @@ test("front matter takes JSON values and plain text", () => {
 test("slugify and escapeHtml", () => {
   assert.equal(slugify("Why OWASP BLT? 5 to 50+ PRs!"), "why-owasp-blt-5-to-50-prs");
   assert.equal(escapeHtml(`<a href="x">'&'</a>`), "&lt;a href=&quot;x&quot;&gt;&#39;&amp;&#39;&lt;/a&gt;");
+});
+
+test("an image alone in a paragraph becomes a captioned figure", () => {
+  assert.equal(
+    figures('<p><img src="/a.jpg" alt="A &amp; B"></p>\n<p>Text <img src="/b.jpg" alt="inline"></p>'),
+    '<figure><a href="/a.jpg"><img loading="lazy" src="/a.jpg" alt="A &amp; B"></a><figcaption>A &amp; B</figcaption></figure>\n<p>Text <img src="/b.jpg" alt="inline"></p>',
+  );
 });
 
 test("every post in posts/ loads with a unique slug, a date and an author", () => {

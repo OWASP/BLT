@@ -62,6 +62,12 @@ function readingTime(html) {
   return Math.max(1, Math.round(words / 220));
 }
 
+// An image alone in its paragraph becomes a figure, captioned with its alt text.
+export function figures(html) {
+  return html.replace(/<p>(<img src="([^"]*)" alt="([^"]*)"[^>]*>)<\/p>/g, (_, img, src, alt) =>
+    `<figure><a href="${src}">${img.replace("<img ", '<img loading="lazy" ')}</a>${alt ? `<figcaption>${alt}</figcaption>` : ""}</figure>`);
+}
+
 export function loadPosts(dir = join(ROOT, "posts")) {
   const posts = [];
   const seen = new Map();
@@ -76,7 +82,7 @@ export function loadPosts(dir = join(ROOT, "posts")) {
     const slug = slugify(data.slug || data.title);
     if (seen.has(slug)) throw new Error(`${name}: slug "${slug}" is also used by ${seen.get(slug)}`);
     seen.set(slug, name);
-    const html = file.endsWith(".md") ? marked.parse(body) : body;
+    const html = file.endsWith(".md") ? figures(marked.parse(body)) : body;
     posts.push({
       ...data,
       slug,
