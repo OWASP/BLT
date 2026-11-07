@@ -1,5 +1,7 @@
 {
-    "assignees": [],
+    "assignees": [
+        "preetam"
+    ],
     "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
     "authorName": "blt-tasks[bot]",
     "bountyAddress": "",
@@ -31,6 +33,17 @@
             "sig": "DW4y24xEnkMymnFYSDzdA02BXohUHEKjkY7d-uCvOnInKLQmcAUTPWIPgbshDJieBMv45skgLxWYZlALMpIbCA",
             "ts": 1792547524650,
             "type": "labels"
+        },
+        {
+            "assignee": "preetam",
+            "author": "rrnBQwtV95mqysLXxmpZgHEsWNSAfyX_05SRH0Dbymg",
+            "authorName": "preetam",
+            "authorVerified": true,
+            "claimState": "assigned",
+            "id": "claim-web-1794029603365-1eomtdu",
+            "sig": "GmTuyeqtoE7yXdM9OsujUKlHveV7hDFSoZl7QSPy-FECCUAbEPKqZKMeOzCJAN1uWVabE23E0NHknS2kE19ODQ",
+            "ts": 1794029603365,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -46,6 +59,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-extension: make the popup and job-tracking tests exercise the real popup.js and jobtracking.js",
-    "updatedAt": 1792547524650,
+    "updatedAt": 1794029603365,
     "votes": 0
 }
