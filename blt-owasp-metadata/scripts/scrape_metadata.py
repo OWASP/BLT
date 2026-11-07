@@ -70,7 +70,7 @@ def fetch_repos_from_org(org):
         r = requests.get(url, headers=headers)
 
         if r.status_code != 200:
-            warn(f"Failed to fetch repos from org {org}")
+            warn(f"Failed to fetch repos from org {org}: HTTP {r.status_code}: {r.text[:500]}")
             break
 
         batch = r.json()

@@ -3,6 +3,7 @@ import html
 import json
 import os
 import re
+import sys
 from urllib.parse import quote, urlsplit
 
 import requests
@@ -68,7 +69,9 @@ def get_owasp_repos():
     repos = []
     while url:
         response = requests.get(url, headers=github_headers())
-        response.raise_for_status()
+        if not response.ok:
+            # GitHub's message says why (e.g. a token the OWASP enterprise refuses); raise_for_status drops it.
+            sys.exit(f"Could not list {ORG_NAME} repositories: HTTP {response.status_code}: {response.text[:500]}")
         repos.extend(response.json())
         url = response.links.get("next", {}).get("url")
     return repos

@@ -119,8 +119,9 @@ def _graphql(query: str, variables: Dict, token: str) -> Dict:
     req = urllib.request.Request("https://api.github.com/graphql", data=body, headers=headers)
     with urllib.request.urlopen(req, timeout=60) as response:
         data = json.loads(response.read().decode())
-    if data.get("errors") and not data.get("data"):
-        raise RuntimeError(data["errors"])
+    # A refused token comes back as HTTP 200 with the field set to null and the reason in "errors".
+    if data.get("errors") and (not data.get("data") or None in data["data"].values()):
+        raise RuntimeError("GitHub GraphQL: " + "; ".join(e.get("message", str(e)) for e in data["errors"]))
     return data["data"]
 
 
