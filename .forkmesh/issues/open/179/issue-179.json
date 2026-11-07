@@ -44,6 +44,17 @@
             "sig": "GmTuyeqtoE7yXdM9OsujUKlHveV7hDFSoZl7QSPy-FECCUAbEPKqZKMeOzCJAN1uWVabE23E0NHknS2kE19ODQ",
             "ts": 1794029603365,
             "type": "claim"
+        },
+        {
+            "attachments": [],
+            "author": "rrnBQwtV95mqysLXxmpZgHEsWNSAfyX_05SRH0Dbymg",
+            "authorName": "preetam",
+            "authorVerified": true,
+            "body": "pr pulled #78",
+            "id": "comment-web-1794033380861",
+            "sig": "U7aj781q5wM0uCWQeDqTigHpGK9YuVp3mUQE96etRBoThg9cX8eHAMpYHia5qQsG6ooztUqkbxLNRy5s7dVJBg",
+            "ts": 1794033380861,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -59,6 +70,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-extension: make the popup and job-tracking tests exercise the real popup.js and jobtracking.js",
-    "updatedAt": 1794029603365,
+    "updatedAt": 1794033380861,
     "votes": 0
 }
