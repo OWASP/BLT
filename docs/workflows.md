@@ -56,6 +56,7 @@ In the table, CF means `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, which
 | `blt-university--course-submission.yml` | GitHub | issue opened with `course-submission` or `[COURSE]` title, or that label added | none |
 | `blt-university--enrollment.yml` | GitHub | issue opened with `enrollment` or `[ENROLLMENT]` title, or that label added | none |
 | `blt-waypoint--build-site.yml` | GitLab `build_site` | `29 6 * * *`, push of `blt-waypoint/scripts/generate_forge_data.py`, `forge_urls.py` or `scripts/routing/projects.tsv`; reads git.owaspblt.org and writes `forge_data.json` to KV, no commit | CF (with KV write) |
+| `renovate.yml` | new (discussion #1) | `41 3 * * 1` (Mondays); dispatch input `mode` (`pulls`, `report` or `dry-run`). Renovate looks up updates; `scripts/renovate/apply.mjs` opens or updates at most 5 signed pull requests and refreshes the Dependency Dashboard issue. See [renovate.md](renovate.md) | `BLT_RENOVATE_SEED` (pulls), `GH_API_TOKEN` (optional) |
 
 ### /assign and /unassign
 

@@ -1,0 +1,29 @@
+name: "Renovate: dependency updates"
+# Weekly dependency updates (discussion #1). Renovate looks up updates for every manifest in the
+# monorepo (renovate.json); scripts/renovate/apply.mjs then applies the npm and Python groups,
+# regenerates their lockfiles, and opens or updates at most 5 pull requests signed by the
+# blt-renovate key (BLT_RENOVATE_SEED). Every run also refreshes the "Dependency Dashboard" issue.
+# Nothing merges on its own. Flutter and Rust updates are listed on the dashboard only (no toolchain
+# here); CDN pins in HTML are out of scope for now. Rules: docs/renovate.md.
+# Preview locally with: scripts/renovate/run.sh --dry-run
+on:
+  schedule:
+    - cron: "41 3 * * 1"
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "pulls (open/update pull requests and the dashboard), report (dashboard only) or dry-run (print only)"
+        required: false
+        default: pulls
+        type: string
+jobs:
+  renovate:
+    runs-on: runner
+    timeout-minutes: 75
+    steps:
+      - name: Look up updates and open pull requests
+        env:
+          MODE: ${{ inputs.mode }}
+          BLT_RENOVATE_SEED: ${{ secrets.BLT_RENOVATE_SEED }}
+          GH_API_TOKEN: ${{ secrets.GH_API_TOKEN }}
+        run: scripts/renovate/run.sh "--${MODE:-pulls}"

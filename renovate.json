@@ -1,0 +1,75 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "description": "Weekly dependency updates for the BLT monorepo, run by .forkmesh/renovate.yml (docs/renovate.md). Renovate only looks up updates; scripts/renovate/apply.mjs applies them and opens the pull requests.",
+  "extends": [
+    ":ignoreModulesAndTests",
+    "replacements:all",
+    "workarounds:all"
+  ],
+  "enabledManagers": [
+    "npm",
+    "pep621",
+    "pip_requirements",
+    "cargo",
+    "pub"
+  ],
+  "ignorePaths": [
+    "**/node_modules/**",
+    "**/.venv/**",
+    "**/vendor/**",
+    "blt-legacy/**/static/**"
+  ],
+  "minimumReleaseAge": "3 days",
+  "internalChecksFilter": "strict",
+  "rangeStrategy": "auto",
+  "separateMajorMinor": true,
+  "separateMultipleMajor": false,
+  "automerge": false,
+  "packageRules": [
+    {
+      "description": "One pull request for all non-major npm updates",
+      "matchManagers": [
+        "npm"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "pin",
+        "digest"
+      ],
+      "groupName": "npm non-major",
+      "groupSlug": "npm-minor"
+    },
+    {
+      "description": "One pull request for all non-major Python updates",
+      "matchManagers": [
+        "pep621",
+        "pip_requirements"
+      ],
+      "matchUpdateTypes": [
+        "minor",
+        "patch",
+        "pin"
+      ],
+      "groupName": "Python non-major",
+      "groupSlug": "python-minor"
+    },
+    {
+      "description": "wrangler across every Worker in one pull request (a major goes in renovate/major-wrangler)",
+      "matchPackageNames": [
+        "wrangler"
+      ],
+      "groupName": "wrangler",
+      "groupSlug": "wrangler"
+    },
+    {
+      "description": "Flutter and Rust: the runner has neither toolchain, so these are listed on the dashboard but never applied",
+      "matchManagers": [
+        "pub",
+        "cargo"
+      ],
+      "groupName": "{{manager}} (report only)",
+      "groupSlug": "{{manager}}-report"
+    }
+  ]
+}
