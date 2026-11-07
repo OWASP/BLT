@@ -121,7 +121,7 @@ BLT is a pro-AI project: coding agents and AI assistants are welcome for issues,
 <!-- WAITING-PRS-START -->
 ## ⏳ Pull Requests Waiting for Review (27 open, 3 new contributors)
 
-*Last updated: 2026-11-07 06:38 UTC — open pull requests on [git.owaspblt.org](https://git.owaspblt.org/BLT/pulls), people making their first BLT contribution first. Reviews help them most.*
+*Last updated: 2026-11-07 06:43 UTC — open pull requests on [git.owaspblt.org](https://git.owaspblt.org/BLT/pulls), people making their first BLT contribution first. Reviews help them most.*
 
 | Contributor | Waiting | Pull requests |
 |---|---|---|
