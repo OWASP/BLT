@@ -1,7 +1,5 @@
 {
-    "assignees": [
-        "arnavghai19"
-    ],
+    "assignees": [],
     "author": "EqNbJ81Ib7tk86tkz55_EDo4gCk4z8HvrLf8ewzPc5c",
     "authorName": "dahahanish",
     "bountyAddress": "",
@@ -143,6 +141,17 @@
             "sig": "u1hJAeh6G6WaN977GPyFxCIuLs67SbaQWwp6p_E74n1Hzq99MuojPNFRvHuGm0nxAUkuD2svyIlzmxFNg0BPAw",
             "ts": 1794075105161,
             "type": "comment"
+        },
+        {
+            "assignee": "arnavghai19",
+            "author": "6I64fbHumctKTTTVZW0cDPBfOLWC46GD_JhZa7h9aX8",
+            "authorName": "owasp-blt-actions",
+            "authorVerified": true,
+            "claimState": "released",
+            "id": "actions-1794095592662-amRo0TvE",
+            "sig": "r-ml5SkAeHFEN3Z6_9NBNarV71Bz6GrxJt5o7xivIB9vSP12jknsLoctNFKcN9_t3Sv1MhCge_F2gLhxNRSMDQ",
+            "ts": 1794095592662,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -156,6 +165,6 @@
     "startDate": 0,
     "status": "open",
     "title": "Web chat never starts: /fmm/*.js modules are routed to the repository router (404)",
-    "updatedAt": 1794075105161,
+    "updatedAt": 1794095592662,
     "votes": 0
 }
