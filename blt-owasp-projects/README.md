@@ -79,8 +79,10 @@ workflow: blt-cron calls `POST /__scheduled` (task `new-projects`) hourly at :41
 New issues across every OWASP project go to Slack the same way: task `new-issues`, hourly at :43,
 `worker/new-issues.js`. One GitHub search lists the 100 newest issues in the OWASP organization; the
 projects whose code lives elsewhere (every `repo_name` in `repo_status.json` outside `OWASP/`, such
-as zaproxy/zaproxy, juice-shop/juice-shop or DefectDojo/django-DefectDojo; 63 today) are searched in
-batches of 40 with `repo:` qualifiers, and their lines show the owner (`zaproxy/zaproxy#9536`). The
+as juice-shop/juice-shop or DefectDojo/django-DefectDojo; 54 today) are searched in batches of 40
+with `repo:` qualifiers, and their lines show the owner (`juice-shop/juice-shop#2801`). Projects
+owasp.org no longer lists (`listed: false`) are left out, and so are organizations of projects that
+left OWASP (`FORMER_OWNERS`: zaproxy, since ZAP moved to the Software Security Project). The
 repository list is cached for a day in `state:outside-repos`; seen issues are in
 `state:new-issue-ids`, and the first run only records them. It posts to the `SLACK_NEW_ISSUES_WEBHOOK`
 Worker secret; without it the task keeps its state current and posts nothing.

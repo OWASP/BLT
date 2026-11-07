@@ -106,9 +106,10 @@ test("project repositories outside the OWASP organization are searched too", () 
     { repo_name: "zaproxy/zaproxy" }, { repo_name: "OWASP/ASVS" }, { repo_name: "owasp/wstg" },
     { repo_name: "juice-shop/juice-shop" }, { repo_name: "zaproxy/zaproxy" }, { repo_name: "gone/repo", archived: true },
     { repo_name: null }, null, { repo_name: "not a repo" },
+    { repo_name: "zaproxy/zap-extensions" }, { repo_name: "someone/dropped", listed: false },
   ]);
-  assert.deepEqual(repos, ["juice-shop/juice-shop", "zaproxy/zaproxy"]);
-  assert.deepEqual(searchQueries(repos), ["org:OWASP is:issue", "is:issue repo:juice-shop/juice-shop repo:zaproxy/zaproxy"]);
+  assert.deepEqual(repos, ["juice-shop/juice-shop"]);
+  assert.deepEqual(searchQueries(repos), ["org:OWASP is:issue", "is:issue repo:juice-shop/juice-shop"]);
   const many = searchQueries(Array.from({ length: 85 }, (_, i) => `o${i}/r`));
   assert.equal(many.length, 4);
   assert.equal(many[3], "is:issue repo:o80/r repo:o81/r repo:o82/r repo:o83/r repo:o84/r");
@@ -119,23 +120,23 @@ test("new issues in outside project repositories are posted with their owner", a
     if (url === HOOK) return new Response("ok");
     const q = new URL(url).searchParams.get("q");
     if (q.startsWith("org:OWASP")) return { items: [issue(3, "wstg", 8, "11:00"), issue(1, "wstg", 4, "09:00")] };
-    return { items: [issue(4, "zaproxy/zaproxy", 9536, "12:00"), issue(3, "wstg", 8, "11:00")] };
+    return { items: [issue(4, "juice-shop/juice-shop", 9536, "12:00"), issue(3, "wstg", 8, "11:00")] };
   });
   try {
     const e = env({ ids: [1], since: "2026-11-02T10:00:00Z" });
-    await e.DATA.put("repo_status.json", JSON.stringify([{ repo_name: "zaproxy/zaproxy" }, { repo_name: "OWASP/wstg" }]));
+    await e.DATA.put("repo_status.json", JSON.stringify([{ repo_name: "juice-shop/juice-shop" }, { repo_name: "OWASP/wstg" }]));
     await run(e);
     assert.deepEqual(posts(stub), ["*2 new OWASP issues*\n"
       + "• <https://github.com/OWASP/wstg/issues/8|wstg#8> Issue 8 · alice\n"
-      + "• <https://github.com/zaproxy/zaproxy/issues/9536|zaproxy/zaproxy#9536> Issue 9536 · alice"]);
-    assert.deepEqual(JSON.parse(e.DATA.text(REPOS_KEY)).repos, ["zaproxy/zaproxy"]);
+      + "• <https://github.com/juice-shop/juice-shop/issues/9536|juice-shop/juice-shop#9536> Issue 9536 · alice"]);
+    assert.deepEqual(JSON.parse(e.DATA.text(REPOS_KEY)).repos, ["juice-shop/juice-shop"]);
     assert.deepEqual(JSON.parse(e.DATA.text(STATE_KEY)), { ids: [4, 3, 1], since: "2026-11-02T12:00:00Z" });
 
     // The repository list is cached for a day: a changed repo_status.json is not read again yet.
-    await e.DATA.put("repo_status.json", JSON.stringify([{ repo_name: "juice-shop/juice-shop" }]));
+    await e.DATA.put("repo_status.json", JSON.stringify([{ repo_name: "WebGoat/WebGoat" }]));
     await run(e);
     const searched = stub.calls.filter((c) => c.url.includes("search/issues")).map((c) => new URL(c.url).searchParams.get("q"));
-    assert.deepEqual(searched.slice(-2), ["org:OWASP is:issue", "is:issue repo:zaproxy/zaproxy"]);
+    assert.deepEqual(searched.slice(-2), ["org:OWASP is:issue", "is:issue repo:juice-shop/juice-shop"]);
   } finally {
     stub.restore();
   }

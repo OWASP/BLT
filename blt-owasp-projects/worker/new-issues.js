@@ -4,7 +4,7 @@ import { readJsonOrAsset } from "../../scripts/worker-data/kv-data.js";
 // GitHub searches list the 100 most recently created issues across the OWASP organization, plus the
 // 100 newest in each batch of owasp.org projects whose code lives outside it (zaproxy/zaproxy,
 // juice-shop/juice-shop, coreruleset/coreruleset...: every repo_name in repo_status.json not under
-// OWASP/, cached daily in `state:outside-repos` so the large file is parsed once a day). Each issue
+// OWASP/ of a project owasp.org still lists, minus FORMER_OWNERS; cached daily in `state:outside-repos` so the large file is parsed once a day). Each issue
 // not seen before is posted to Slack (SLACK_NEW_ISSUES_WEBHOOK), one compact line per issue,
 // all in one message. KV keeps `state:new-issue-ids`: {ids, since}, the ids seen and the newest
 // created_at seen. Search indexing can lag, so an issue alerts when it is unseen and created after
@@ -17,18 +17,24 @@ export const ORG = "OWASP";
 export const REPOS_KEY = "state:outside-repos";
 const REPOS_TTL_MS = 24 * 60 * 60 * 1000;
 const REPOS_PER_SEARCH = 40;
+// Organizations of projects that left OWASP but are still named by an owasp.org entry: ZAP joined the
+// Software Security Project (its old www-project-zap site, and Attack Surface Detector's code URL,
+// zaproxy/zap-extensions, still point there).
+export const FORMER_OWNERS = new Set(["zaproxy"]);
 const MAX_SEEN = 2000;
 const MAX_LINES = 30;
 const LAG_MS = 60 * 60 * 1000;
 const MAX_TITLE = 100;
 
-// "owner/repo" of every active project repository outside the OWASP organization.
+// "owner/repo" of every active project repository outside the OWASP organization. Entries owasp.org
+// no longer lists (listed=false: found only through a leftover www-project-* repo) are left out.
 export function outsideRepos(projects) {
   const repos = new Set();
   for (const project of projects || []) {
     const name = String((project && project.repo_name) || "");
-    if (!project || project.archived || !/^[\w.-]+\/[\w.-]+$/.test(name)) continue;
-    if (name.split("/")[0].toLowerCase() !== ORG.toLowerCase()) repos.add(name);
+    if (!project || project.listed === false || project.archived || !/^[\w.-]+\/[\w.-]+$/.test(name)) continue;
+    const owner = name.split("/")[0].toLowerCase();
+    if (owner !== ORG.toLowerCase() && !FORMER_OWNERS.has(owner)) repos.add(name);
   }
   return [...repos].sort();
 }
