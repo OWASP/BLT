@@ -13,7 +13,8 @@
     <blt-nav project="blt-owasp-projects" name="Projects" current="auto">
         <a href="index.html">Projects</a>
         <a href="projects.html">Repos</a>
-        <a href="issues.html">Issues</a>
+        <a href="open.html?kind=issues">Issues</a>
+        <a href="open.html?kind=prs">Pull requests</a>
         <a href="https://git.owaspblt.org/BLT/BLT-OWASP-Projects" slot="actions" data-primary target="_blank" rel="noopener noreferrer">Source code</a>
     </blt-nav>
 
@@ -21,8 +22,9 @@
         <header class="hero">
             <p class="eyebrow">OWASP Foundation projects</p>
             <h1>OWASP Project Matrix</h1>
-            <p class="lede">Every OWASP project with its GitHub repository: who builds it, how active it is, and
-                what is open. Refreshed daily from GitHub and <a href="https://owasp.org/projects/" target="_blank" rel="noopener noreferrer">owasp.org</a>.</p>
+            <p class="lede">Every project in the <a href="https://owasp.org/projects/" target="_blank" rel="noopener noreferrer">owasp.org inventory</a>,
+                plus active <code>www-project</code> repositories it doesn't list, with their GitHub repository: who
+                builds it, how active it is, and what is open. Refreshed daily.</p>
             <dl class="totals" id="totals" aria-live="polite"></dl>
             <p class="updated" id="updated"></p>
         </header>
@@ -50,6 +52,13 @@
                     <option value="tool">Tool</option>
                     <option value="documentation">Documentation</option>
                     <option value="other">Other</option>
+                </select>
+            </label>
+            <label class="field"><span>Listed</span>
+                <select id="listed">
+                    <option value="">Everywhere</option>
+                    <option value="owasp">On owasp.org</option>
+                    <option value="www">Not on owasp.org</option>
                 </select>
             </label>
             <label class="field"><span>Sort</span>

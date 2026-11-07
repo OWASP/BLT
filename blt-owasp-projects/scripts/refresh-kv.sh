@@ -7,7 +7,7 @@
 # 1. Seeds public/ with the live copies (SITE_URL, default https://projects.owaspblt.org) of the
 #    data files, because KV, not git, holds the latest data: main.py compares with the previous
 #    www_project_repos.json and fetch_issues.py keeps known_issue_ids.json (both for Slack alerts).
-# 2. Runs the four generators into public/ (a failing one is reported and its files are skipped).
+# 2. Runs the five generators into public/ (a failing one is reported and its files are skipped).
 # 3. Writes each data file that is a non-empty JSON array, not less than half as long as before,
 #    and changed, to KV with scripts/worker-data/kv-put.sh. repo_status.json also needs at least
 #    one repository read successfully (a bad token makes every entry "Bad credentials").
@@ -19,7 +19,8 @@ SITE_URL="${SITE_URL:-https://projects.owaspblt.org}"
 PYTHON="${PYTHON:-python3}"
 PUB="${PUBLIC_DIR:-public}"
 export OUTPUT_DIR="$PUB"
-FILES=(www_project_repos.json repo_status.json issues.json known_issue_ids.json project_repos_links.json)
+FILES=(www_project_repos.json repo_status.json open_issues.json open_prs.json issues.json known_issue_ids.json
+  project_repos_links.json)
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT
 mkdir -p "$work/before" "$PUB"
@@ -34,7 +35,7 @@ for f in "${FILES[@]}"; do
   if [[ -f "$PUB/$f" ]]; then cp "$PUB/$f" "$work/before/$f"; else echo '[]' > "$work/before/$f"; fi
 done
 
-for script in main.py fetch_repo_status.py fetch_issues.py scrape_github_links.py; do
+for script in main.py fetch_repo_status.py fetch_open_work.py fetch_issues.py scrape_github_links.py; do
   "$PYTHON" "scripts/$script" || echo "warning: scripts/$script failed; keeping the previous data"
 done
 

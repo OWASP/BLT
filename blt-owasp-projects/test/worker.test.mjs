@@ -67,7 +67,7 @@ case "$url" in
   *) exit 22 ;;
 esac
 `);
-    // python: stands in for the four generators.
+    // python: stands in for the generators (fetch_open_work.py writes nothing here, so its files are skipped).
     writeFileSync(join(bin, "fakepy"), `#!/bin/bash
 case "$1" in
   scripts/main.py) cp "$OUTPUT_DIR/www_project_repos.json" "${dir}/seen-repos"; echo '[{"id":1}]' > "$OUTPUT_DIR/www_project_repos.json" ;;
@@ -100,6 +100,7 @@ esac
     assert.doesNotMatch(out, /would write issues\.json/);
     assert.match(out, /scrape_github_links\.py failed/);
     assert.doesNotMatch(out, /would write project_repos_links\.json/);
+    assert.match(out, /skipping open_prs\.json/);
     out = run({ STATUS: "Bad credentials" });
     assert.match(out, /skipping repo_status\.json: no repository was read successfully/);
   } finally {

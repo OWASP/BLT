@@ -61,7 +61,9 @@ test("index.html (matrix.js) escapes project metadata and contributors, and drop
     ],
   });
   assert.doesNotMatch(html, /<img src=x/i);
-  assert.doesNotMatch(html, /href="(?!https?:)/i);
+  // Only http(s) links, plus the page's own open.html links with an encoded repository.
+  assert.doesNotMatch(html, /href="(?!https?:|open\.html\?kind=(issues|prs)&amp;repo=[^"<>']*")/i);
+  assert.match(html, /href="open\.html\?kind=prs&amp;repo=%22%3E%3Cimg%20src%3Dx/);
   assert.doesNotMatch(html, /src="(?!https:\/\/avatars\.githubusercontent\.com\/)/i);
   assert.match(html, /<a href="https:\/\/owasp\.org\/%22%3E%3Cimg/);
   assert.match(html, /src="https:\/\/avatars\.githubusercontent\.com\/u\/1\?v=4&amp;s=64"/);
@@ -75,6 +77,8 @@ test("matrix.js classifies, filters and sorts projects", () => {
   assert.equal(ctx.levelOf({ level: 4 }), "flagship");
   assert.equal(ctx.levelOf({ level: "3.5" }), "production");
   assert.equal(ctx.levelOf({ level: "-1" }), "other");
+  assert.equal(ctx.levelOf({ level: "Lab" }), "lab");
+  assert.equal(ctx.levelOf({ level: "flagship" }), "flagship");
   assert.equal(ctx.typeOf({ type: "documentation, code" }), "code");
   assert.equal(ctx.typeOf({ type: "Standards" }), "documentation");
   assert.equal(ctx.typeOf({ type: "" }), "other");
@@ -94,6 +98,79 @@ test("matrix.js classifies, filters and sorts projects", () => {
   assert.equal(titles({ level: "flagship", sort: "name" }), "Cheat,Zed");
   assert.equal(titles({ active: true }), "Amass,Zed");
   assert.equal(titles({ q: "BOB" }), "Zed");
+  projects[1].listed = false;
+  assert.equal(titles({ listed: "www" }), "Amass");
+  assert.equal(titles({ listed: "owasp" }), "Zed,Cheat");
+});
+
+test("matrix.js totals count shared repositories once and show – for missing data, not 0", () => {
+  const ctx = loadPage();
+  vm.runInContext(read("matrix.js"), ctx);
+  const html = ctx.totalsHtml([
+    { repo_name: "OWASP/a", issues: 3, prs: 1, commits_90d: 10 },
+    { repo_name: "owasp/A", issues: 3, prs: 1, commits_90d: 10 },
+    { repo_name: "OWASP/b", issues: 2, prs: 4, commits_90d: 5, listed: false },
+  ]);
+  assert.match(html, /<dt>Commits in 90 days<\/dt><dd>15<\/dd>/);
+  assert.match(html, /href="open\.html\?kind=issues"><dt>Open issues<\/dt><dd>5<\/dd>/);
+  assert.match(html, /href="open\.html\?kind=prs"><dt>Open pull requests<\/dt><dd>5<\/dd>/);
+  assert.match(html, /2 in the owasp\.org inventory and 1 active www-project/);
+  assert.match(ctx.totalsHtml([{ repo_name: "OWASP/a", issues: 1 }]), /<dt>Commits in 90 days<\/dt><dd>–<\/dd>/);
+});
+
+test("matrix.js screenshots: owasp.org hero image, else a screenshot of the website or repository", () => {
+  const ctx = loadPage();
+  vm.runInContext(read("matrix.js"), ctx);
+  assert.equal(ctx.screenshotOf({ image: "https://owasp.org/media/x.png", website: "https://a.org" }), "https://owasp.org/media/x.png");
+  assert.equal(ctx.screenshotOf({ image: "", website: "https://a.org/", codeurl: "https://github.com/OWASP/a" }),
+    "https://s.wordpress.com/mshots/v1/https%3A%2F%2Fa.org%2F?w=640&h=400");
+  assert.equal(ctx.screenshotOf({ image: "javascript:x", codeurl: "https://github.com/OWASP/a" }),
+    "https://s.wordpress.com/mshots/v1/https%3A%2F%2Fgithub.com%2FOWASP%2Fa?w=640&h=400");
+  assert.equal(ctx.screenshotOf({ codeurl: "javascript:x" }), null);
+  const card = ctx.cardHtml({ title: "A", url: "https://owasp.org/projects/a", image: "https://owasp.org/m.png", repo_name: "OWASP/a", codeurl: "https://github.com/OWASP/a", github_status: "success" });
+  assert.match(card, /<a class="shot" href="https:\/\/owasp\.org\/projects\/a"[^>]*><img src="https:\/\/owasp\.org\/m\.png"[^>]*data-fallback="https:\/\/opengraph\.githubassets\.com\/1\/OWASP\/a"/);
+});
+
+test("open.html (open.js) escapes GitHub data and sorts by any column", () => {
+  const ctx = loadPage();
+  vm.runInContext(read("open.js"), ctx);
+  assert.match(read("open.html"), /<script src="safe-html\.js"><\/script>\s*<script src="open\.js">/);
+  const row = {
+    repo: "OWASP/a", projects: [["a", PAYLOAD]], number: 7, title: PAYLOAD, url: "javascript:alert(1)",
+    author: PAYLOAD, bot: false, labels: [[PAYLOAD, `"red;}`], ["bug", "d73a4a"]], assignees: [PAYLOAD, "bob"],
+    comments: 2, created_at: "2026-11-01T00:00:00Z", updated_at: "2026-11-02T00:00:00Z",
+    draft: false, review: "APPROVED", additions: 10, deletions: 2, files: 1,
+  };
+  for (const kind of ["issues", "prs"]) {
+    const html = ctx.rowHtml(row, kind);
+    assert.doesNotMatch(html, /<img src=x/i);
+    assert.doesNotMatch(html, /href="(?!https?:|#")/i);
+    assert.doesNotMatch(html, /--label:#"/);
+    assert.match(html, /--label:#d73a4a;--label-text:#fff/);
+  }
+  assert.match(ctx.rowHtml(row, "prs"), /Approved/);
+  assert.match(ctx.rowHtml(row, "issues"), /src="https:\/\/github\.com\/bob\.png\?size=48"/);
+  assert.equal(ctx.avatarUrl("dependabot[bot]"), "https://github.com/dependabot.png?size=48");
+  assert.equal(ctx.avatarUrl(PAYLOAD), null);
+
+  const rows = [
+    { repo: "OWASP/b", projects: [["b", "Beta"]], number: 1, title: "zeta", author: "x", bot: false, labels: [], assignees: [], comments: 5, created_at: "2026-01-01T00:00:00Z", updated_at: "2026-03-01T00:00:00Z", review: "APPROVED" },
+    { repo: "OWASP/a", projects: [["a", "Alpha"]], number: 2, title: "alpha fix", author: "y", bot: false, labels: [["bug", "ff0000"]], assignees: [], comments: 1, created_at: "2026-02-01T00:00:00Z", updated_at: "2026-02-01T00:00:00Z", review: "CHANGES_REQUESTED" },
+    { repo: "OWASP/a", projects: [["a", "Alpha"]], number: 3, title: "bump deps", author: "dependabot[bot]", bot: true, labels: [], assignees: [], comments: 0, created_at: "2026-03-01T00:00:00Z", updated_at: "2026-04-01T00:00:00Z", draft: true },
+  ];
+  const nums = (opts, kind = "prs") => ctx.filterRows(rows, opts, kind).map((r) => r.number).join(",");
+  assert.equal(nums({}), "1,2");
+  assert.equal(nums({ bots: true }), "3,1,2");
+  assert.equal(nums({ sort: "title" }), "2,1");
+  assert.equal(nums({ sort: "title", dir: -1 }), "1,2");
+  assert.equal(nums({ sort: "comments" }), "1,2");
+  assert.equal(nums({ sort: "project" }), "2,1");
+  assert.equal(nums({ repo: "owasp/a", bots: true }), "3,2");
+  assert.equal(nums({ q: "BUG" }), "2");
+  assert.equal(nums({ review: "draft", bots: true }), "3");
+  assert.equal(nums({ sort: "review", bots: true }), "2,1,3");
+  assert.match(ctx.headHtml("prs", "comments", 0), /<th scope="col" class="col-comments n" aria-sort="descending">/);
+  assert.doesNotMatch(ctx.headHtml("issues", "updated", 0), /Review/);
 });
 
 test("projects.html escapes repo names", () => {

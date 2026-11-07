@@ -25,8 +25,11 @@ The hosted site lives in `public/`, served by a small Worker that reads the refr
 │   ├── matrix.js
 │   ├── matrix.css
 │   ├── projects.html
+│   ├── open.html
 │   ├── issues.html
 │   ├── repo_status.json
+│   ├── open_issues.json
+│   ├── open_prs.json
 │   ├── www_project_repos.json
 │   ├── project_repos_links.json
 │   ├── issues.json
@@ -35,6 +38,7 @@ The hosted site lives in `public/`, served by a small Worker that reads the refr
 │   ├── refresh-kv.sh
 │   ├── main.py
 │   ├── fetch_repo_status.py
+│   ├── fetch_open_work.py
 │   ├── fetch_issues.py
 │   ├── scrape_github_links.py
 │   └── sweep.py
@@ -53,6 +57,7 @@ changed into the Worker's KV namespace. It refreshes:
 
 - `www_project_repos.json`
 - `repo_status.json`
+- `open_issues.json`, `open_prs.json`
 - `issues.json`
 - `known_issue_ids.json`
 - `project_repos_links.json`
@@ -98,6 +103,7 @@ Run data refresh scripts locally:
 export GITHUB_TOKEN="your_token_here"
 python scripts/main.py
 python scripts/fetch_repo_status.py
+python scripts/fetch_open_work.py
 python scripts/fetch_issues.py
 python scripts/scrape_github_links.py
 ```
@@ -114,7 +120,16 @@ open public/issues.html
 
 `public/www_project_repos.json` contains basic repository information for OWASP `www-project-*` repositories.
 
-`public/repo_status.json` contains detailed project and repository statistics: per project, the
+`public/repo_status.json` lists every project in the [owasp.org inventory](https://owasp.org/projects/)
+(its public API, `/api/public/projects/list`), cross-checked with the OWASP organization's
+`www-project-*` repositories: an active www-project repository that no inventory project points to is
+added with `listed: false` (the matrix tags it "Not on owasp.org"). owasp.github.io's older
+`projects.json` fills in the pitch and project-page fields where a project is in both. The card
+picture is owasp.org's hero image (`image`) or, without one, a WordPress.com mShots screenshot of the
+project's website or repository. Stats come from the
+project's code repository (owasp.org's `github_url`, else the `projects.json` code URL, else the
+www-project repository). Organizations that require two-factor auth refuse a member's token that
+lacks it; those requests are retried without the token. Per project, the
 GitHub repository's stars, forks, license, latest release, open issues and open pull requests
 (counted exactly; GitHub's own open-issue count includes pull requests), `commits_30d` /
 `commits_90d` and `contributors_30d` / `contributors_90d` (distinct human commit authors; at most
@@ -123,7 +138,14 @@ GitHub repository's stars, forks, license, latest release, open issues and open 
 
 `public/project_repos_links.json` maps OWASP project names to associated GitHub repositories.
 
-`public/issues.json` contains open OWASP issue data.
+`public/open_issues.json` and `public/open_prs.json` hold every open issue and pull request in the
+repositories of `repo_status.json` (GitHub GraphQL, no 1,000-result cap): title, number, labels,
+author (bots flagged), assignees, comments, dates and, for pull requests, draft, review decision and
+size. `open.html?kind=issues|prs` shows them in sortable tables; `&repo=owner/name` filters to one
+repository (the cards' Open issues / Open PRs link there).
+
+`public/issues.json` contains open issues in the OWASP organization (GitHub search, at most 1,000) for
+`issues.html` and the Slack alert.
 
 ## License
 

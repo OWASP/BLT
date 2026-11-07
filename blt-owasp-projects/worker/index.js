@@ -12,6 +12,8 @@ import { checkNewProjects } from "./new-projects.js";
 export const DATA_PATHS = [
   "/www_project_repos.json",
   "/repo_status.json",
+  "/open_issues.json",
+  "/open_prs.json",
   "/issues.json",
   "/known_issue_ids.json",
   "/project_repos_links.json",
