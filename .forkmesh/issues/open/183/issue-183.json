@@ -1,5 +1,7 @@
 {
-    "assignees": [],
+    "assignees": [
+        "owasp-marquina"
+    ],
     "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
     "authorName": "blt-tasks[bot]",
     "bountyAddress": "",
@@ -32,6 +34,17 @@
             "sig": "JhS1guyxXbXXHVJLhUOSMZFhkosUal6_HHctwQfwWBLbMXFmrmjPZb-RWeuLuwdWV_q-avGsK4TEaoH3d6_ICA",
             "ts": 1792547524690,
             "type": "labels"
+        },
+        {
+            "assignee": "owasp-marquina",
+            "author": "SDGRl2pWA4LQfxCX-son7AShrtzI9j9fDXQRG0Duig4",
+            "authorName": "owasp-marquina",
+            "authorVerified": true,
+            "claimState": "assigned",
+            "id": "claim-web-1794025537863-1kikysf",
+            "sig": "445aIrZ9-K-YPrPf58KsZMQkqogAccMF-LqZoNjrT4iyUFLWOM27UIH_LFWc1rfzXOWqj4PCRD_MxZ_it-M5Bw",
+            "ts": 1794025537863,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -48,6 +61,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-design-contest: strip `[X]` checkboxes from descriptions and test extract_description edge cases",
-    "updatedAt": 1792547524690,
+    "updatedAt": 1794025537863,
     "votes": 0
 }
