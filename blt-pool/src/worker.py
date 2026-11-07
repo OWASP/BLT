@@ -82,6 +82,10 @@ NEEDS_APPROVAL_LABEL_COLOR = "e11d48"
 MENTOR_MAX_MENTEES = 3
 MENTOR_LABEL_COLOR = "7057ff"
 MENTOR_ASSIGNED_LABEL_COLOR = "0075ca"
+POOL_URL = "https://pool.owaspblt.org"
+# Where contributors find issues to work on; forge `/mentor` requests are answered there by
+# blt-pool/forge/mentor.mjs (.forkmesh/blt-pool--mentor.yml).
+FORGE_ISSUES_URL = "https://git.owaspblt.org/BLT/issues"
 # Issues with these labels bypass mentor auto-assignment (go to core maintainers).
 SECURITY_BYPASS_LABELS = {"security", "vulnerability", "security-sensitive", "private-security"}
 # TTL for cached GitHub-sourced all-time mentor stats in D1 (24 hours).
@@ -587,10 +591,13 @@ async def _load_mentors_from_d1(db) -> list:
     """
     try:
         await _ensure_leaderboard_schema(db)
-        rows = await _d1_all(
-            db,
-            "SELECT github_username, name, title, bio, specialties, max_mentees, active, timezone, referred_by, email, slack_username, total_prs FROM mentors",
-        )
+        columns = "github_username, name, title, bio, specialties, max_mentees, active, timezone, referred_by, email, slack_username, total_prs"
+        try:
+            rows = await _d1_all(db, f"SELECT {columns}, forge_username FROM mentors")
+        except Exception as exc:
+            # Before migrations/0003 is applied the column is missing; keep the pool listed.
+            console.error(f"[MentorPool] forge_username unavailable ({exc}); loading mentors without it")
+            rows = await _d1_all(db, f"SELECT {columns} FROM mentors")
         mentors = []
         for row in rows:
             try:
@@ -609,6 +616,7 @@ async def _load_mentors_from_d1(db) -> list:
                 "referred_by": row.get("referred_by") or "",
                 "email": row.get("email") or "",
                 "slack_username": row.get("slack_username") or "",
+                "forge_username": row.get("forge_username") or "",
                 "total_prs": int(row.get("total_prs") or 0),
             })
         console.log(f"[MentorPool] Loaded {len(mentors)} mentors from D1")
@@ -631,14 +639,15 @@ async def _d1_add_mentor(
     referred_by: str = "",
     email: str = "",
     slack_username: str = "",
+    forge_username: str = "",
 ) -> None:
     """Insert or replace a mentor row in the D1 ``mentors`` table."""
     await _d1_run(
         db,
         """
         INSERT INTO mentors
-            (github_username, name, title, bio, specialties, max_mentees, active, timezone, referred_by, email, slack_username)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (github_username, name, title, bio, specialties, max_mentees, active, timezone, referred_by, email, slack_username, forge_username)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(github_username) DO UPDATE SET
             name        = excluded.name,
             title       = excluded.title,
@@ -649,7 +658,8 @@ async def _d1_add_mentor(
             timezone    = excluded.timezone,
             referred_by = excluded.referred_by,
             email = excluded.email,
-            slack_username = excluded.slack_username
+            slack_username = excluded.slack_username,
+            forge_username = excluded.forge_username
         """,
         (
             github_username,
@@ -663,6 +673,7 @@ async def _d1_add_mentor(
             referred_by or "",
             email or "",
             slack_username or "",
+            forge_username or "",
         ),
     )
 
@@ -5126,6 +5137,7 @@ def _generate_mentor_row(mentor: dict, stats: Optional[dict] = None) -> str:
     status = mentor.get("status", "available")
     active = mentor.get("active", True)
     referred_by = (mentor.get("referred_by", "") or "").strip()
+    forge_username = (mentor.get("forge_username", "") or "").strip()
 
     avatar_url = (
         f"https://github.com/{github}.png"
@@ -5194,6 +5206,14 @@ def _generate_mentor_row(mentor: dict, stats: Optional[dict] = None) -> str:
     meta_parts.append(
         f'<span class="text-xs text-gray-400 whitespace-nowrap">Cap&nbsp;{max_mentees}</span>'
     )
+    if forge_username:
+        forge_escaped = _html_mod.escape(forge_username)
+        meta_parts.append(
+            f'<a href="https://git.owaspblt.org/@{forge_escaped}" target="_blank" rel="noopener" '
+            f'class="inline-flex items-center gap-1 text-xs text-gray-400 hover:text-[#dc2626] whitespace-nowrap" '
+            f'title="@{forge_escaped} on git.owaspblt.org: gets forge /mentor requests">'
+            f'<i class="fa-solid fa-code-branch" aria-hidden="true"></i>@{forge_escaped}</a>'
+        )
     if referred_by:
         ref_escaped = _html_mod.escape(referred_by)
         meta_parts.append(
@@ -5400,7 +5420,7 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
             </div>
             <h3 class="text-lg font-bold text-[#111827]">Referral Leaderboard</h3>
           </div>
-          <p class="mb-4 text-xs text-gray-500">GitHub users who have referred the most mentors to the pool.</p>
+          <p class="mb-4 text-xs text-gray-500">Contributors who brought the most mentors into the pool. <a href="#refer" class="font-semibold text-[#dc2626] hover:underline">Get your referral link</a>.</p>
           <ol class="space-y-0">
             {lb_items}
           </ol>
@@ -5414,7 +5434,7 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
             </div>
             <h3 class="text-lg font-bold text-[#111827]">Referral Leaderboard</h3>
           </div>
-          <p class="mb-4 text-sm text-gray-500">No referrals yet — be the first to invite a friend!</p>
+          <p class="mb-4 text-sm text-gray-500">No referrals yet. Know someone who could guide new contributors? <a href="#refer" class="font-semibold text-[#dc2626] hover:underline">Send them your referral link</a> and be the first on this board.</p>
         </section>'''
 
     return f'''<!DOCTYPE html>
@@ -5479,17 +5499,23 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
           </h2>
           <p class="mt-4 max-w-2xl text-base leading-relaxed text-gray-600 sm:text-lg">
             Connect with mentors, get support for your first pull request, and keep contribution quality high with a practical community workflow.
+            On any <a href="{FORGE_ISSUES_URL}" target="_blank" rel="noopener" class="font-semibold text-[#dc2626] hover:underline">git.owaspblt.org issue</a>, comment <code class="rounded bg-gray-100 px-1.5 py-0.5 text-sm">/mentor</code> and a mentor from this pool is matched to you.
           </p>
           <div class="mt-7 flex flex-wrap gap-3">
-            <a href="https://owasp.slack.com/signup" target="_blank" rel="noopener"
+            <a href="{FORGE_ISSUES_URL}" target="_blank" rel="noopener"
                class="inline-flex items-center gap-2 rounded-md bg-[#dc2626] px-5 py-3 text-sm font-semibold text-white transition hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2">
-              <i class="fa-brands fa-slack" aria-hidden="true"></i>
-              Join OWASP Slack
+              <i class="fa-solid fa-code-branch" aria-hidden="true"></i>
+              Find an issue on the forge
             </a>
-            <a href="/github-app"
+            <a href="#join-mentor"
                class="inline-flex items-center gap-2 rounded-md border border-[#dc2626] px-5 py-3 text-sm font-semibold text-[#dc2626] transition hover:bg-[#dc2626] hover:text-white focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2">
-              <i class="fa-brands fa-github" aria-hidden="true"></i>
-              Open GitHub App
+              <i class="fa-solid fa-user-plus" aria-hidden="true"></i>
+              Become a mentor
+            </a>
+            <a href="#refer"
+               class="inline-flex items-center gap-2 rounded-md border border-[#E5E5E5] px-5 py-3 text-sm font-semibold text-gray-700 transition hover:border-[#dc2626] hover:text-[#dc2626] focus:outline-none focus:ring-2 focus:ring-red-600 focus:ring-offset-2">
+              <i class="fa-solid fa-share-nodes" aria-hidden="true"></i>
+              Refer a mentor
             </a>
           </div>
         </div>
@@ -5530,6 +5556,84 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
 
     </div>
 
+    <section id="refer" class="rounded-2xl border border-[#E5E5E5] bg-white p-7 sm:p-9">
+      <div class="grid gap-8 lg:grid-cols-2 lg:items-start">
+        <div>
+          <span class="mb-3 inline-flex items-center gap-2 rounded-full border border-[#E5E5E5] bg-gray-50 px-3 py-1 text-xs font-semibold text-gray-700">
+            <i class="fa-solid fa-share-nodes text-[#dc2626]" aria-hidden="true"></i>
+            Students and contributors: grow the pool
+          </span>
+          <h3 class="text-2xl font-bold text-[#111827]">Refer a mentor</h3>
+          <p class="mt-2 text-sm leading-relaxed text-gray-600">
+            Every <code class="font-mono">/mentor</code> request needs someone free to answer it, and the pool only grows when people invite each other.
+            Think of a maintainer, teacher, coworker or senior student who has helped you: send them your link.
+            When they join, you are credited as their referrer on their mentor card and on the referral leaderboard.
+          </p>
+          <ul class="mt-4 space-y-2 text-sm text-gray-600">
+            <li class="flex gap-2"><i class="fa-solid fa-check mt-1 text-[#dc2626]" aria-hidden="true"></i>Mentors pick their own load, from 1 to 10 mentees at a time.</li>
+            <li class="flex gap-2"><i class="fa-solid fa-check mt-1 text-[#dc2626]" aria-hidden="true"></i>Requests arrive as a git.owaspblt.org notification on the issue, so there is nothing new to install.</li>
+            <li class="flex gap-2"><i class="fa-solid fa-check mt-1 text-[#dc2626]" aria-hidden="true"></i>Anyone with a merged pull request in BLT is published straight away; others after a quick admin check.</li>
+          </ul>
+        </div>
+        <div class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-5">
+          <label for="ref-name" class="mb-1 block text-sm font-semibold text-gray-700">Your git.owaspblt.org or GitHub username</label>
+          <input id="ref-name" type="text" placeholder="e.g. janedoe" maxlength="63" autocomplete="username"
+                 class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#dc2626] focus:ring-1 focus:ring-[#dc2626] focus:outline-none">
+          <label for="ref-link" class="mb-1 mt-4 block text-sm font-semibold text-gray-700">Your referral link</label>
+          <div class="flex gap-2">
+            <input id="ref-link" type="text" readonly value="{POOL_URL}/#join-mentor"
+                   class="min-w-0 flex-1 rounded-md border border-gray-300 bg-white px-3 py-2 font-mono text-xs text-gray-700">
+            <button type="button" data-copy="ref-link"
+                    class="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-[#dc2626] px-3 py-2 text-xs font-semibold text-white transition hover:bg-red-700">
+              <i class="fa-regular fa-copy" aria-hidden="true"></i>Copy
+            </button>
+          </div>
+          <label for="ref-message" class="mb-1 mt-4 block text-sm font-semibold text-gray-700">A message you can send with it</label>
+          <textarea id="ref-message" rows="5" readonly
+                    class="w-full rounded-md border border-gray-300 bg-white px-3 py-2 text-xs leading-relaxed text-gray-700"></textarea>
+          <button type="button" data-copy="ref-message"
+                  class="mt-2 inline-flex items-center gap-1.5 rounded-md border border-[#dc2626] px-3 py-2 text-xs font-semibold text-[#dc2626] transition hover:bg-[#dc2626] hover:text-white">
+            <i class="fa-regular fa-copy" aria-hidden="true"></i>Copy message
+          </button>
+        </div>
+      </div>
+      <script>
+        (function () {{
+          var NAME_RE = /^[a-zA-Z0-9](?:[a-zA-Z0-9\\-]{{0,61}}[a-zA-Z0-9])?$/;
+          var base = '{POOL_URL}/';
+          var nameEl = document.getElementById('ref-name');
+          var linkEl = document.getElementById('ref-link');
+          var msgEl = document.getElementById('ref-message');
+          function update() {{
+            var name = nameEl.value.trim().replace(/^@/, '');
+            var link = NAME_RE.test(name) ? base + '?ref=' + encodeURIComponent(name) + '#join-mentor' : base + '#join-mentor';
+            linkEl.value = link;
+            msgEl.value = 'Hi! I contribute to OWASP BLT, and new contributors there can ask for a mentor on any issue. ' +
+              'You have helped me a lot, and I think you would be a great mentor. It takes a couple of minutes to join, ' +
+              'and you choose how many people you help at once: ' + link;
+          }}
+          nameEl.addEventListener('input', update);
+          update();
+          document.querySelectorAll('[data-copy]').forEach(function (btn) {{
+            btn.addEventListener('click', function () {{
+              var el = document.getElementById(btn.getAttribute('data-copy'));
+              var done = function () {{
+                var old = btn.innerHTML;
+                btn.textContent = 'Copied';
+                setTimeout(function () {{ btn.innerHTML = old; }}, 1500);
+              }};
+              if (navigator.clipboard && navigator.clipboard.writeText) {{
+                navigator.clipboard.writeText(el.value).then(done, function () {{ el.select(); }});
+              }} else {{
+                el.select();
+                try {{ document.execCommand('copy'); done(); }} catch (e) {{}}
+              }}
+            }});
+          }});
+        }}());
+      </script>
+    </section>
+
     {active_assignments_html}
 
     <section class="rounded-2xl border border-[#E5E5E5] bg-white p-7 sm:p-9">
@@ -5562,28 +5666,25 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
     <section id="mentor-commands" class="rounded-2xl border border-[#E5E5E5] bg-white p-7 sm:p-9">
       <h3 class="text-2xl font-bold text-[#111827]">Mentor Slash Commands</h3>
       <p class="mt-3 text-sm leading-relaxed text-gray-600">
-        Use these commands directly in GitHub issue comments to interact with the mentor system.
+        Comment these on an issue at <a href="{FORGE_ISSUES_URL}" target="_blank" rel="noopener" class="font-semibold text-[#dc2626] hover:underline">git.owaspblt.org</a> while signed in.
+        The matched mentor is @mentioned there, so mentors who add their git.owaspblt.org account below get the request as a notification.
       </p>
       <div class="mt-5 grid gap-4 sm:grid-cols-2">
         <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4">
           <p class="font-mono text-sm font-bold text-[#dc2626]">/mentor</p>
-          <p class="mt-2 text-sm text-gray-600">Request a mentor for this issue. The bot auto-assigns the best available mentor from the pool.</p>
-        </article>
-        <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4">
-          <p class="font-mono text-sm font-bold text-[#dc2626]">/unmentor</p>
-          <p class="mt-2 text-sm text-gray-600">Cancel a mentor assignment. Use this to undo an accidental <code class="font-mono">/mentor</code> request. Available to the issue author or the assigned mentor.</p>
-        </article>
-        <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4">
-          <p class="font-mono text-sm font-bold text-[#dc2626]">/mentor-pause</p>
-          <p class="mt-2 text-sm text-gray-600">Pause your mentor availability. Use this when you need a break from accepting new mentees.</p>
-        </article>
-        <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4">
-          <p class="font-mono text-sm font-bold text-[#dc2626]">/handoff</p>
-          <p class="mt-2 text-sm text-gray-600">Transfer this issue to another available mentor. The current mentor uses this to hand off cleanly.</p>
+          <p class="mt-2 text-sm text-gray-600">Request a mentor for this issue. The least busy available mentor is matched, preferring one whose specialties match the issue labels.</p>
         </article>
         <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4">
           <p class="font-mono text-sm font-bold text-[#dc2626]">/rematch</p>
-          <p class="mt-2 text-sm text-gray-600">Request a different mentor for this issue. The bot re-runs matching to find a fresh assignment.</p>
+          <p class="mt-2 text-sm text-gray-600">Ask for a different mentor. The current mentor or the person who asked can use it, and the current mentor can use it to hand off.</p>
+        </article>
+        <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4">
+          <p class="font-mono text-sm font-bold text-[#dc2626]">/unmentor</p>
+          <p class="mt-2 text-sm text-gray-600">Cancel the mentor match, for example after an accidental <code class="font-mono">/mentor</code>. Available to the person who asked and the matched mentor.</p>
+        </article>
+        <article class="rounded-xl border border-[#E5E5E5] bg-gray-50 p-4">
+          <p class="font-mono text-sm font-bold text-[#dc2626]">/assign</p>
+          <p class="mt-2 text-sm text-gray-600">Claim the issue yourself. Asking for a mentor does not assign you; comment <code class="font-mono">/assign</code> too when you start working on it.</p>
         </article>
       </div>
     </section>
@@ -5600,6 +5701,7 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
           </p>
         </div>
       </div>
+      <p id="mf-invited" role="status" class="hidden mb-5 rounded-md border border-[#E5E5E5] bg-[#feeae9] px-4 py-3 text-sm font-semibold text-[#dc2626]"></p>
       <form id="mentor-form" class="grid gap-4 sm:grid-cols-2" novalidate>
         <div>
           <label for="mf-name" class="mb-1 block text-sm font-semibold text-gray-700">
@@ -5615,6 +5717,13 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
           </label>
           <input id="mf-github" type="text" required autocomplete="username" placeholder="janedoe"
                  maxlength="39" pattern="[a-zA-Z0-9]([a-zA-Z0-9\\-]{{0,37}}[a-zA-Z0-9])?"
+                 class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#dc2626] focus:ring-1 focus:ring-[#dc2626] focus:outline-none">
+        </div>
+        <div class="sm:col-span-2">
+          <label for="mf-forge" class="mb-1 block text-sm font-semibold text-gray-700">
+            git.owaspblt.org Account <span class="text-xs font-normal text-gray-400">(recommended — this is where <code class="font-mono">/mentor</code> requests reach you; <a href="https://git.owaspblt.org/" target="_blank" rel="noopener" class="text-[#dc2626] hover:underline">sign up</a> if you have none)</span>
+          </label>
+          <input id="mf-forge" type="text" placeholder="janedoe" maxlength="63"
                  class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#dc2626] focus:ring-1 focus:ring-[#dc2626] focus:outline-none">
         </div>
                 <div>
@@ -5674,10 +5783,10 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
                 </div>
         <div class="sm:col-span-2">
           <label for="mf-referral" class="mb-1 block text-sm font-semibold text-gray-700">
-            Referred By <span class="text-xs font-normal text-gray-400">(optional — GitHub username of who invited you)</span>
+            Referred By <span class="text-xs font-normal text-gray-400">(optional — the git.owaspblt.org or GitHub username of who invited you)</span>
           </label>
           <input id="mf-referral" type="text" placeholder="e.g. janedoe"
-                 maxlength="39" pattern="[a-zA-Z0-9]([a-zA-Z0-9\\-]{{0,37}}[a-zA-Z0-9])?"
+                 maxlength="63"
                  class="w-full rounded-md border border-gray-300 px-3 py-2 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#dc2626] focus:ring-1 focus:ring-[#dc2626] focus:outline-none">
         </div>
         <div id="mf-error" role="alert" class="hidden sm:col-span-2 text-sm font-semibold text-[#dc2626]"></div>
@@ -5698,6 +5807,20 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
           var SPECIALTY_RE = /^[a-z0-9][a-z0-9+#.\\-]{{0,29}}$/;
           var EMAIL_RE = /^[A-Za-z0-9._%+-]{{1,64}}@[A-Za-z0-9.-]{{1,190}}[.][A-Za-z]{{2,}}$/;
           var SLACK_RE = /^[A-Za-z0-9._-]{{1,80}}$/;
+          var FORGE_RE = /^[a-z](?:[a-z0-9\\-]{{0,61}}[a-z0-9])?$/;
+          var REF_RE = /^[a-zA-Z0-9](?:[a-zA-Z0-9\\-]{{0,61}}[a-zA-Z0-9])?$/;
+
+          // A referral link (?ref=name) fills in "Referred By".
+          try {{
+            var ref = new URLSearchParams(window.location.search).get('ref') || '';
+            ref = ref.trim().replace(/^@/, '');
+            if (REF_RE.test(ref)) {{
+              document.getElementById('mf-referral').value = ref;
+              var note = document.getElementById('mf-invited');
+              note.textContent = '@' + ref + ' invited you to mentor. Thank you for considering it!';
+              note.classList.remove('hidden');
+            }}
+          }} catch (e) {{}}
 
           /**
            * Return true if the value contains HTML angle brackets, raw ampersands,
@@ -5722,6 +5845,7 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
             var email    = document.getElementById('mf-email').value.trim().toLowerCase();
             var slack    = document.getElementById('mf-slack').value.trim().replace(/^@/, '');
             var referral = document.getElementById('mf-referral').value.trim().replace(/^@/, '');
+            var forge    = document.getElementById('mf-forge').value.trim().replace(/^@/, '').toLowerCase();
             var errEl    = document.getElementById('mf-error');
             var okEl     = document.getElementById('mf-success');
             var btn      = document.getElementById('mf-submit');
@@ -5810,8 +5934,13 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
               errEl.classList.remove('hidden');
               return;
             }}
-            if (referral && !GH_USERNAME_RE.test(referral)) {{
-              errEl.textContent = 'Referred-by username may only contain letters, digits, and single hyphens, and cannot begin or end with a hyphen (max 39 characters).';
+            if (referral && !REF_RE.test(referral)) {{
+              errEl.textContent = 'Referred-by username may only contain letters, digits, and hyphens, and cannot begin or end with a hyphen.';
+              errEl.classList.remove('hidden');
+              return;
+            }}
+            if (forge && !FORGE_RE.test(forge)) {{
+              errEl.textContent = 'git.owaspblt.org usernames start with a letter and use only letters, digits, and hyphens.';
               errEl.classList.remove('hidden');
               return;
             }}
@@ -5857,7 +5986,8 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
                 timezone: tz,
                                 referred_by: referral,
                                 email: email,
-                                slack_username: slack
+                                slack_username: slack,
+                forge_username: forge
               }})
             }})
             .then(function(res) {{
@@ -5867,7 +5997,7 @@ def _index_html(mentors: list = None, mentor_stats: Optional[dict] = None, activ
               btn.disabled = false;
               if (result.ok) {{
                 if (result.data && result.data.active) {{
-                  okEl.textContent = 'Welcome to the mentor pool, @' + github + '! Your mentor profile is now published.';
+                  okEl.textContent = 'Welcome to the mentor pool, @' + github + '! Your mentor profile is now published. Know someone else who would be good at this? Share your own link from "Refer a mentor" above.';
                 }} else {{
                   okEl.textContent = 'Thanks, @' + github + '! Your mentor profile was saved and is waiting for admin publishing.';
                 }}
@@ -5926,6 +6056,8 @@ _BIO_RE = re.compile(r"^[^<>&\"\x00-\x1f]{1,500}$")
 _EMAIL_RE = re.compile(r"^[A-Za-z0-9._%+\-]{1,64}@[A-Za-z0-9.\-]{1,190}\.[A-Za-z]{2,}$")
 # Slack username without @, lower/upper letters, digits, dot, underscore, hyphen.
 _SLACK_USERNAME_RE = re.compile(r"^[A-Za-z0-9._\-]{1,80}$")
+# git.owaspblt.org account name (forkmesh NODE_NAME_RE); stored lowercase.
+_FORGE_USERNAME_RE = re.compile(r"^[a-z](?:[a-z0-9\-]{0,61}[a-z0-9])?$")
 # Bounds for the max_mentees field in the mentor form.
 _MENTOR_MIN_MENTEES_CAP = 1
 _MENTOR_MAX_MENTEES_CAP = 10
@@ -5947,6 +6079,71 @@ async def _verify_gh_user_exists(username: str, env=None) -> bool:
         return True  # Fail open: don't block when GitHub API is temporarily unavailable
 
 
+async def _verify_forge_user_exists(username: str) -> bool:
+    """Return True if ``username`` is an account on git.owaspblt.org (its ``/@name`` page is 404 otherwise).
+
+    Fails open like ``_verify_gh_user_exists``: only a definite 404 counts as missing.
+    """
+    try:
+        resp = await fetch(f"{forge_leaderboard.FORGE_URL}/@{quote(username)}", method="GET")
+        return resp.status != 404
+    except Exception:
+        return True
+
+
+async def _has_forge_merge(env, logins: list) -> bool:
+    """True when the forge leaderboard counted a merged pull for any of ``logins``.
+
+    The forge sync keys rows by the GitHub login the README roster maps a forge account to, else
+    by the forge login, so both are checked.
+    """
+    db = _d1_binding(env)
+    names = [n.lower() for n in logins if n]
+    if not db or not names:
+        return False
+    marks = ", ".join("?" for _ in names)
+    try:
+        row = await _d1_first(
+            db,
+            f"SELECT 1 AS hit FROM leaderboard_monthly_stats WHERE org = ? AND lower(user_login) IN ({marks}) AND merged_prs > 0 LIMIT 1",
+            (_leaderboard_org(env), *names),
+        )
+        return bool(row)
+    except Exception as exc:
+        console.error(f"[MentorPool] forge merge lookup failed: {exc}")
+        return False
+
+
+def _public_mentor(mentor: dict) -> dict:
+    """The fields of a mentor that ``GET /api/mentors`` publishes (no email or Slack)."""
+    return {
+        "github_username": mentor.get("github_username", ""),
+        "forge_username": mentor.get("forge_username", ""),
+        "name": mentor.get("name", ""),
+        "title": mentor.get("title", ""),
+        "specialties": list(mentor.get("specialties") or []),
+        "max_mentees": int(mentor.get("max_mentees") or 3),
+        "timezone": mentor.get("timezone", ""),
+        "referred_by": mentor.get("referred_by", ""),
+    }
+
+
+async def _handle_list_mentors(env) -> "Response":
+    """GET /api/mentors — the published mentors, for forge `/mentor` (blt-pool/forge/mentor.mjs)."""
+    mentors = await _load_mentors_local(env)
+    published = [_public_mentor(m) for m in mentors if m.get("active", True)]
+    published.sort(key=lambda m: m["github_username"].lower())
+    return Response.new(
+        json.dumps({"mentors": published, "count": len(published), "join_url": f"{POOL_URL}/#join-mentor"}),
+        status=200,
+        headers=Headers.new({
+            "Content-Type": "application/json",
+            "Access-Control-Allow-Origin": "*",
+            "Cache-Control": "public, max-age=60, s-maxage=300",
+        }.items()),
+    )
+
+
 async def _handle_add_mentor(request, env) -> "Response":
     """POST /api/mentors — insert a new mentor into the D1 mentors table.
 
@@ -5962,8 +6159,12 @@ async def _handle_add_mentor(request, env) -> "Response":
             "timezone": "UTC+5:30",                   // optional
             "referred_by": "referrer",                // optional
             "email": "mentor@example.com",             // optional
-            "slack_username": "mentor-handle"          // optional
+            "slack_username": "mentor-handle",         // optional
+            "forge_username": "janedoe"                // optional, account on git.owaspblt.org
         }
+
+    ``referred_by`` may be a GitHub username or a git.owaspblt.org account. A mentor is published
+    right away when they have a merged pull request in the GitHub org or on the forge.
 
     Returns 201 on success, 400 on validation failure, 500 on DB error.
     """
@@ -5982,6 +6183,7 @@ async def _handle_add_mentor(request, env) -> "Response":
     referred_by = (body.get("referred_by") or "").strip().lstrip("@")
     email = (body.get("email") or "").strip().lower()
     slack_username = (body.get("slack_username") or "").strip().lstrip("@")
+    forge_username = (body.get("forge_username") or "").strip().lstrip("@").lower()
 
     if not name:
         return _json({"error": "Field 'name' is required"}, 400)
@@ -6027,9 +6229,17 @@ async def _handle_add_mentor(request, env) -> "Response":
     if slack_username and not _SLACK_USERNAME_RE.match(slack_username):
         return _json({"error": "Invalid Slack username format"}, 400)
 
-    # Verify the referrer's GitHub username exists (if provided).
-    if referred_by and not await _verify_gh_user_exists(referred_by, env):
-        return _json({"error": f"Referred-by username '{referred_by}' was not found on GitHub"}, 400)
+    if forge_username and not _FORGE_USERNAME_RE.match(forge_username):
+        return _json({"error": "Invalid git.owaspblt.org username format"}, 400)
+    if forge_username and not await _verify_forge_user_exists(forge_username):
+        return _json({"error": f"'{forge_username}' is not an account on git.owaspblt.org"}, 400)
+
+    # The referrer may be a GitHub user or a forge account (referral links from forge replies).
+    if referred_by and not (
+        await _verify_gh_user_exists(referred_by, env)
+        or (_FORGE_USERNAME_RE.match(referred_by.lower()) and await _verify_forge_user_exists(referred_by.lower()))
+    ):
+        return _json({"error": f"Referred-by username '{referred_by}' was not found on GitHub or git.owaspblt.org"}, 400)
 
     db = _d1_binding(env)
     if not db:
@@ -6039,7 +6249,7 @@ async def _handle_add_mentor(request, env) -> "Response":
         env,
         github_username,
         getattr(env, "GITHUB_ORG", "OWASP-BLT"),
-    )
+    ) or await _has_forge_merge(env, [github_username, forge_username])
 
     try:
         existing = await _d1_all(
@@ -6068,6 +6278,7 @@ async def _handle_add_mentor(request, env) -> "Response":
             referred_by=referred_by,
             email=email,
             slack_username=slack_username,
+            forge_username=forge_username,
         )
     except Exception as exc:
         console.error(f"[MentorPool] Failed to add mentor {github_username}: {exc}")
@@ -6559,6 +6770,9 @@ async def on_fetch(request, env, ctx=None) -> Response:
             },
             allow_cors=True,
         )
+
+    if method == "GET" and path == "/api/mentors":
+        return await _handle_list_mentors(env)
 
     if method == "POST" and path == "/api/mentors":
         return await _handle_add_mentor(request, env)

@@ -234,7 +234,8 @@ export function decide({ command, name, issue, others = [] }) {
       reply:
         `${who} you're assigned to this issue. Please open a pull request for it within ${PR_HOURS} hours. ` +
         `Without a pull request or an update from you here for ${PR_HOURS} hours, you'll be unassigned (after a warning). ` +
-        `If you stop working on it, comment \`/unassign\` so someone else can pick it up.`,
+        `If you stop working on it, comment \`/unassign\` so someone else can pick it up. ` +
+        `Want guidance along the way? Comment \`/mentor\` to be matched with a mentor from https://pool.owaspblt.org.`,
     };
   }
   if (command === "unassign") {

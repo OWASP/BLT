@@ -50,6 +50,7 @@ In the table, CF means `CLOUDFLARE_API_TOKEN` and `CLOUDFLARE_ACCOUNT_ID`, which
 | `blt-owasp-projects--refresh-data.yml` | GitLab `refresh_data` | `23 4 * * *`; seeds from the live site, writes changed data files to KV (`blt-owasp-projects/scripts/refresh-kv.sh`), no commit | `GH_API_TOKEN`, CF (with KV write) |
 | `blt-owasp-projects--sweep-repos.yml` | GitLab `sweep_repos` (manual) | dispatch only | `GH_API_TOKEN`, `SLACK_WEBHOOK_URL_SWEEP` |
 | `blt-pages--update-leaderboard.yml` | GitLab `update_leaderboard` | issue events on blt-pages or `[NOMINATION]` issues, `11 5 * * *` (safety net), push under `blt-pages/scripts/` or of the two pre-rendered pages or `public/data/leaders.json`; reads git.owaspblt.org and writes to KV (`blt-pages/scripts/refresh-kv.sh`), no commit | CF (with KV write) |
+| `blt-pool--mentor.yml` | BLT-Pool `/mentor`, `/rematch`, `/unmentor` (GitHub App commands) | issue comments (created) starting a line with one of them; dispatch input `issue`. Verified authors only. Reads the pool from `GET https://pool.owaspblt.org/api/mentors`, replies through the job API and toggles the `mentor-assigned` label (see /mentor). No commit | none |
 | `blt-panini--update_slack_apps.yml` | GitHub | `0 0 * * 0`; seeds from KV with the committed entries over it, writes `slack_apps.json` to KV when changed (`blt-panini/scripts/refresh-kv.sh`), no commit | CF (with KV read/write) |
 | `blt-profiles--add-profile.yml` | GitLab issue webhook in the blt-profiles Worker | issues opened/edited/labeled that look like Add-profile submissions (labels `profile`/`add-profile`/`profile-submission`, a `[blt-profiles]` title, or the template headings); dispatch input `issue`. Commits `public/profiles/<user>.json` and `index.json`, deploys, comments and closes | CF |
 | `blt-tomato--scrape_funding.yml` | GitHub | `0 18 * * 5`, push under `blt-tomato/.github/scripts/` or `scripts/refresh-kv.sh`; writes `index.html` and `project_repos_links.json` to KV (`blt-tomato/scripts/refresh-kv.sh`), no commit | `GH_API_TOKEN`, CF (with KV write) |
@@ -110,7 +111,31 @@ before this workflow (otherwise every comment is refused as unverified). `BLT_TA
 contents of `~/.config/blt/blt-tasks.seed`, base64url, or 64 hex characters, under the repository's
 Settings tab, "Actions secrets") is needed only for the fallback.
 
-### Stale claims
+### /mentor
+
+`blt-pool/forge/mentor.mjs` answers the mentor pool's commands on forge issues. The pool itself stays
+in BLT-Pool's D1 (pool.owaspblt.org, where mentors sign up); the script reads the published mentors
+from `GET /api/mentors` (`BLT_POOL_URL` overrides the base).
+
+- `/mentor` matches the commenter with a mentor who gave a git.owaspblt.org account (`forge_username`
+  in the pool; set on the signup form or by an admin). Mentors without one are never matched, since
+  the `@name` in the reply is how the request reaches them. Mentors whose specialties match an issue
+  label come first, then the fewest open mentored issues (under their `max_mentees` cap), then the
+  name; the commenter is never their own mentor. Issues labelled `security`, `vulnerability`,
+  `security-sensitive` or `private-security` go to the maintainers instead.
+- `/rematch` (the person who asked, or the mentor) moves the issue to another mentor; the previous
+  one is skipped. `/unmentor` (the same two people) cancels the match.
+- Asking for a mentor does not assign anyone; the reply points at `/assign`, and the `/assign` reply
+  points at `/mentor`.
+- Every reply ends with the commenter's referral link, `https://pool.owaspblt.org/?ref=<name>#join-mentor`,
+  which fills in "Referred By" on the signup form. `referred_by` accepts a GitHub or a forge account.
+
+The match lives in the ledger: the reply carries `<!-- blt-mentor-match:<mentor>:<requester> -->` or
+`<!-- blt-mentor-clear -->`, and only verified bot comments are read back, so the current mentor of
+every open issue, and with it each mentor's load, comes from `.forkmesh/issues`. `<!-- blt-mentor:<key> -->`
+(keyed like `/assign`) marks a command answered. The `mentor-assigned` label follows the match on a
+best-effort basis. When the pool cannot be read, the command still gets the "no mentor has room" reply.
+
 
 BLT-Action is the only bot that answers `/assign` (issue #38). BLT-Pool (`blt-pool`, the
 `blt-github-app` Worker) ignores `/assign` and `/unassign`, and its 2-hourly blt-cron job, which swept

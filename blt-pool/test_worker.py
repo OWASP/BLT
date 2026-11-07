@@ -6315,7 +6315,7 @@ class TestHandleAddMentor(unittest.TestCase):
         self.assertEqual(resp.status, 201)
 
     def test_referred_by_not_found_returns_400(self):
-        """A referred_by username that does not exist on GitHub must be rejected."""
+        """A referred_by username on neither GitHub nor git.owaspblt.org must be rejected."""
         req = self._make_post_request({"name": "Jane Doe", "github_username": "janedoe", "referred_by": "ghostuser"})
         env = types.SimpleNamespace()
 
@@ -6324,7 +6324,8 @@ class TestHandleAddMentor(unittest.TestCase):
             # github_username exists but referrer does not.
             async def _fake_verify(username, env=None):
                 return username == "janedoe"
-            with patch.object(_worker, "_verify_gh_user_exists", new=_fake_verify):
+            with patch.object(_worker, "_verify_gh_user_exists", new=_fake_verify), \
+                    patch.object(_worker, "_verify_forge_user_exists", new=AsyncMock(return_value=False)):
                 with patch.object(_worker, "_d1_binding", return_value=mock_db):
                     with patch.object(_worker, "_ensure_leaderboard_schema", new=AsyncMock()):
                         with patch.object(_worker, "_d1_add_mentor", new=AsyncMock()):
@@ -6336,6 +6337,44 @@ class TestHandleAddMentor(unittest.TestCase):
         import json as _json
         data = _json.loads(resp.body)
         self.assertIn("not found", data["error"].lower())
+
+    def test_referred_by_forge_account_accepted(self):
+        """A referrer who is only on git.owaspblt.org (forge referral links) is accepted."""
+        async def _gh(username, env=None):
+            return username == "janedoe"
+        with patch.object(_worker, "_verify_gh_user_exists", new=_gh), \
+                patch.object(_worker, "_verify_forge_user_exists", new=AsyncMock(return_value=True)), \
+                patch.object(_worker, "has_merged_pr_in_org", new=AsyncMock(return_value=False)), \
+                patch.object(_worker, "_has_forge_merge", new=AsyncMock(return_value=False)):
+            resp, captured = self._run_add({"name": "Jane Doe", "github_username": "janedoe", "referred_by": "forgeonly"})
+        self.assertEqual(resp.status, 201)
+        self.assertEqual(captured["add_args"].kwargs["referred_by"], "forgeonly")
+
+    def test_forge_username_saved_lowercase(self):
+        with patch.object(_worker, "_verify_forge_user_exists", new=AsyncMock(return_value=True)):
+            resp, captured = self._run_add({"name": "Jane Doe", "github_username": "janedoe", "forge_username": "@JaneDoe"})
+        self.assertEqual(resp.status, 201)
+        self.assertEqual(captured["add_args"].kwargs["forge_username"], "janedoe")
+
+    def test_forge_username_invalid_or_missing_returns_400(self):
+        resp, _ = self._run_add({"name": "Jane Doe", "github_username": "janedoe", "forge_username": "1bad_name"})
+        self.assertEqual(resp.status, 400)
+        with patch.object(_worker, "_verify_forge_user_exists", new=AsyncMock(return_value=False)):
+            resp, _ = self._run_add({"name": "Jane Doe", "github_username": "janedoe", "forge_username": "nobody"})
+        self.assertEqual(resp.status, 400)
+        import json as _json
+        self.assertIn("git.owaspblt.org", _json.loads(resp.body)["error"])
+
+    def test_forge_merge_publishes_mentor(self):
+        """A merged pull request on the forge counts like one in the GitHub org."""
+        with patch.object(_worker, "has_merged_pr_in_org", new=AsyncMock(return_value=False)), \
+                patch.object(_worker, "_verify_forge_user_exists", new=AsyncMock(return_value=True)), \
+                patch.object(_worker, "_has_forge_merge", new=AsyncMock(return_value=True)) as forge_merge:
+            resp, captured = self._run_add({"name": "Jane Doe", "github_username": "janedoe", "forge_username": "jane"})
+        self.assertEqual(resp.status, 201)
+        self.assertTrue(captured["add_args"].kwargs["active"])
+        forge_merge.assert_awaited_once()
+        self.assertEqual(forge_merge.await_args.args[1], ["janedoe", "jane"])
 
     def test_invalid_referred_by_format_returns_400(self):
         resp, _ = self._run_add({"name": "Jane Doe", "github_username": "janedoe", "referred_by": "bad user!"})
@@ -6872,3 +6911,38 @@ class TestAdminSameOriginPost(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestListMentorsApi(unittest.TestCase):
+    """GET /api/mentors — the published mentors for forge /mentor, without contact details."""
+
+    def test_lists_published_mentors_without_contact_details(self):
+        mentors = [
+            {"github_username": "zed", "forge_username": "zed", "name": "Zed", "specialties": ["python"],
+             "max_mentees": 2, "active": True, "email": "z@example.com", "slack_username": "zed"},
+            {"github_username": "Amy", "forge_username": "", "name": "Amy", "active": True, "email": "a@example.com"},
+            {"github_username": "off", "forge_username": "off", "name": "Off", "active": False},
+        ]
+        with patch.object(_worker, "_load_mentors_local", new=AsyncMock(return_value=mentors)):
+            resp = _run(_worker._handle_list_mentors(types.SimpleNamespace()))
+        import json as _json
+        data = _json.loads(resp.body)
+        self.assertEqual(resp.status, 200)
+        self.assertEqual([m["github_username"] for m in data["mentors"]], ["Amy", "zed"])
+        self.assertEqual(data["count"], 2)
+        self.assertNotIn("email", resp.body)
+        self.assertNotIn("slack", resp.body)
+        self.assertEqual(data["mentors"][1]["forge_username"], "zed")
+        self.assertEqual(data["join_url"], "https://pool.owaspblt.org/#join-mentor")
+
+
+class TestHomepageForgeAndReferrals(unittest.TestCase):
+    def test_homepage_links_forge_and_refer_section(self):
+        html = _worker._index_html([
+            {"github_username": "ana", "forge_username": "ana", "name": "Ana", "active": True},
+        ])
+        self.assertIn('id="refer"', html)
+        self.assertIn("https://git.owaspblt.org/BLT/issues", html)
+        self.assertIn('href="https://git.owaspblt.org/@ana"', html)
+        self.assertIn('id="mf-forge"', html)
+        self.assertIn("?ref=", html)

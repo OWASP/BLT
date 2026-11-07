@@ -1,0 +1,35 @@
+name: "blt-pool: /mentor, /rematch and /unmentor"
+# The mentor pool (pool.owaspblt.org) on forge issues. A comment whose line starts with /mentor matches
+# the commenter with a published mentor who gave a git.owaspblt.org account (specialties matching the
+# issue labels first, then the least busy under their cap) and @mentions them, so they are notified.
+# /rematch (the person who asked, or the mentor) moves the issue to another mentor; /unmentor cancels.
+# blt-pool/forge/mentor.mjs reads the pool from GET https://pool.owaspblt.org/api/mentors, keeps the
+# match in its own reply (read back from the ledger), toggles the mentor-assigned label and asks
+# every reader to refer a mentor. Rules and wording: docs/workflows.md ("/mentor").
+#
+# Run by hand with an issue number to answer the mentor commands already in that issue's ledger.
+# Only ledger comments with authorVerified: true count.
+on:
+  issue_comment:
+    types: [created]
+  workflow_dispatch:
+    inputs:
+      issue:
+        description: Issue number whose /mentor, /rematch and /unmentor comments to answer
+        required: true
+        default: ""
+        type: string
+permissions:
+  contents: read
+jobs:
+  mentor:
+    # A cheap pre-filter only; the script parses the comment itself (from the event JSON, never in a shell).
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      contains(github.event.comment.body, '/mentor') || contains(github.event.comment.body, '/unmentor') ||
+      contains(github.event.comment.body, '/rematch')
+    runs-on: runner
+    timeout-minutes: 5
+    steps:
+      - name: Match a mentor and reply
+        run: node blt-pool/forge/mentor.mjs

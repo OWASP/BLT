@@ -23,6 +23,8 @@ _ADMIN_BASIC_REALM = "BLT-Pool Admin"
 _GH_USERNAME_RE = re.compile(r"^[a-zA-Z0-9](?:[a-zA-Z0-9\-]{0,37}[a-zA-Z0-9])?$")
 _EMAIL_RE = re.compile(r"^[A-Za-z0-9._%+\-]{1,64}@[A-Za-z0-9.\-]{1,190}\.[A-Za-z]{2,}$")
 _SLACK_USERNAME_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._\- ]{0,79}$")
+# git.owaspblt.org account name (forkmesh NODE_NAME_RE), stored lowercase.
+_FORGE_USERNAME_RE = re.compile(r"^[a-z](?:[a-z0-9\-]{0,61}[a-z0-9])?$")
 _ASSIGNMENT_REF_RE = re.compile(r"^(?:(?P<org>[A-Za-z0-9_.-]+)/)?(?P<repo>[A-Za-z0-9_.-]+)#(?P<number>\d+)$")
 
 
@@ -1697,6 +1699,7 @@ class AdminService:
                   <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="total_comments" data-sort-direction="desc" class="inline-flex items-center gap-1">Comments (all-time) <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
                   <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="max_mentees" data-sort-direction="desc" class="inline-flex items-center gap-1">Cap <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
                   <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="slack_username" data-sort-direction="desc" class="inline-flex items-center gap-1">Slack <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
+                  <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="forge_username" data-sort-direction="desc" class="inline-flex items-center gap-1">Forge <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
                   <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="email" data-sort-direction="desc" class="inline-flex items-center gap-1">Email <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
                   <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="specialties" data-sort-direction="desc" class="inline-flex items-center gap-1">Specialties <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
                   <th class="sticky z-30 bg-gray-50 px-3 py-3"><button type="button" data-sort-key="active" data-sort-direction="desc" class="inline-flex items-center gap-1">Published <i class="fa-solid fa-sort text-[10px]" aria-hidden="true"></i></button></th>
@@ -1725,6 +1728,7 @@ class AdminService:
               <input name="timezone" maxlength="60" placeholder="Timezone" class="rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800">
               <input name="referred_by" maxlength="39" placeholder="Referral" class="rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800">
               <input name="slack_username" maxlength="80" placeholder="Slack" class="rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800">
+              <input name="forge_username" maxlength="63" placeholder="git.owaspblt.org account" class="rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800">
               <input name="email" type="email" maxlength="255" placeholder="Email" class="rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800">
               <input name="assignments" placeholder="repo#123, repo#456" class="rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800">
               <div class="flex items-center justify-between gap-3 rounded-md border border-gray-300 bg-white px-3 py-2">
@@ -1765,6 +1769,7 @@ class AdminService:
                 m.referred_by,
                 m.email,
                 m.slack_username,
+                m.forge_username,
                 m.total_prs,
                 m.total_reviews,
                 m.total_comments,
@@ -1811,6 +1816,7 @@ class AdminService:
         specialties_value = ", ".join(str(item) for item in specialties)
         email = mentor.get("email") or ""
         slack_username = mentor.get("slack_username") or ""
+        forge_username = mentor.get("forge_username") or ""
         assignment_refs = mentor.get("assignment_refs") or ""
         assignment_count = int(mentor.get("assignment_count") or 0)
         total_prs = int(mentor.get("total_prs") or 0)
@@ -1850,6 +1856,7 @@ class AdminService:
           </td>
           <td class="px-3 py-2"><input form="{form_id}" data-field="max_mentees" name="max_mentees" type="number" min="1" max="10" value="{int(mentor.get('max_mentees') or 3)}" class="w-20 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800"></td>
           <td class="px-3 py-2"><input form="{form_id}" data-field="slack_username" name="slack_username" value="{_escape(slack_username)}" class="w-32 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="80"></td>
+          <td class="px-3 py-2"><input form="{form_id}" data-field="forge_username" name="forge_username" value="{_escape(forge_username)}" class="w-32 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="63"></td>
           <td class="px-3 py-2"><input form="{form_id}" data-field="email" name="email" type="email" value="{_escape(email)}" class="w-56 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="255"></td>
           <td class="px-3 py-2"><input form="{form_id}" data-field="specialties" name="specialties" value="{_escape(specialties_value)}" class="w-48 rounded-md border border-gray-300 px-2.5 py-2 text-sm text-gray-800" maxlength="300" placeholder="frontend, python"></td>
           <td class="px-3 py-2 text-center">
@@ -1919,6 +1926,7 @@ class AdminService:
               referred_by = (form.get("referred_by") or "").strip().lstrip("@")
               email = (form.get("email") or "").strip().lower()
               slack_username = (form.get("slack_username") or "").strip().lstrip("@")
+              forge_username = (form.get("forge_username") or "").strip().lstrip("@").lower()
               assignments_value = (form.get("assignments") or "").strip()
               active = 1 if (form.get("active") or "") == "1" else 0
 
@@ -1941,6 +1949,10 @@ class AdminService:
               if slack_username and not _SLACK_USERNAME_RE.match(slack_username):
                 if autosave:
                   return self._json({"ok": False, "error": "invalid_slack_username"}, 400)
+                return self._redirect(self.admin_path)
+              if forge_username and not _FORGE_USERNAME_RE.match(forge_username):
+                if autosave:
+                  return self._json({"ok": False, "error": "invalid_forge_username"}, 400)
                 return self._redirect(self.admin_path)
               if assignments_value and self._parse_assignment_refs(assignments_value) is None:
                 if autosave:
@@ -1981,9 +1993,10 @@ class AdminService:
                   referred_by,
                   email,
                   slack_username,
+                  forge_username,
                   created_at
                 )
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """,
                 (
                   new_github_username,
@@ -1997,6 +2010,7 @@ class AdminService:
                   referred_by,
                   email,
                   slack_username,
+                  forge_username,
                   int(datetime.now(tz=dt_timezone.utc).timestamp()),
                 ),
               )
@@ -2019,7 +2033,7 @@ class AdminService:
 
                 existing = await self._d1_first(
                     """
-                  SELECT github_username, name, title, bio, specialties, max_mentees, active, timezone, referred_by, email, slack_username
+                  SELECT github_username, name, title, bio, specialties, max_mentees, active, timezone, referred_by, email, slack_username, forge_username
                     FROM mentors
                     WHERE github_username = ?
                     """,
@@ -2060,6 +2074,12 @@ class AdminService:
                     .strip()
                     .lstrip("@")
                 )
+                forge_username = (
+                    (form.get("forge_username") if "forge_username" in form else existing.get("forge_username") or "")
+                    .strip()
+                    .lstrip("@")
+                    .lower()
+                )
                 assignments_value = (form.get("assignments") if "assignments" in form else "").strip()
                 if "active" in form:
                     active = 1 if (form.get("active") or "") == "1" else 0
@@ -2071,6 +2091,7 @@ class AdminService:
                 validate_referred_by = (not autosave) or ("referred_by" in form)
                 validate_email = (not autosave) or ("email" in form)
                 validate_slack_username = (not autosave) or ("slack_username" in form)
+                validate_forge_username = (not autosave) or ("forge_username" in form)
 
                 if validate_name and not name:
                   if autosave:
@@ -2091,6 +2112,10 @@ class AdminService:
                 if validate_slack_username and slack_username and not _SLACK_USERNAME_RE.match(slack_username):
                   if autosave:
                     return self._json({"ok": False, "error": "invalid_slack_username"}, 400)
+                  return self._redirect(self.admin_path)
+                if validate_forge_username and forge_username and not _FORGE_USERNAME_RE.match(forge_username):
+                  if autosave:
+                    return self._json({"ok": False, "error": "invalid_forge_username"}, 400)
                   return self._redirect(self.admin_path)
                 if "assignments" in form and self._parse_assignment_refs(assignments_value) is None:
                     if autosave:
@@ -2123,7 +2148,8 @@ class AdminService:
                         timezone = ?,
                         referred_by = ?,
                         email = ?,
-                        slack_username = ?
+                        slack_username = ?,
+                        forge_username = ?
                     WHERE github_username = ?
                     """,
                     (
@@ -2138,6 +2164,7 @@ class AdminService:
                         referred_by,
                         email,
                         slack_username,
+                        forge_username,
                         original_github_username,
                     ),
                 )

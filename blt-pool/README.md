@@ -137,7 +137,22 @@ Webhook events currently handled:
 - `check_run`
 - `workflow_run`
 
+## Mentors on git.owaspblt.org
+
+Contributors ask for a mentor on forge issues: a comment starting with `/mentor` is answered by
+`forge/mentor.mjs` (run by `.forkmesh/blt-pool--mentor.yml`), which reads the published mentors from
+`GET /api/mentors`, matches one who gave a git.owaspblt.org account and @mentions them there, so the
+request reaches them as a forge notification. `/rematch` and `/unmentor` change or cancel the match.
+Details: [docs/workflows.md](../docs/workflows.md) ("/mentor"). Tests: `node --test 'forge/*.test.mjs'`.
+
+Referrals: the homepage's "Refer a mentor" section builds a link `https://pool.owaspblt.org/?ref=<name>#join-mentor`
+(with a message to send), which fills in "Referred By" on the signup form; every forge `/mentor` reply
+ends with the commenter's link. Referrers are counted on the homepage's referral leaderboard.
+
 ## Mentor API
+
+`GET /api/mentors` returns the published mentors (`github_username`, `forge_username`, `name`, `title`,
+`specialties`, `max_mentees`, `timezone`, `referred_by`; never email or Slack), with CORS and a 5-minute cache.
 
 The mentor signup form on `/` submits to `POST /api/mentors`.
 
@@ -148,7 +163,8 @@ Accepted payload fields:
 - `specialties` optional list or comma-separated string
 - `max_mentees` optional, clamped to `1..10`
 - `timezone` optional
-- `referred_by` optional GitHub username
+- `referred_by` optional GitHub username or git.owaspblt.org account
+- `forge_username` optional git.owaspblt.org account (must exist there); needed to receive forge `/mentor` requests
 
 Validation implemented in `worker.py`:
 
@@ -156,6 +172,8 @@ Validation implemented in `worker.py`:
 - Specialty tags are validated before insert
 - Invalid payloads return `400`
 - Successful inserts return `201`
+- The mentor is published right away when they have a merged pull request in the GitHub org or on
+  git.owaspblt.org (the forge leaderboard counters); otherwise an admin publishes them
 
 ## Seeded Mentors
 
