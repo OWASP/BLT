@@ -22,7 +22,8 @@
         <header class="hero">
             <p class="eyebrow"><a href="index.html">OWASP Project Matrix</a></p>
             <h1 id="heading">Open issues</h1>
-            <p class="lede">Everything open on GitHub across the repositories of every OWASP project. Click a column to sort it.</p>
+            <p class="lede">Everything open on GitHub across every OWASP project's repository. Pick a quick view to find
+                something to work on or review, then sort any column.</p>
             <nav class="tabs" aria-label="Show">
                 <a id="tab-issues" href="open.html?kind=issues">Issues <span id="n-issues"></span></a>
                 <a id="tab-prs" href="open.html?kind=prs">Pull requests <span id="n-prs"></span></a>
@@ -30,6 +31,11 @@
             <dl class="totals" id="totals" aria-live="polite"></dl>
             <p class="updated" id="updated"></p>
         </header>
+
+        <section class="views-wrap" aria-label="Quick views">
+            <div class="views" id="views"></div>
+            <p class="view-help" id="view-help"></p>
+        </section>
 
         <section class="toolbar" aria-label="Filter">
             <label class="search">
@@ -40,14 +46,17 @@
             <label class="field"><span>Project</span>
                 <select id="project"><option value="">All projects</option></select>
             </label>
-            <label class="field" id="review-field" hidden><span>Review</span>
-                <select id="review">
-                    <option value="">Any</option>
-                    <option value="REVIEW_REQUIRED">Review required</option>
-                    <option value="APPROVED">Approved</option>
-                    <option value="CHANGES_REQUESTED">Changes requested</option>
-                    <option value="none">No review rule</option>
-                    <option value="draft">Draft</option>
+            <label class="field"><span>Language</span>
+                <select id="lang"><option value="">Any language</option></select>
+            </label>
+            <label class="field"><span>Level</span>
+                <select id="level">
+                    <option value="">Any level</option>
+                    <option value="flagship">Flagship</option>
+                    <option value="production">Production</option>
+                    <option value="lab">Lab</option>
+                    <option value="incubator">Incubator</option>
+                    <option value="other">Other</option>
                 </select>
             </label>
             <label class="check"><input id="bots" type="checkbox"> Include bots</label>

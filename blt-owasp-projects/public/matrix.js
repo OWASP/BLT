@@ -54,13 +54,46 @@
     return u.href;
   }
 
-  // A small picture of the project: owasp.org's hero image when the project has one, otherwise a
-  // screenshot (WordPress.com mShots) of its own website or, failing that, its GitHub repository.
-  function screenshotOf(p) {
-    const image = safeHref(p.image);
-    if (image) return image;
-    const page = safeHref(p.website) || safeHref(p.codeurl);
-    return page ? `https://s.wordpress.com/mshots/v1/${encodeURIComponent(page)}?w=640&h=400` : null;
+  // Every card has the same cover: a band in the colour of the repository's main language (GitHub's
+  // own colours), a monogram, and GitHub's language bar. Without language data the level picks it.
+  const LEVEL_COLORS = { flagship: "#dc2626", production: "#ea580c", lab: "#2563eb", incubator: "#7c3aed", other: "#64748b" };
+  const hex = (c) => (/^#[0-9a-f]{6}$/i.test(String(c || "")) ? c : null);
+
+  function languagesOf(p) {
+    return (Array.isArray(p.languages) ? p.languages : [])
+      .filter((l) => Array.isArray(l) && l[0] && num(l[2]) !== null && l[2] > 0)
+      .map(([name, color, share]) => ({ name: String(name), color: hex(color) || "#94a3b8", share }));
+  }
+
+  function coverColor(p) {
+    const [first] = languagesOf(p);
+    return first ? first.color : LEVEL_COLORS[levelOf(p)];
+  }
+
+  // Dark or light text on a colour, by its luminance.
+  function inkOn(color) {
+    const [r, g, b] = [1, 3, 5].map((i) => parseInt(color.slice(i, i + 2), 16));
+    return 0.299 * r + 0.587 * g + 0.114 * b > 160 ? "#111827" : "#ffffff";
+  }
+
+  // "OWASP Juice Shop" -> "JS", "OWASP ZAP" -> "ZA".
+  function monogram(p) {
+    const words = String(p.title || p.name || "?").replace(/^owasp\s+/i, "").split(/[\s/_-]+/).filter((w) => /[a-z0-9]/i.test(w));
+    const letters = words.length > 1 ? words[0][0] + words[1][0] : (words[0] || "?").slice(0, 2);
+    return letters.toUpperCase();
+  }
+
+  function langBarHtml(p) {
+    const langs = languagesOf(p);
+    if (!langs.length) {
+      return `<div class="langbar empty" role="img" aria-label="No language data"></div><p class="langs muted-langs">${
+        p.github_status === "success" ? "No code languages detected" : "No repository data"}</p>`;
+    }
+    const pct = (share) => `${share >= 0.1 ? Math.round(share * 100) : (share * 100).toFixed(1)}%`;
+    const label = langs.map((l) => `${l.name} ${pct(l.share)}`).join(", ");
+    const bar = langs.map((l) => `<span style="flex-grow:${l.share};background:${l.color}" title="${escapeHtml(`${l.name} ${pct(l.share)}`)}"></span>`).join("");
+    const legend = langs.slice(0, 3).map((l) => `<span><i style="background:${l.color}"></i>${escapeHtml(l.name)} <b>${pct(l.share)}</b></span>`).join("");
+    return `<div class="langbar" role="img" aria-label="${escapeHtml(label)}">${bar}</div><p class="langs">${legend}</p>`;
   }
 
   // open.html lists one repository's open issues or pull requests.
@@ -73,12 +106,15 @@
       ...(p.top_contributors || []).map((c) => c.login)].join(" ").toLowerCase();
   }
 
+  const newcomerCount = (p) => (p._work ? p._work.good_first + p._work.help_wanted : 0);
+
   const SORTS = {
     activity: (a, b) => (num(b.commits_90d) ?? -1) - (num(a.commits_90d) ?? -1),
     recent: (a, b) => (Date.parse(b.last_commit) || 0) - (Date.parse(a.last_commit) || 0),
     stars: (a, b) => (num(b.stars) ?? -1) - (num(a.stars) ?? -1),
     contributors: (a, b) => (num(b.committers) ?? -1) - (num(a.committers) ?? -1),
     issues: (a, b) => (num(b.issues) ?? -1) - (num(a.issues) ?? -1),
+    newcomers: (a, b) => newcomerCount(b) - newcomerCount(a),
     name: () => 0,
   };
 
@@ -104,7 +140,7 @@
   }
 
   function contributorsHtml(p) {
-    const people = p.top_contributors || [];
+    const people = (p.top_contributors || []).slice(0, 3);
     if (!people.length) {
       return p.github_status === "success"
         ? `<section class="people"><h3>Top contributors</h3><p class="note">No contributors listed on GitHub yet.</p></section>`
@@ -117,7 +153,7 @@
         : `<span class="avatar-blank" aria-hidden="true">${escapeHtml(String(c.login || "?").slice(0, 1).toUpperCase())}</span>`;
       return `<li>${pic}${linkHtml(c.html_url, c.login)}<span class="commits">${plural(c.contributions, "commit", "commits")}</span></li>`;
     }).join("");
-    const more = num(p.committers) > people.length ? ` <span class="muted">of ${fmt(p.committers)}</span>` : "";
+    const more = num(p.committers) > people.length ? ` <span class="muted">· ${fmt(p.committers)} in all</span>` : "";
     return `<section class="people"><h3>Top contributors${more}</h3><ol>${rows}</ol></section>`;
   }
 
@@ -140,7 +176,20 @@
     return `<details><summary>Details</summary><dl class="facts">${rows.map(([k, v]) => `<dt>${k}</dt><dd>${v}</dd>`).join("")}</dl></details>`;
   }
 
-  function cardHtml(p, now = Date.now()) {
+  // Links into open.html's quick views for this repository, from open_summary.json.
+  function contributeHtml(p, work) {
+    if (!work || !p.repo_name) return "";
+    const chip = (n, label, kind, view) => (n
+      ? `<a class="chip chip-${view}" href="${escapeHtml(`${openHref(kind, p.repo_name)}&view=${view}`)}"><b>${fmt(n)}</b> ${label}</a>` : "");
+    const chips = [
+      chip(work.good_first, work.good_first === 1 ? "good first issue" : "good first issues", "issues", "good-first"),
+      chip(work.help_wanted, "help wanted", "issues", "help-wanted"),
+      chip(work.needs_review, work.needs_review === 1 ? "PR to review" : "PRs to review", "prs", "needs-review"),
+    ].join("");
+    return chips ? `<div class="contribute">${chips}</div>` : "";
+  }
+
+  function cardHtml(p, now = Date.now(), work = null) {
     const level = levelOf(p);
     const state = pulse(p, now);
     const ok = p.github_status === "success";
@@ -148,17 +197,11 @@
     const last = ago(p.last_commit, now);
     const capped = p.activity_capped ? "+" : "";
     const tags = [
-      `<span class="tag level-${level}">${LEVEL_NAMES[level]}</span>`,
       typeOf(p) !== "other" ? `<span class="tag">${escapeHtml(typeOf(p)[0].toUpperCase() + typeOf(p).slice(1))}</span>` : "",
-      p.top_language ? `<span class="tag lang">${escapeHtml(p.top_language)}</span>` : "",
       p.archived ? `<span class="tag archived">Archived</span>` : "",
       p.listed === false ? `<span class="tag unlisted" title="Has an active www-project repository but is not in the owasp.org project inventory">Not on owasp.org</span>` : "",
     ].join("");
-    const shot = screenshotOf(p);
-    const fallback = p.repo_name ? escapeHtml(`https://opengraph.githubassets.com/1/${p.repo_name}`) : "";
-    const thumb = shot
-      ? `<a class="shot" href="${escapeHtml(safeHref(p.url) || shot)}" tabindex="-1" aria-hidden="true"><img src="${escapeHtml(shot)}" alt="" width="320" height="200" loading="lazy" decoding="async"${fallback ? ` data-fallback="${fallback}"` : ""}></a>`
-      : "";
+    const color = coverColor(p);
     const stats = ok
       ? `<dl class="stats">
           ${stat(fmt(p.stars), "Stars")}
@@ -175,20 +218,45 @@
       ok ? `<a href="${escapeHtml(openHref("issues", p.repo_name))}">Issues</a>` : "",
       ok ? `<a href="${escapeHtml(openHref("prs", p.repo_name))}">Pull requests</a>` : "",
     ].filter(Boolean).join("");
-    return `<li class="card">
-      ${thumb}
-      <header>
-        <div class="title-row">
-          <h2>${linkHtml(p.url, p.title || p.name)}</h2>
+    return `<li class="card" style="--cover:${color};--cover-ink:${inkOn(color)}">
+      <div class="cover" aria-hidden="true">
+        <span class="mono">${escapeHtml(monogram(p))}</span>
+        <span class="cover-meta">
+          <span class="tag level level-${level}">${LEVEL_NAMES[level]}</span>
           <span class="pulse pulse-${state}" title="${escapeHtml(last ? `Last commit ${last}` : "No commit data")}">${escapeHtml(last || "no data")}</span>
-        </div>
-        <div class="tags">${tags}</div>
+        </span>
+      </div>
+      ${langBarHtml(p)}
+      <header>
+        <h2>${linkHtml(p.url, p.title || p.name)}</h2>
+        ${tags ? `<div class="tags">${tags}</div>` : ""}
       </header>
-      ${p.pitch ? `<p class="pitch">${escapeHtml(p.pitch)}</p>` : ""}
+      <p class="pitch">${escapeHtml(p.pitch || "No description on owasp.org yet.")}</p>
       ${stats}
       ${contributorsHtml(p)}
+      ${contributeHtml(p, work)}
       <footer><nav class="links" aria-label="${escapeHtml(p.title || p.name)} links">${links}</nav>${detailsHtml(p)}</footer>
     </li>`;
+  }
+
+  // The home page's "Find something to work on" strip: totals of open_summary.json.
+  function workTotals(rows) {
+    const keys = ["issues", "prs", "good_first", "help_wanted", "needs_review", "quick", "first_time"];
+    const t = Object.fromEntries(keys.map((k) => [k, 0]));
+    for (const r of rows) for (const k of keys) t[k] += num(r[k]) || 0;
+    return t;
+  }
+
+  function contributeStripHtml(t) {
+    const tile = (n, label, sub, href, tone) => `<a class="work-tile ${tone}" href="${escapeHtml(href)}">
+      <b>${fmt(n)}</b><span>${escapeHtml(label)}</span><small>${escapeHtml(sub)}</small></a>`;
+    return `<h2>Find something to work on</h2><div class="work-tiles">
+      ${tile(t.good_first, "Good first issues", "Labelled for newcomers", "open.html?kind=issues&view=good-first", "green")}
+      ${tile(t.help_wanted, "Help wanted", "Maintainers asking for help", "open.html?kind=issues&view=help-wanted", "blue")}
+      ${tile(t.needs_review, "PRs to review", "Waiting for a review", "open.html?kind=prs&view=needs-review", "amber")}
+      ${tile(t.quick, "Quick reviews", "50 lines or fewer", "open.html?kind=prs&view=quick", "violet")}
+      ${tile(t.first_time, "New contributors", "PRs from people new to the repo", "open.html?kind=prs&view=first-time", "rose")}
+    </div>`;
   }
 
   // Sums count each repository once (several projects can share one) and are "–" when no project
@@ -240,10 +308,21 @@
     }
     $("totals").innerHTML = totalsHtml(projects);
 
+    // Contribution counts come separately (small, and the cards don't wait for them).
+    let work = new Map();
+    fetch("open_summary.json").then((r) => (r.ok ? r.json() : [])).then((rows) => {
+      if (!Array.isArray(rows) || !rows.length) return;
+      work = new Map(rows.map((w) => [String(w.repo).toLowerCase(), w]));
+      for (const p of projects) p._work = work.get(String(p.repo_name || "").toLowerCase()) || null;
+      $("contribute").innerHTML = contributeStripHtml(workTotals(rows));
+      $("contribute").hidden = false;
+      render();
+    }).catch(() => {});
+
     function render() {
       const state = { q: $("q").value, level: $("level").value, type: $("type").value, listed: $("listed").value, sort: $("sort").value, active: $("active").checked };
       const shown = filterProjects(projects, state);
-      $("grid").innerHTML = shown.map((p) => cardHtml(p)).join("");
+      $("grid").innerHTML = shown.map((p) => cardHtml(p, Date.now(), p._work)).join("");
       $("count").textContent = shown.length === projects.length
         ? `${plural(projects.length, "project", "projects")}`
         : `${fmt(shown.length)} of ${plural(projects.length, "project", "projects")}`;
@@ -255,22 +334,9 @@
       history.replaceState(null, "", next.toString() ? `?${next}` : location.pathname);
     }
     for (const el of controls) el.addEventListener(el.tagName === "INPUT" && el.type !== "checkbox" ? "input" : "change", render);
-    // A screenshot that fails (or a hero image that moved) falls back to the repository's GitHub card,
-    // then disappears. mShots answers a page it hasn't captured yet with a 400px "Generating
-    // preview" placeholder; that gets the GitHub card too (the capture is ready on a later visit).
-    const fallBack = (img) => {
-      if (img.dataset.fallback) { img.src = img.dataset.fallback; delete img.dataset.fallback; } else img.closest(".shot").remove();
-    };
-    $("grid").addEventListener("error", (e) => {
-      if (e.target.tagName === "IMG" && e.target.closest(".shot")) fallBack(e.target);
-    }, true);
-    $("grid").addEventListener("load", (e) => {
-      const img = e.target;
-      if (img.tagName === "IMG" && img.closest(".shot") && img.src.includes("/mshots/") && img.naturalWidth !== 640) fallBack(img);
-    }, true);
     render();
   }
 
-  Object.assign(root, { levelOf, typeOf, ago, pulse, avatar, screenshotOf, filterProjects, cardHtml, totalsHtml });
+  Object.assign(root, { levelOf, typeOf, ago, pulse, avatar, languagesOf, coverColor, monogram, langBarHtml, filterProjects, cardHtml, totalsHtml, workTotals, contributeStripHtml });
   if (typeof document !== "undefined" && document.getElementById("grid")) main();
 })(typeof globalThis !== "undefined" ? globalThis : this);

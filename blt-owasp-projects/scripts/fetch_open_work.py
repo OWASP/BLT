@@ -1,11 +1,14 @@
 """open_issues.json and open_prs.json: every open issue and pull request in the repositories of
-repo_status.json (run fetch_repo_status.py first), for the sortable tables on open.html.
+repo_status.json (run fetch_repo_status.py first), for the sortable tables on open.html; and
+open_summary.json, each repository's counts of the quick views (good first issues, help wanted,
+pull requests waiting for review...) for the cards and the home page's "Contribute" strip.
 
 One GitHub GraphQL query per 100 items and repository, so there is no 1,000-result cap like the
 search API's. Needs a token: GITHUB_TOKEN or ACCESS_TOKEN."""
 
 import json
 import os
+import re
 import sys
 import threading
 import time
@@ -24,6 +27,7 @@ local = threading.local()
 
 COMMON = """number title url createdAt updatedAt
   author { __typename login }
+  authorAssociation
   labels(first: 10) { nodes { name color } }
   assignees(first: 5) { nodes { login } }
   comments { totalCount }"""
@@ -46,6 +50,46 @@ QUERIES = {
   }
 }""" % COMMON,
 }
+
+
+# The quick views on open.html (open.js uses the same rules).
+GOOD_FIRST = re.compile(r'good[\s_-]?first|first[\s_-]?timers?|beginner|\beasy\b|starter|newcomer|low[\s_-]?hanging', re.I)
+HELP_WANTED = re.compile(r'help[\s_-]?wanted|contributions?[\s_-]?welcome|up[\s_-]?for[\s_-]?grabs', re.I)
+QUICK_LINES = 50
+# No earlier commit to the repository. On open pull requests GitHub's GraphQL reports most such
+# authors as NONE rather than FIRST_TIME_CONTRIBUTOR.
+FIRST_TIME = {'FIRST_TIME_CONTRIBUTOR', 'FIRST_TIMER', 'NONE'}
+
+
+def labelled(row, pattern):
+    return any(pattern.search(name) for name, _ in row['labels'])
+
+
+def needs_review(row):
+    return not row.get('draft') and row.get('review') not in ('APPROVED', 'CHANGES_REQUESTED')
+
+
+def summary(issues, prs):
+    """[{repo, counts...}] for every repository with open work; bots' items left out."""
+    out = {}
+    blank = {'issues': 0, 'prs': 0, 'good_first': 0, 'help_wanted': 0, 'needs_review': 0, 'quick': 0, 'first_time': 0}
+    for r in issues:
+        if r['bot']:
+            continue
+        s = out.setdefault(r['repo'], {'repo': r['repo'], **blank})
+        s['issues'] += 1
+        s['good_first'] += labelled(r, GOOD_FIRST)
+        s['help_wanted'] += labelled(r, HELP_WANTED)
+    for r in prs:
+        if r['bot']:
+            continue
+        s = out.setdefault(r['repo'], {'repo': r['repo'], **blank})
+        s['prs'] += 1
+        if needs_review(r):
+            s['needs_review'] += 1
+            s['quick'] += 1 <= r['additions'] + r['deletions'] <= QUICK_LINES
+            s['first_time'] += r['role'] in FIRST_TIME
+    return sorted(out.values(), key=lambda s: s['repo'].lower())
 
 
 def session():
@@ -90,16 +134,20 @@ def fetch(repo, kind):
     return items
 
 
-def row(node, repo, projects, kind):
+def row(node, repo, projects, kind, meta=None):
     author = node.get('author') or {}
     out = {
         'repo': repo,
         'projects': projects,
+        'lang': (meta or {}).get('lang') or '',
+        'level': (meta or {}).get('level') or '',
         'number': node['number'],
         'title': node['title'],
         'url': node['url'],
         'author': author.get('login') or 'ghost',
         'bot': author.get('__typename') == 'Bot' or (author.get('login') or '').endswith('[bot]'),
+        # OWNER, MEMBER, COLLABORATOR, CONTRIBUTOR, FIRST_TIME_CONTRIBUTOR, FIRST_TIMER or NONE.
+        'role': node.get('authorAssociation') or 'NONE',
         'labels': [[lbl['name'], lbl['color']] for lbl in node['labels']['nodes']],
         'assignees': [a['login'] for a in node['assignees']['nodes']],
         'comments': node['comments']['totalCount'],
@@ -123,21 +171,34 @@ def main():
     with open(STATUS_FILE) as f:
         status = json.load(f)
     projects = {}  # repo -> [[slug, title], ...]
+    meta = {}  # repo -> primary language and the best level of its projects
+    order = ['flagship', 'production', 'lab', 'incubator', 'other']
     for p in status:
         if p.get('github_status') == 'success' and p.get('repo_name'):
             projects.setdefault(p['repo_name'], []).append([p.get('slug') or p['name'], p.get('title') or p['name']])
+            level = str(p.get('level') or 'other').lower()
+            level = level if level in order else 'other'
+            m = meta.setdefault(p['repo_name'], {'lang': p.get('top_language') or '', 'level': level})
+            if order.index(level) < order.index(m['level']):
+                m['level'] = level
     repos = sorted(projects, key=str.lower)
     print(f'{len(repos)} repositories')
 
+    found_rows = {}
     for kind in ('issues', 'prs'):
         with ThreadPoolExecutor(WORKERS) as pool:
             found = pool.map(lambda r: (r, fetch(r, kind)), repos)
-            rows = [row(n, r, projects[r], kind) for r, nodes in found for n in nodes]
+            rows = [row(n, r, projects[r], kind, meta[r]) for r, nodes in found for n in nodes]
         rows.sort(key=lambda x: x['updated_at'], reverse=True)
+        found_rows[kind] = rows
         path = os.path.join(OUTPUT_DIR, f'open_{kind}.json')
         with open(path, 'w') as f:
             json.dump(rows, f, separators=(',', ':'))
         print(f'wrote {len(rows)} to {path}')
+    path = os.path.join(OUTPUT_DIR, 'open_summary.json')
+    with open(path, 'w') as f:
+        json.dump(summary(found_rows['issues'], found_rows['prs']), f, separators=(',', ':'))
+    print(f'wrote {path}')
 
 
 if __name__ == '__main__':

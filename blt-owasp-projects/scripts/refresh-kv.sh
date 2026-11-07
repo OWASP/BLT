@@ -19,7 +19,7 @@ SITE_URL="${SITE_URL:-https://projects.owaspblt.org}"
 PYTHON="${PYTHON:-python3}"
 PUB="${PUBLIC_DIR:-public}"
 export OUTPUT_DIR="$PUB"
-FILES=(www_project_repos.json repo_status.json open_issues.json open_prs.json issues.json known_issue_ids.json
+FILES=(www_project_repos.json repo_status.json open_issues.json open_prs.json open_summary.json issues.json known_issue_ids.json
   project_repos_links.json)
 work="$(mktemp -d)"
 trap 'rm -rf "$work"' EXIT

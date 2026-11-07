@@ -118,17 +118,30 @@ test("matrix.js totals count shared repositories once and show – for missing d
   assert.match(ctx.totalsHtml([{ repo_name: "OWASP/a", issues: 1 }]), /<dt>Commits in 90 days<\/dt><dd>–<\/dd>/);
 });
 
-test("matrix.js screenshots: owasp.org hero image, else a screenshot of the website or repository", () => {
+test("matrix.js cards: a cover in the main language's colour, GitHub's language bar, contribution chips", () => {
   const ctx = loadPage();
   vm.runInContext(read("matrix.js"), ctx);
-  assert.equal(ctx.screenshotOf({ image: "https://owasp.org/media/x.png", website: "https://a.org" }), "https://owasp.org/media/x.png");
-  assert.equal(ctx.screenshotOf({ image: "", website: "https://a.org/", codeurl: "https://github.com/OWASP/a" }),
-    "https://s.wordpress.com/mshots/v1/https%3A%2F%2Fa.org%2F?w=640&h=400");
-  assert.equal(ctx.screenshotOf({ image: "javascript:x", codeurl: "https://github.com/OWASP/a" }),
-    "https://s.wordpress.com/mshots/v1/https%3A%2F%2Fgithub.com%2FOWASP%2Fa?w=640&h=400");
-  assert.equal(ctx.screenshotOf({ codeurl: "javascript:x" }), null);
-  const card = ctx.cardHtml({ title: "A", url: "https://owasp.org/projects/a", image: "https://owasp.org/m.png", repo_name: "OWASP/a", codeurl: "https://github.com/OWASP/a", github_status: "success" });
-  assert.match(card, /<a class="shot" href="https:\/\/owasp\.org\/projects\/a"[^>]*><img src="https:\/\/owasp\.org\/m\.png"[^>]*data-fallback="https:\/\/opengraph\.githubassets\.com\/1\/OWASP\/a"/);
+  const p = { title: "OWASP Juice Shop", level: "flagship", repo_name: "juice-shop/juice-shop", codeurl: "https://github.com/juice-shop/juice-shop",
+    github_status: "success", languages: [["TypeScript", "#3178c6", 0.7], ["JavaScript", "#f1e05a", 0.25], ["HTML", "red;}", 0.05], [PAYLOAD, "#000000", 0]] };
+  assert.equal(ctx.monogram(p), "JS");
+  assert.equal(ctx.monogram({ title: "OWASP ZAP" }), "ZA");
+  assert.equal(ctx.coverColor(p), "#3178c6");
+  assert.equal(ctx.coverColor({ level: "lab" }), "#2563eb");
+  assert.equal(ctx.languagesOf(p).length, 3);
+  const bar = ctx.langBarHtml(p);
+  assert.match(bar, /flex-grow:0\.7;background:#3178c6/);
+  assert.match(bar, /background:#94a3b8/); // a colour that isn't #rrggbb is replaced
+  assert.match(bar, /aria-label="TypeScript 70%, JavaScript 25%, HTML 5\.0%"/);
+  assert.match(ctx.langBarHtml({ github_status: "success" }), /No code languages detected/);
+  const card = ctx.cardHtml(p, Date.parse("2026-11-06T00:00:00Z"), { good_first: 3, help_wanted: 0, needs_review: 1 });
+  assert.match(card, /style="--cover:#3178c6;--cover-ink:#ffffff"/);
+  assert.match(card, /href="open\.html\?kind=issues&amp;repo=juice-shop%2Fjuice-shop&amp;view=good-first"><b>3<\/b> good first issues/);
+  assert.match(card, /<b>1<\/b> PR to review/);
+  assert.doesNotMatch(card, /help wanted/);
+  assert.doesNotMatch(card, /<img/);
+  const strip = ctx.contributeStripHtml(ctx.workTotals([{ good_first: 2, help_wanted: 1, needs_review: 5, quick: 2, first_time: 1 }, { good_first: 1 }]));
+  assert.match(strip, /<b>3<\/b><span>Good first issues/);
+  assert.match(strip, /href="open\.html\?kind=prs&amp;view=quick"/);
 });
 
 test("open.html (open.js) escapes GitHub data and sorts by any column", () => {
@@ -149,8 +162,8 @@ test("open.html (open.js) escapes GitHub data and sorts by any column", () => {
     assert.match(html, /--label:#d73a4a;--label-text:#fff/);
   }
   assert.match(ctx.rowHtml(row, "prs"), /Approved/);
-  assert.match(ctx.rowHtml(row, "issues"), /src="https:\/\/github\.com\/bob\.png\?size=48"/);
-  assert.equal(ctx.avatarUrl("dependabot[bot]"), "https://github.com/dependabot.png?size=48");
+  assert.match(ctx.rowHtml(row, "issues"), /src="https:\/\/avatars\.githubusercontent\.com\/bob\?s=48"/);
+  assert.equal(ctx.avatarUrl("dependabot[bot]"), "https://avatars.githubusercontent.com/dependabot?s=48");
   assert.equal(ctx.avatarUrl(PAYLOAD), null);
 
   const rows = [
@@ -167,20 +180,52 @@ test("open.html (open.js) escapes GitHub data and sorts by any column", () => {
   assert.equal(nums({ sort: "project" }), "2,1");
   assert.equal(nums({ repo: "owasp/a", bots: true }), "3,2");
   assert.equal(nums({ q: "BUG" }), "2");
-  assert.equal(nums({ review: "draft", bots: true }), "3");
   assert.equal(nums({ sort: "review", bots: true }), "2,1,3");
   assert.match(ctx.headHtml("prs", "comments", 0), /<th scope="col" class="col-comments n" aria-sort="descending">/);
+
+  // Quick views, counted over the other filters.
+  const NOW = Date.parse("2026-11-07T00:00:00Z");
+  const work = [
+    { ...rows[0], number: 10, labels: [["good first issue", "7057ff"]], assignees: [], comments: 0, created_at: "2026-11-01T00:00:00Z", updated_at: "2026-11-02T00:00:00Z", lang: "Python", level: "lab" },
+    { ...rows[0], number: 11, labels: [["Help Wanted", "008672"]], assignees: ["x"], comments: 3, created_at: "2025-01-01T00:00:00Z", updated_at: "2025-02-01T00:00:00Z", lang: "Java", level: "flagship" },
+    { ...rows[1], number: 12, review: null, draft: false, additions: 10, deletions: 2, role: "NONE", lang: "Python", level: "lab" },
+    { ...rows[1], number: 13, review: "REVIEW_REQUIRED", draft: false, additions: 400, deletions: 0, role: "MEMBER", created_at: "2025-01-01T00:00:00Z" },
+    { ...rows[1], number: 14, review: null, draft: false, additions: 0, deletions: 0, role: "CONTRIBUTOR" },
+  ];
+  const view = (kind, v, extra = {}) => ctx.filterRows(work, { view: v, ...extra }, kind, NOW).map((r) => r.number).join(",");
+  assert.equal(view("issues", "good-first"), "10");
+  assert.equal(view("issues", "help-wanted"), "11");
+  assert.equal(view("issues", "unassigned"), "10");
+  assert.equal(view("issues", "fresh"), "10");
+  assert.equal(view("prs", "quick"), "12");
+  assert.equal(view("prs", "first-time"), "12");
+  assert.equal(view("prs", "waiting", { bots: true }).split(",")[0], "13");
+  assert.equal(view("issues", "all", { lang: "Python" }), "10,12");
+  assert.equal(view("issues", "all", { level: "flagship" }), "11");
+  const counts = ctx.viewCounts(ctx.baseRows(work, {}), "prs", NOW);
+  assert.equal(counts.all, 5);
+  assert.equal(counts["needs-review"], 3);
+  assert.equal(counts.quick, 1);
   assert.doesNotMatch(ctx.headHtml("issues", "updated", 0), /Review/);
 });
 
-test("projects.html escapes repo names", () => {
-  const ctx = loadPage("projects.html");
+test("projects.html (repos.js) escapes repository data and matches repositories to projects", () => {
+  const ctx = loadPage();
+  vm.runInContext(read("repos.js"), ctx);
+  assert.match(read("projects.html"), /<script src="safe-html\.js"><\/script>\s*<script src="repos\.js">/);
   const now = "2026-01-01T00:00:00Z";
-  const [row] = ctx.generateProjectData([
-    { name: PAYLOAD, created_at: now, updated_at: now, pushed_at: now, stargazers_count: 1 },
-  ]);
-  noRawPayload(row.project_name);
-  assert.match(row.project_name, /^<a href="https:\/\/owasp\.org\/%22%3E%3Cimg/);
+  const rows = ctx.generateRows([
+    { name: PAYLOAD, full_name: "OWASP/x", html_url: "javascript:alert(1)", description: PAYLOAD, created_at: now, pushed_at: now, stargazers_count: 1 },
+    { name: "www-project-y", full_name: "OWASP/www-project-y", html_url: "https://github.com/OWASP/www-project-y", archived: true },
+    { name: "www-project-z", full_name: "OWASP/www-project-z", html_url: "https://github.com/OWASP/www-project-z" },
+  ], [{ title: PAYLOAD, url: "javascript:x", www_repo: "owasp/X" }, { title: "Zed", url: "https://owasp.org/projects/z", www_repo: "OWASP/www-project-z", listed: false }]);
+  assert.deepEqual(rows.map((r) => r.status), ["listed", "archived", "unlisted"]);
+  const html = rows.map(ctx.rowHtml).join("");
+  assert.doesNotMatch(html, /<img/i);
+  assert.doesNotMatch(html, /href="(?!https?:)/i);
+  assert.match(html, /href="https:\/\/github\.com\/OWASP\/x"/);
+  assert.deepEqual(ctx.filterRows(rows, { status: "unlisted" }).map((r) => r.name), ["www-project-z"]);
+  assert.deepEqual(ctx.filterRows(rows, { q: "zed" }).map((r) => r.name), ["www-project-z"]);
 });
 
 test("issues.html escapes titles and only links http(s) issue URLs", () => {

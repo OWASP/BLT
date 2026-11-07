@@ -161,6 +161,37 @@ def activity(repo_name):
     return stats
 
 
+LANGUAGE_QUERY = """{ %s }"""
+LANGUAGE_FIELDS = """r%d: repository(owner: %s, name: %s) {
+  nameWithOwner languages(first: 8, orderBy: {field: SIZE, direction: DESC}) { totalSize edges { size node { name color } } } }"""
+
+
+def languages(repos, batch=25):
+    """{lower-case repo: [[language, colour, share], ...]} from GitHub's language breakdown, the
+    colourful bar on every GitHub repository page; one GraphQL query per `batch` repositories."""
+    out = {}
+    if not access_token:
+        return out
+    for i in range(0, len(repos), batch):
+        chunk = repos[i:i + batch]
+        fields = ' '.join(LANGUAGE_FIELDS % (j, json.dumps(r.split('/')[0]), json.dumps(r.split('/', 1)[1]))
+                          for j, r in enumerate(chunk))
+        try:
+            resp = session().post(f'{API}/graphql', json={'query': LANGUAGE_QUERY % fields}, timeout=90)
+            data = resp.json().get('data') or {}
+        except Exception as e:
+            print(f'languages {chunk[0]}…: {e}')
+            continue
+        for node in data.values():
+            if not node:
+                continue  # a missing repository, or one whose organization refuses the token
+            total = node['languages']['totalSize'] or 0
+            out[node['nameWithOwner'].lower()] = [
+                [e['node']['name'], e['node']['color'] or '#94a3b8', round(e['size'] / total, 4)]
+                for e in node['languages']['edges'] if total and e['size'] / total >= 0.005]
+    return out
+
+
 def repo_stats(repo_name):
     """GitHub stats for one repository; github_status is 'success' or GitHub's error message."""
     stats = {'github_status': None, 'last_commit': None, 'date_released': None, 'release_version': None,
@@ -293,9 +324,11 @@ def main():
     print(f'{len(entries)} projects, {len(repos)} repositories')
     with ThreadPoolExecutor(WORKERS) as pool:
         stats = dict(zip(repos, pool.map(repo_stats, repos)))
+    langs = languages(repos)
     for e in entries:
         if e['repo_name']:
             e.update(stats[e['repo_name']])
+            e['languages'] = langs.get(e['repo_name'].lower(), [])
         else:
             e.update({'github_status': 'no repository', 'top_contributors': []})
 

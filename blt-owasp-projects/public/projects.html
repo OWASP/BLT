@@ -1,88 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <title>OWASP Project Repositories</title>
+    <title>OWASP Project Website Repositories</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Every OWASP www-project website repository, matched to its owasp.org project, in a sortable table.">
     <script src="theme-init.js"></script>
     <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.min.css">
-    <link rel="stylesheet" href="https://cdn.datatables.net/responsive/2.2.9/css/responsive.dataTables.min.css">
-    <style>
-        body {
-            margin: 0;
-            padding: 10px;
-                    }
-        
-        th {
-            position: sticky;
-            top: 0;
-            background-color: #f1f1f1;
-        }
-        
-        .dataTables_wrapper .dataTables_length {
-            margin-bottom: 10px;
-        }
-        
-        /* Mobile responsive styles */
-        @media screen and (max-width: 768px) {
-            body {
-                padding: 5px;
-            }
-
-            blt-nav {
-                margin: -5px -5px 5px;
-            }
-            
-            table.dataTable {
-                font-size: 12px;
-            }
-            
-            table.dataTable thead th,
-            table.dataTable thead td {
-                padding: 8px 4px;
-                font-size: 11px;
-            }
-            
-            table.dataTable tbody td {
-                padding: 6px 4px;
-            }
-            
-            .dataTables_wrapper .dataTables_length,
-            .dataTables_wrapper .dataTables_filter,
-            .dataTables_wrapper .dataTables_info,
-            .dataTables_wrapper .dataTables_paginate {
-                font-size: 12px;
-            }
-            
-            .dataTables_wrapper .dataTables_filter input {
-                width: 100px;
-            }
-            
-            /* Stack pagination buttons vertically on very small screens */
-            @media screen and (max-width: 480px) {
-                .dataTables_wrapper .dataTables_paginate .paginate_button {
-                    padding: 4px 8px;
-                    margin: 2px;
-                }
-            }
-        }
-        
-        /* Better handling of long text in cells */
-        table.dataTable td {
-            word-wrap: break-word;
-            word-break: break-word;
-        }
-        
-        /* Make links more touch-friendly on mobile */
-        @media screen and (max-width: 768px) {
-            a {
-                padding: 4px;
-                display: inline-block;
-            }
-        }
-    </style>
-    <link rel="stylesheet" href="blt-theme.css">
+    <link rel="stylesheet" href="matrix.css">
 </head>
 <body>
     <blt-nav project="blt-owasp-projects" name="Projects" current="auto">
@@ -92,147 +17,42 @@
         <a href="open.html?kind=prs">Pull requests</a>
         <a href="https://git.owaspblt.org/BLT/BLT-OWASP-Projects" slot="actions" data-primary target="_blank" rel="noopener noreferrer">Source code</a>
     </blt-nav>
-    <h1>OWASP Project Repositories</h1>
-    <table id="projects" class="display">
-        <thead>
-            <tr>
-                <th>Project Name</th>
-                <th>Created</th>
-                <th>Updated</th>
-                <th>Pushed</th>
-                <th>Stars</th>
-                <th>Forks</th>
-                <th>Issues</th>
-            </tr>
-        </thead>
-    </table>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
-    <script src="https://cdn.datatables.net/responsive/2.2.9/js/dataTables.responsive.min.js"></script>
+    <main class="wrap">
+        <header class="hero">
+            <p class="eyebrow"><a href="index.html">OWASP Project Matrix</a></p>
+            <h1>Website repositories</h1>
+            <p class="lede">Every <code>www-project</code> repository in the OWASP GitHub organization: the source of a
+                project's owasp.org page. Each is matched to its project in the owasp.org inventory; ones it doesn't list
+                and archived ones are marked.</p>
+        </header>
+
+        <section class="toolbar" aria-label="Filter">
+            <label class="search">
+                <span class="sr-only">Search</span>
+                <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8.5 3a5.5 5.5 0 0 1 4.38 8.82l3.65 3.65-1.06 1.06-3.65-3.65A5.5 5.5 0 1 1 8.5 3Zm0 1.5a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z"/></svg>
+                <input id="q" type="search" placeholder="Search repository, description, project" autocomplete="off">
+            </label>
+            <label class="field"><span>Status</span>
+                <select id="status">
+                    <option value="" data-label="All">All</option>
+                    <option value="listed" data-label="On owasp.org">On owasp.org</option>
+                    <option value="unlisted" data-label="Not listed">Not listed</option>
+                    <option value="archived" data-label="Archived">Archived</option>
+                </select>
+            </label>
+        </section>
+
+        <p class="count" id="count" aria-live="polite">Loading…</p>
+        <div class="table-wrap">
+            <table class="work" id="repo-table">
+                <thead id="thead"></thead>
+                <tbody id="tbody"></tbody>
+            </table>
+        </div>
+    </main>
+
     <script src="safe-html.js"></script>
-    <script>
-        function getColor(minDate, maxDate, date) {
-            const range = maxDate - minDate;
-            const percentage = (date - minDate) / range;
-            const red = Math.round(percentage * 255);
-            const blue = Math.round((1 - percentage) * 255);
-            return `rgb(${red}, 0, ${blue})`;
-        }
-
-        function getTextBrightness(color) {
-            const r = parseInt(color.substr(1, 2), 16);
-            const g = parseInt(color.substr(3, 2), 16);
-            const b = parseInt(color.substr(5, 2), 16);
-            const brightness = Math.round(((r * 299) + (g * 587) + (b * 114)) / 1000);
-            return brightness > 128 ? 'black' : 'white';
-        }
-
-        function generateProjectData(projects) {
-            const minDate = Math.min(...projects.map(project => new Date(project.created_at).getTime()));
-            const maxDate = Math.max(...projects.map(project => new Date(project.updated_at).getTime()));
-
-            const projectsData = projects.map(project => {
-                const createdDate = new Date(project.created_at).getTime();
-                const updatedDate = new Date(project.updated_at).getTime();
-                const pushedDate = new Date(project.pushed_at).getTime();
-                const createdColor = getColor(minDate, maxDate, createdDate);
-                const updatedColor = getColor(minDate, maxDate, updatedDate);
-                const pushedColor = getColor(minDate, maxDate, pushedDate);
-
-                return {
-                    "project_name": linkHtml(`https://owasp.org/${encodeURIComponent(String(project.name))}`, project.name),
-                    "created_at": {
-                        "display": escapeHtml(new Date(project.created_at).toLocaleString()),
-                        "timestamp": createdDate
-                    },
-                    "updated_at": {
-                        "display": escapeHtml(new Date(project.updated_at).toLocaleString()),
-                        "timestamp": updatedDate
-                    },
-                    "pushed_at": {
-                        "display": escapeHtml(new Date(project.pushed_at).toLocaleString()),
-                        "timestamp": pushedDate
-                    },
-                    "stars": escapeHtml(project.stargazers_count),
-                    "forks": escapeHtml(project.forks_count),
-                    "issues": escapeHtml(project.open_issues_count),
-                    "created_color": createdColor,
-                    "updated_color": updatedColor,
-                    "pushed_color": pushedColor,
-                };
-            });
-            return projectsData;
-        }
-
-        async function loadRepoStatus() {
-            const response = await fetch('www_project_repos.json');
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            return response.json();
-        }
-
-        function renderProjects(projectsData, emptyMessage) {
-            $(document).ready(function () {
-                $('#projects').DataTable({
-                    "data": projectsData,
-                    "pageLength": 300,
-                    "responsive": true,
-                    "language": { "emptyTable": emptyMessage || "No data yet." },
-                    "columns": [
-                        { "data": "project_name" },
-                        {
-                            "data": "created_at",
-                            "render": function (data, type, row) {
-                                if (type === 'display') {
-                                    return `<span style="background-color:${row.created_color}; color:${getTextBrightness(row.created_color)}; padding: 2px 4px;">${data.display}</span>`;
-                                }
-                                return data.timestamp;
-                            }
-                        },
-                        {
-                            "data": "updated_at",
-                            "render": function (data, type, row) {
-                                if (type === 'display') {
-                                    return `<span style="background-color:${row.updated_color}; color:${getTextBrightness(row.updated_color)}; padding: 2px 4px;">${data.display}</span>`;
-                                }
-                                return data.timestamp;
-                            }
-                        },
-                        {
-                            "data": "pushed_at",
-                            "render": function (data, type, row) {
-                                if (type === 'display') {
-                                    return `<span style="background-color:${row.pushed_color}; color:${getTextBrightness(row.pushed_color)}; padding: 2px 4px;">${data.display}</span>`;
-                                }
-                                return data.timestamp;
-                            }
-                        },
-                        { "data": "stars" },
-                        { "data": "forks" },
-                        { "data": "issues" },
-                    ],
-                    "order": [[2, "desc"]]
-                });
-            });
-        }
-
-        async function initializeProjects() {
-            try {
-                const projects = await loadRepoStatus();
-                if (!Array.isArray(projects) || projects.length === 0) {
-                    renderProjects([], "No data yet.");
-                    return;
-                }
-                renderProjects(generateProjectData(projects));
-            } catch (err) {
-                console.error('Failed to load project repositories:', err);
-                renderProjects([], "Unable to load project repositories. Please try again later.");
-            }
-        }
-
-        if (typeof $ === 'function') {
-            $(document).ready(initializeProjects);
-        }
-    </script>
+    <script src="repos.js"></script>
 </body>
 </html>

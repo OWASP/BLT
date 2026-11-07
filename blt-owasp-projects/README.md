@@ -122,7 +122,17 @@ open public/issues.html
 
 ## Data Files
 
-`public/www_project_repos.json` contains basic repository information for OWASP `www-project-*` repositories.
+`public/www_project_repos.json` contains basic repository information for OWASP `www-project-*`
+repositories; `projects.html` (`repos.js`) lists them in a sortable table, matched to their owasp.org
+projects through `repo_status.json`.
+
+Each card on the home page has the same cover: a band in the colour of the repository's main
+language, a monogram and GitHub's language bar (`languages` in `repo_status.json`: GitHub's language
+breakdown and colours, one GraphQL query per 25 repositories). `open_summary.json` holds each
+repository's counts for open.html's quick views (good first issues, help wanted, pull requests
+needing review, quick reviews of 1 to 50 lines, new contributors' pull requests), shown on the cards
+and in the home page's "Find something to work on" strip; `fetch_open_work.py` and `open.js` use the
+same label rules.
 
 `public/repo_status.json` lists every project in the [owasp.org inventory](https://owasp.org/projects/)
 (its public API, `/api/public/projects/list`), cross-checked with the OWASP organization's

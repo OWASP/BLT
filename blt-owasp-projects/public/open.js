@@ -1,6 +1,7 @@
 // Open issues and pull requests (open.html): every row of open_issues.json or open_prs.json in one
-// sortable table, with search, a project filter and, for pull requests, the review state. Every
-// value from the data is escaped (escapeHtml / safeHref from safe-html.js): it comes from GitHub.
+// sortable table, with quick views for finding work (good first issues, PRs waiting for review...),
+// search and project, language and level filters. Every value from the data is escaped
+// (escapeHtml / safeHref from safe-html.js): it comes from GitHub.
 (function (root) {
   const DAY = 86400000;
   const PAGE = 200;
@@ -20,10 +21,11 @@
     return `${(days / 365).toFixed(1).replace(/\.0$/, "")}y ago`;
   }
 
-  // GitHub logins are [A-Za-z0-9-] (bots add "[bot]"); anything else gets no avatar.
+  // GitHub logins are [A-Za-z0-9-] (bots add "[bot]"); anything else gets no avatar. The avatar host
+  // allows other sites to show its images; github.com/<login>.png does not (Cross-Origin-Resource-Policy).
   function avatarUrl(login) {
     const name = String(login || "").replace(/\[bot\]$/, "");
-    return /^[A-Za-z0-9-]+$/.test(name) ? `https://github.com/${name}.png?size=48` : null;
+    return /^[A-Za-z0-9-]+$/.test(name) ? `https://avatars.githubusercontent.com/${name}?s=48` : null;
   }
 
   // Label colours are six hex digits from GitHub; text is dark or light by the colour's luminance.
@@ -43,6 +45,52 @@
   function reviewOf(row) {
     if (row.draft) return "draft";
     return row.review || "none";
+  }
+
+  // Quick views. The label rules match scripts/fetch_open_work.py (open_summary.json's counts).
+  const GOOD_FIRST = /good[\s_-]?first|first[\s_-]?timers?|beginner|\beasy\b|starter|newcomer|low[\s_-]?hanging/i;
+  const HELP_WANTED = /help[\s_-]?wanted|contributions?[\s_-]?welcome|up[\s_-]?for[\s_-]?grabs/i;
+  const QUICK_LINES = 50;
+  // No earlier commit to the repository (GitHub's GraphQL reports most of these as NONE).
+  const FIRST_TIME = ["FIRST_TIME_CONTRIBUTOR", "FIRST_TIMER", "NONE"];
+  const isQuick = (r) => num(r.additions) + num(r.deletions) >= 1 && num(r.additions) + num(r.deletions) <= QUICK_LINES;
+  const labelled = (r, re) => r.labels.some(([name]) => re.test(name));
+  const needsReview = (r) => !r.draft && r.review !== "APPROVED" && r.review !== "CHANGES_REQUESTED";
+  const within = (iso, days, now) => now - (Date.parse(iso) || 0) < days * DAY;
+
+  const VIEWS = {
+    issues: [
+      { id: "all", label: "All open", help: "Every open issue across OWASP projects." },
+      { id: "good-first", label: "Good first issues", test: (r) => labelled(r, GOOD_FIRST),
+        help: "Labelled for newcomers by their maintainers. Comment on the issue to say you're taking it before you start." },
+      { id: "help-wanted", label: "Help wanted", test: (r) => labelled(r, HELP_WANTED),
+        help: "Maintainers asked for outside help with these." },
+      { id: "unassigned", label: "Unassigned, active", test: (r, now) => !r.assignees.length && within(r.updated_at, 90, now),
+        help: "Nobody has claimed them, and they've seen activity in the last 90 days." },
+      { id: "fresh", label: "New this month", test: (r, now) => within(r.created_at, 30, now), sort: "created",
+        help: "Opened in the last 30 days, newest first." },
+      { id: "no-replies", label: "No replies yet", test: (r) => r.comments === 0,
+        help: "Nobody has answered these: a first reply, a reproduction or a triage label helps." },
+    ],
+    prs: [
+      { id: "all", label: "All open", help: "Every open pull request across OWASP projects." },
+      { id: "needs-review", label: "Needs review", test: needsReview,
+        help: "Not a draft, and no approval or change request yet. A review from anyone helps maintainers merge faster." },
+      { id: "quick", label: "Quick reviews", test: (r) => needsReview(r) && isQuick(r),
+        help: `Waiting for review and ${QUICK_LINES} changed lines or fewer: a few minutes each.` },
+      { id: "first-time", label: "New contributors", test: (r) => needsReview(r) && FIRST_TIME.includes(r.role),
+        help: "Waiting for review, from people with no earlier commits to the repository. A friendly, prompt review keeps new contributors coming back." },
+      { id: "waiting", label: "Waiting longest", test: needsReview, sort: "created", dir: 1,
+        help: "Waiting for review, oldest first." },
+      { id: "approved", label: "Approved, not merged", test: (r) => !r.draft && r.review === "APPROVED",
+        help: "Approved but still open: often only a maintainer's merge away." },
+      { id: "changes", label: "Changes requested", test: (r) => r.review === "CHANGES_REQUESTED",
+        help: "The author has feedback to address." },
+    ],
+  };
+
+  function viewOf(kind, id) {
+    return VIEWS[kind].find((v) => v.id === id) || VIEWS[kind][0];
   }
 
   // Columns: label, sort key (a function of the row), default direction, cell renderer, kinds.
@@ -81,7 +129,8 @@
       ? `<img src="${escapeHtml(src)}" alt="" width="24" height="24" loading="lazy" decoding="async">`
       : `<span class="avatar-blank" aria-hidden="true">?</span>`;
     const href = src ? `https://github.com/${r.author.replace(/\[bot\]$/, "")}` : "";
-    return `<span class="who">${pic}${href ? linkHtml(href, r.author) : escapeHtml(r.author)}</span>`;
+    const first = r.role && FIRST_TIME.includes(r.role) ? `<span class="badge first" title="No earlier commits to this repository">New</span>` : "";
+    return `<span class="who">${pic}${href ? linkHtml(href, r.author) : escapeHtml(r.author)}</span>${first}`;
   }
 
   function reviewCell(r) {
@@ -114,19 +163,35 @@
   }
 
   function searchText(r) {
-    return [r.title, r.repo, r.author, `#${r.number}`, ...r.labels.map((l) => l[0]), ...r.assignees,
+    return [r.title, r.repo, r.author, `#${r.number}`, r.lang, ...r.labels.map((l) => l[0]), ...r.assignees,
       ...(r.projects || []).map((p) => p[1])].join(" ").toLowerCase();
   }
 
-  function filterRows(rows, { q = "", repo = "", review = "", bots = false, sort = "updated", dir = 0 } = {}, kind = "issues") {
+  // Everything but the quick view: search, project, language, level, bots.
+  function baseRows(rows, { q = "", repo = "", lang = "", level = "", bots = false } = {}) {
     const words = q.toLowerCase().split(/\s+/).filter(Boolean);
-    const col = columnsFor(kind).find((c) => c.id === sort) || COLUMNS.find((c) => c.id === "updated");
-    const d = dir || col.dir;
     return rows
       .filter((r) => bots || !r.bot)
       .filter((r) => !repo || r.repo.toLowerCase() === repo.toLowerCase())
-      .filter((r) => !review || reviewOf(r) === review)
-      .filter((r) => words.every((w) => searchText(r).includes(w)))
+      .filter((r) => !lang || (r.lang || "none") === lang)
+      .filter((r) => !level || (r.level || "other") === level)
+      .filter((r) => words.every((w) => searchText(r).includes(w)));
+  }
+
+  function viewCounts(rows, kind, now = Date.now()) {
+    return Object.fromEntries(VIEWS[kind].map((v) => [v.id, v.test ? rows.filter((r) => v.test(r, now)).length : rows.length]));
+  }
+
+  function filterRows(rows, state = {}, kind = "issues", now = Date.now()) {
+    const { view = "all" } = state;
+    const v = viewOf(kind, view);
+    // A quick view brings its own order until a column is clicked.
+    const sort = state.sort || v.sort || "updated";
+    const dir = state.sort ? state.dir || 0 : v.dir || 0;
+    const col = columnsFor(kind).find((c) => c.id === sort) || COLUMNS.find((c) => c.id === "updated");
+    const d = dir || col.dir;
+    return baseRows(rows, state)
+      .filter((r) => !v.test || v.test(r, now))
       .map((r) => [col.key(r), r])
       .sort(([a, ra], [b, rb]) => (a < b ? -d : a > b ? d : 0) || (Date.parse(rb.updated_at) || 0) - (Date.parse(ra.updated_at) || 0))
       .map(([, r]) => r);
@@ -167,11 +232,13 @@
     const params = new URLSearchParams(location.search);
     const kind = KINDS[params.get("kind")] ? params.get("kind") : "issues";
     const state = {
+      view: viewOf(kind, params.get("view") || "all").id,
       q: params.get("q") || "",
       repo: params.get("repo") || "",
-      review: kind === "prs" ? params.get("review") || "" : "",
+      lang: params.get("lang") || "",
+      level: params.get("level") || "",
       bots: params.get("bots") === "1",
-      sort: params.get("sort") || "updated",
+      sort: params.get("sort") || "",
       dir: Number(params.get("dir")) || 0,
     };
     let limit = PAGE;
@@ -179,9 +246,12 @@
     document.title = `${KINDS[kind]} · OWASP Project Matrix`;
     $("heading").textContent = KINDS[kind];
     $(`tab-${kind}`).setAttribute("aria-current", "page");
-    $("review-field").hidden = kind !== "prs";
+    // The bar's two links both point at open.html: mark only this kind's.
+    for (const a of document.querySelectorAll("blt-nav > a[href^='open.html']")) {
+      a.setAttribute("aria-current", a.getAttribute("href").includes(`kind=${kind}`) ? "page" : "false");
+    }
     $("q").value = state.q;
-    $("review").value = state.review;
+    $("level").value = state.level;
     $("bots").checked = state.bots;
 
     let rows;
@@ -203,12 +273,16 @@
       return;
     }
 
-    // Project filter: one option per repository, named after its project.
+    // Project filter: one option per repository, named after its project; language by count.
     const repos = new Map();
+    const langs = new Map();
     for (const r of rows) {
       const k = r.repo.toLowerCase();
       if (!repos.has(k)) repos.set(k, { repo: r.repo, name: projectName(r), n: 0 });
-      if (!r.bot) repos.get(k).n += 1;
+      if (!r.bot) {
+        repos.get(k).n += 1;
+        langs.set(r.lang || "none", (langs.get(r.lang || "none") || 0) + 1);
+      }
     }
     $("project").insertAdjacentHTML("beforeend", [...repos.values()]
       .sort((a, b) => a.name.localeCompare(b.name))
@@ -217,15 +291,24 @@
       $("project").insertAdjacentHTML("beforeend", `<option value="${escapeHtml(state.repo)}">${escapeHtml(state.repo)} (0)</option>`);
     }
     $("project").value = [...$("project").options].find((o) => o.value.toLowerCase() === state.repo.toLowerCase())?.value || "";
+    $("lang").insertAdjacentHTML("beforeend", [...langs.entries()].sort((a, b) => b[1] - a[1])
+      .map(([l, n]) => `<option value="${escapeHtml(l)}">${escapeHtml(l === "none" ? "No language" : l)} (${fmt(n)})</option>`).join(""));
+    $("lang").value = state.lang;
 
     function render() {
-      const shown = filterRows(rows, state, kind);
-      const base = rows.filter((r) => state.bots || !r.bot);
+      const now = Date.now();
+      const base = baseRows(rows, state);
+      const counts = viewCounts(base, kind, now);
+      const v = viewOf(kind, state.view);
+      $("views").innerHTML = VIEWS[kind].map((x) => `<button type="button" class="view${x.id === v.id ? " on" : ""}" data-view="${x.id}" aria-pressed="${x.id === v.id}">${escapeHtml(x.label)} <span>${fmt(counts[x.id])}</span></button>`).join("");
+      $("view-help").textContent = v.help;
+      const shown = filterRows(rows, state, kind, now);
       $(`n-${kind}`).textContent = fmt(rows.filter((r) => !r.bot).length);
       $("totals").innerHTML = totalsHtml(shown);
-      $("thead").innerHTML = headHtml(kind, state.sort, state.dir);
+      const sort = state.sort || v.sort || "updated";
+      $("thead").innerHTML = headHtml(kind, sort, state.sort ? state.dir : v.dir || 0);
       $("tbody").innerHTML = shown.slice(0, limit).map((r) => rowHtml(r, kind)).join("")
-        || `<tr><td class="empty" colspan="${columnsFor(kind).length}">Nothing matches these filters.</td></tr>`;
+        || `<tr><td class="empty" colspan="${columnsFor(kind).length}">Nothing matches. Try another view or clear the filters.</td></tr>`;
       const noun = kind === "prs" ? "pull request" : "issue";
       $("count").textContent = shown.length === base.length
         ? `${fmt(shown.length)} open ${noun}${shown.length === 1 ? "" : "s"}`
@@ -235,30 +318,44 @@
       $("more").textContent = `Show ${fmt(Math.min(left, PAGE))} more (${fmt(left)} left)`;
 
       const next = new URLSearchParams({ kind });
-      for (const [k, v] of Object.entries(state)) {
-        if (v && !(k === "sort" && v === "updated")) next.set(k, v === true ? "1" : String(v));
+      for (const [k, val] of Object.entries(state)) {
+        if (val && !(k === "view" && val === "all")) next.set(k, val === true ? "1" : String(val));
       }
       history.replaceState(null, "", `?${next}`);
     }
 
-    $("q").addEventListener("input", () => { state.q = $("q").value; limit = PAGE; render(); });
-    $("project").addEventListener("change", () => { state.repo = $("project").value; limit = PAGE; render(); });
-    $("review").addEventListener("change", () => { state.review = $("review").value; limit = PAGE; render(); });
-    $("bots").addEventListener("change", () => { state.bots = $("bots").checked; limit = PAGE; render(); });
+    const on = (id, event, apply) => $(id).addEventListener(event, () => { apply(); limit = PAGE; render(); });
+    on("q", "input", () => { state.q = $("q").value; });
+    on("project", "change", () => { state.repo = $("project").value; });
+    on("lang", "change", () => { state.lang = $("lang").value; });
+    on("level", "change", () => { state.level = $("level").value; });
+    on("bots", "change", () => { state.bots = $("bots").checked; });
+    $("views").addEventListener("click", (e) => {
+      const b = e.target.closest("button[data-view]");
+      if (!b) return;
+      state.view = b.dataset.view;
+      state.sort = "";
+      state.dir = 0;
+      limit = PAGE;
+      render();
+      $("views").querySelector(`[data-view="${b.dataset.view}"]`).focus();
+    });
     $("more").addEventListener("click", () => { limit += PAGE; render(); });
     $("thead").addEventListener("click", (e) => {
       const button = e.target.closest("button[data-sort]");
       if (!button) return;
       const col = COLUMNS.find((c) => c.id === button.dataset.sort);
-      state.dir = state.sort === col.id ? -(state.dir || col.dir) : col.dir;
+      const v = viewOf(kind, state.view);
+      const curSort = state.sort || v.sort || "updated";
+      const curDir = (state.sort ? state.dir : v.dir) || COLUMNS.find((c) => c.id === curSort).dir;
+      state.dir = curSort === col.id ? -curDir : col.dir;
       state.sort = col.id;
-      if (state.dir === col.dir) state.dir = 0;
       render();
       $("thead").querySelector(`[data-sort="${col.id}"]`).focus();
     });
     render();
   }
 
-  Object.assign(root, { filterRows, rowHtml, headHtml, labelHtml, avatarUrl, columnsFor });
+  Object.assign(root, { filterRows, baseRows, viewCounts, VIEWS, rowHtml, headHtml, labelHtml, avatarUrl, columnsFor });
   if (typeof document !== "undefined" && document.getElementById("tbody")) main();
 })(typeof globalThis !== "undefined" ? globalThis : this);

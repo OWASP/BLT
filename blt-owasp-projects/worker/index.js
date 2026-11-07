@@ -15,6 +15,7 @@ export const DATA_PATHS = [
   "/repo_status.json",
   "/open_issues.json",
   "/open_prs.json",
+  "/open_summary.json",
   "/issues.json",
   "/known_issue_ids.json",
   "/project_repos_links.json",

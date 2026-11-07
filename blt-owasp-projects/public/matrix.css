@@ -288,35 +288,210 @@ a {
     border: 1px solid var(--border);
     border-radius: var(--radius);
     box-shadow: var(--shadow);
-    transition: border-color 0.15s;
+    transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
 }
 
-/* Screenshot: a 16:10 strip across the top of the card */
-.shot {
-    display: block;
+/* Card cover: the same on every card. A band in the colour of the repository's main language
+   (--cover, GitHub's colours), a monogram, then GitHub's language bar. */
+.cover {
+    position: relative;
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 10px;
+    height: 84px;
     margin: -18px -18px 0;
-    aspect-ratio: 16 / 9;
+    padding: 14px 16px;
+    border-radius: var(--radius) var(--radius) 0 0;
+    background:
+        radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--cover) 35%, transparent) 1px, transparent 1.5px) 0 0 / 14px 14px,
+        linear-gradient(135deg, color-mix(in srgb, var(--cover) 34%, var(--surface)) 0%, color-mix(in srgb, var(--cover) 10%, var(--surface)) 70%);
+    overflow: hidden;
+}
+
+.mono {
+    display: grid;
+    place-items: center;
+    width: 52px;
+    height: 52px;
+    flex: none;
+    color: var(--cover-ink);
+    background: var(--cover);
+    border-radius: 14px;
+    font-size: 1.15rem;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+    box-shadow: 0 6px 16px color-mix(in srgb, var(--cover) 35%, transparent), inset 0 0 0 1px rgb(255 255 255 / 0.18);
+}
+
+.cover-meta {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+}
+
+.cover .tag {
+    background: color-mix(in srgb, var(--surface) 80%, transparent);
+    backdrop-filter: blur(4px);
+}
+
+.cover .pulse {
+    padding: 2px 8px;
+    color: var(--text);
+    background: color-mix(in srgb, var(--surface) 80%, transparent);
+    border-radius: 999px;
+}
+
+.langbar {
+    display: flex;
+    gap: 2px;
+    height: 8px;
+    margin: -14px -18px 0;
     overflow: hidden;
     background: var(--surface-2);
-    border-bottom: 1px solid var(--border);
-    border-radius: var(--radius) var(--radius) 0 0;
 }
 
-.shot img {
-    display: block;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: top center;
-    transition: transform 0.3s;
+.langbar span {
+    min-width: 3px;
 }
 
-.card:hover .shot img {
-    transform: scale(1.03);
+.langbar.empty {
+    background: repeating-linear-gradient(-45deg, var(--surface-2) 0 6px, var(--border) 6px 8px);
 }
+
+.langs {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 2px 12px;
+    margin: -6px 0 0;
+    min-height: 1.2em;
+    color: var(--muted);
+    font-size: 0.76rem;
+}
+
+.langs i {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    margin-right: 5px;
+    border-radius: 50%;
+    vertical-align: 0;
+}
+
+.langs b {
+    font-weight: 500;
+    color: var(--grey);
+}
+
+.muted-langs {
+    font-style: italic;
+}
+
+/* Contribution chips (good first issues, PRs to review) */
+.contribute {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 3px 10px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    font-weight: 550;
+    text-decoration: none;
+    border: 1px solid transparent;
+}
+
+.chip b {
+    font-variant-numeric: tabular-nums;
+}
+
+.chip-good-first { color: #15803d; background: rgb(22 163 74 / 0.1); }
+.chip-help-wanted { color: #1d4ed8; background: rgb(37 99 235 / 0.1); }
+.chip-needs-review { color: #b45309; background: rgb(217 119 6 / 0.12); }
+html.dark .chip-good-first { color: #4ade80; }
+html.dark .chip-help-wanted { color: #93c5fd; }
+html.dark .chip-needs-review { color: #fbbf24; }
+
+.chip:hover {
+    border-color: currentColor;
+}
+
+/* "Find something to work on" on the home page */
+.work-strip {
+    margin: 0 0 24px;
+}
+
+.work-strip h2 {
+    margin: 0 0 10px;
+    font-size: 1rem;
+    letter-spacing: -0.01em;
+}
+
+.work-tiles {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 12px;
+}
+
+.work-tile {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    padding: 14px 16px 14px 20px;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    text-decoration: none;
+    overflow: hidden;
+    transition: transform 0.15s, border-color 0.15s;
+}
+
+.work-tile::before {
+    content: "";
+    position: absolute;
+    inset: 0 auto 0 0;
+    width: 5px;
+    background: var(--tone);
+}
+
+.work-tile b {
+    font-size: 1.5rem;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.01em;
+}
+
+.work-tile span {
+    font-weight: 600;
+}
+
+.work-tile small {
+    color: var(--muted);
+}
+
+.work-tile:hover {
+    transform: translateY(-2px);
+    border-color: var(--tone);
+}
+
+.work-tile.green { --tone: #16a34a; }
+.work-tile.blue { --tone: #2563eb; }
+.work-tile.amber { --tone: #d97706; }
+.work-tile.violet { --tone: #7c3aed; }
+.work-tile.rose { --tone: #e11d48; }
 
 .card:hover {
-    border-color: color-mix(in srgb, var(--accent) 40%, var(--border));
+    border-color: color-mix(in srgb, var(--cover, var(--accent)) 55%, var(--border));
+    box-shadow: var(--shadow), 0 8px 24px color-mix(in srgb, var(--cover, var(--accent)) 12%, transparent);
+    transform: translateY(-2px);
 }
 
 .title-row {
@@ -397,6 +572,7 @@ a {
 
 .pitch {
     margin: 0;
+    min-height: calc(3 * 1.5 * 0.92rem);
     color: var(--muted);
     font-size: 0.92rem;
     display: -webkit-box;
@@ -584,6 +760,108 @@ summary {
     color: var(--text);
     background: var(--surface);
     box-shadow: var(--shadow), 0 0 0 1px var(--border);
+}
+
+.views-wrap {
+    margin: 0 0 4px;
+}
+
+.views {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.view {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 12px 7px 14px;
+    font: inherit;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--text);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+}
+
+.view span {
+    min-width: 1.6em;
+    padding: 1px 7px;
+    color: var(--muted);
+    background: var(--surface-2);
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+}
+
+.view:hover {
+    border-color: color-mix(in srgb, var(--accent) 50%, var(--border));
+}
+
+.view.on {
+    color: #fff;
+    background: var(--accent);
+    border-color: var(--accent);
+}
+
+.view.on span {
+    color: var(--accent);
+    background: #fff;
+}
+
+.view:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+.view-help {
+    margin: 10px 0 14px;
+    color: var(--muted);
+    font-size: 0.9rem;
+}
+
+.badge.muted-badge {
+    color: var(--muted);
+    background: var(--surface-2);
+}
+
+.project-link {
+    color: var(--text);
+    font-weight: 550;
+    text-decoration: none;
+}
+
+.project-link:hover {
+    color: var(--accent);
+    text-decoration: underline;
+}
+
+.repo-desc {
+    display: -webkit-box;
+    margin-top: 4px;
+    color: var(--muted);
+    font-size: 0.82rem;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+time.when.stale { color: var(--amber); }
+time.when.old { color: var(--accent); }
+
+.badge.first {
+    margin-left: 6px;
+    color: #be123c;
+    background: rgb(225 29 72 / 0.1);
+}
+
+html.dark .badge.first {
+    color: #fda4af;
 }
 
 .table-wrap {
@@ -846,6 +1124,12 @@ html.dark .label {
     color: var(--accent);
 }
 
+@media (max-width: 1000px) {
+    .work-tiles {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
 /* Phones */
 @media (max-width: 640px) {
     .hero {
@@ -854,6 +1138,14 @@ html.dark .label {
 
     .grid {
         grid-template-columns: 1fr;
+    }
+
+    .work-tiles {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .work-tile:last-child:nth-child(odd) {
+        grid-column: span 2;
     }
 
     .totals {
@@ -944,7 +1236,7 @@ html.dark .label {
 
 @media (prefers-reduced-motion: reduce) {
     .card,
-    .shot img {
+    .work-tile {
         transition: none;
     }
 }
