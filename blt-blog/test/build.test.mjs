@@ -3,7 +3,7 @@ import { mkdtempSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
-import { build, escapeHtml, figures, loadPosts, parseFrontMatter, slugify } from "../scripts/build.mjs";
+import { build, escapeHtml, figures, imageSize, loadPosts, parseFrontMatter, slugify } from "../scripts/build.mjs";
 
 test("front matter takes JSON values and plain text", () => {
   const { data, body } = parseFrontMatter('---\ntitle: "A: b"\ntags: ["x", "y"]\nauthor: Plain Name\ndraft: true\n---\n# Hi\n');
@@ -21,6 +21,26 @@ test("an image alone in a paragraph becomes a captioned figure", () => {
     figures('<p><img src="/a.jpg" alt="A &amp; B"></p>\n<p>Text <img src="/b.jpg" alt="inline"></p>'),
     '<figure><a href="/a.jpg"><img loading="lazy" src="/a.jpg" alt="A &amp; B"></a><figcaption>A &amp; B</figcaption></figure>\n<p>Text <img src="/b.jpg" alt="inline"></p>',
   );
+});
+
+test("a local figure image gets its own width and height", () => {
+  const html = figures('<p><img src="/images/tomato-1000-and-the-owasp-project-matrix/scorecard.jpg" alt="Card"></p>');
+  assert.match(html, /<img loading="lazy" width="296" height="295" src=/);
+});
+
+test("imageSize reads PNG, GIF and JPEG headers", () => {
+  const png = Buffer.alloc(32);
+  png.writeUInt32BE(0x89504e47, 0);
+  png.writeUInt32BE(640, 16);
+  png.writeUInt32BE(480, 20);
+  assert.deepEqual(imageSize(png), { width: 640, height: 480 });
+  const gif = Buffer.concat([Buffer.from("GIF89a"), Buffer.from([10, 0, 20, 0]), Buffer.alloc(24)]);
+  assert.deepEqual(imageSize(gif), { width: 10, height: 20 });
+  const jpeg = Buffer.from([0xff, 0xd8, 0xff, 0xe0, 0, 4, 0, 0, 0xff, 0xc0, 0, 17, 8, 0, 300, 1, 44, ...Array(20).fill(0)]);
+  jpeg.writeUInt16BE(300, 13);
+  jpeg.writeUInt16BE(500, 15);
+  assert.deepEqual(imageSize(jpeg), { width: 500, height: 300 });
+  assert.equal(imageSize(Buffer.from("not an image at all, just text....")), null);
 });
 
 test("every post in posts/ loads with a unique slug, a date and an author", () => {

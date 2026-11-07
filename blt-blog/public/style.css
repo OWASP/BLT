@@ -115,7 +115,8 @@ main { max-width: 1120px; margin: 0 auto; padding: 32px 16px 64px; }
 .prose li { margin: 0.3em 0; }
 .prose img { border-radius: 8px; display: block; margin: 1.2em auto; }
 .prose figure { margin: 1.6em 0; }
-.prose figure img { margin: 0; width: 100%; border: 1px solid var(--border); }
+/* Wide screenshots fill the column; a small image keeps its own size instead of being stretched. */
+.prose figure img { margin: 0 auto; max-width: 100%; height: auto; border: 1px solid var(--border); }
 .prose figcaption { margin-top: 8px; font-size: 0.88rem; line-height: 1.5; color: var(--faint); text-align: center; }
 .prose blockquote { border-left: 4px solid var(--red); padding: 4px 0 4px 18px; color: var(--muted); margin-left: 0; }
 .prose code { font: 0.9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; background: var(--code-bg); padding: 0.1em 0.35em; border-radius: 4px; }
