@@ -5,6 +5,13 @@
 
 A static dashboard for tracking OWASP project repositories, repository status, and open issues.
 
+The home page (`index.html`, `matrix.js`, `matrix.css`) shows one card per OWASP project: its level,
+type and pitch, GitHub stars, open issues and pull requests, commits and active people over the last
+30 and 90 days, when it was last committed to, and its top five contributors (bots left out with the
+rules of `scripts/readme/contributors.py`). Search, filters and sorting run in the browser and are
+kept in the URL. It loads no third-party scripts, styles or fonts; only the contributor avatars come
+from GitHub.
+
 ## Overview
 
 The hosted site lives in `public/`, served by a small Worker that reads the refreshed JSON data files from Workers KV.
@@ -15,6 +22,8 @@ The hosted site lives in `public/`, served by a small Worker that reads the refr
 .
 ├── public/
 │   ├── index.html
+│   ├── matrix.js
+│   ├── matrix.css
 │   ├── projects.html
 │   ├── issues.html
 │   ├── repo_status.json
@@ -105,7 +114,12 @@ open public/issues.html
 
 `public/www_project_repos.json` contains basic repository information for OWASP `www-project-*` repositories.
 
-`public/repo_status.json` contains detailed project and repository statistics.
+`public/repo_status.json` contains detailed project and repository statistics: per project, the
+GitHub repository's stars, forks, license, latest release, open issues and open pull requests
+(counted exactly; GitHub's own open-issue count includes pull requests), `commits_30d` /
+`commits_90d` and `contributors_30d` / `contributors_90d` (distinct human commit authors; at most
+300 commits are read, flagged by `activity_capped`), `committers` (all contributors) and
+`top_contributors` (up to five, with login, avatar, profile URL and commit count).
 
 `public/project_repos_links.json` maps OWASP project names to associated GitHub repositories.
 

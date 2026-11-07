@@ -1,5 +1,5 @@
-// Regression tests: dashboard pages must escape GitHub/OWASP data before DataTables renders it as
-// HTML, and must only link to http(s) URLs.
+// Regression tests: dashboard pages must escape GitHub/OWASP data before it is rendered as HTML
+// (by DataTables, or by matrix.js on the home page), and must only link to http(s) URLs.
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import test from "node:test";
@@ -48,15 +48,52 @@ test("safeHref allows only http(s)", () => {
   );
 });
 
-test("index.html escapes project metadata and drops script hrefs", () => {
-  const ctx = loadPage("index.html");
-  const [row] = ctx.generateProjectData([
-    { name: PAYLOAD, pitch: PAYLOAD, title: PAYLOAD, license: PAYLOAD, repo_name: PAYLOAD,
-      codeurl: "javascript:alert(1)", url: `https://owasp.org/${PAYLOAD}`, stars: 5 },
-  ]);
-  for (const value of Object.values(row)) noRawPayload(value);
-  assert.equal(row.stars, "5");
-  assert.match(row.url, /^<a href="https:\/\/owasp\.org\//);
+test("index.html (matrix.js) escapes project metadata and contributors, and drops script hrefs", () => {
+  const ctx = loadPage();
+  vm.runInContext(read("matrix.js"), ctx);
+  assert.match(read("index.html"), /<script src="safe-html\.js"><\/script>\s*<script src="matrix\.js">/);
+  const html = ctx.cardHtml({
+    name: PAYLOAD, pitch: PAYLOAD, title: PAYLOAD, license: PAYLOAD, repo_name: PAYLOAD, top_language: PAYLOAD,
+    codeurl: "javascript:alert(1)", url: `https://owasp.org/${PAYLOAD}`, stars: 5, github_status: "success",
+    top_contributors: [
+      { login: PAYLOAD, html_url: "javascript:alert(1)", avatar_url: "javascript:alert(1)", contributions: 3 },
+      { login: "alice", html_url: "https://github.com/alice", avatar_url: "https://avatars.githubusercontent.com/u/1?v=4", contributions: 1 },
+    ],
+  });
+  assert.doesNotMatch(html, /<img src=x/i);
+  assert.doesNotMatch(html, /href="(?!https?:)/i);
+  assert.doesNotMatch(html, /src="(?!https:\/\/avatars\.githubusercontent\.com\/)/i);
+  assert.match(html, /<a href="https:\/\/owasp\.org\/%22%3E%3Cimg/);
+  assert.match(html, /src="https:\/\/avatars\.githubusercontent\.com\/u\/1\?v=4&amp;s=64"/);
+  assert.match(html, /1 commit</);
+});
+
+test("matrix.js classifies, filters and sorts projects", () => {
+  const ctx = loadPage();
+  vm.runInContext(read("matrix.js"), ctx);
+  const now = Date.parse("2026-11-06T00:00:00Z");
+  assert.equal(ctx.levelOf({ level: 4 }), "flagship");
+  assert.equal(ctx.levelOf({ level: "3.5" }), "production");
+  assert.equal(ctx.levelOf({ level: "-1" }), "other");
+  assert.equal(ctx.typeOf({ type: "documentation, code" }), "code");
+  assert.equal(ctx.typeOf({ type: "Standards" }), "documentation");
+  assert.equal(ctx.typeOf({ type: "" }), "other");
+  assert.equal(ctx.ago("2026-11-01T00:00:00Z", now), "5 days ago");
+  assert.equal(ctx.ago(null, now), null);
+  assert.equal(ctx.pulse({ last_commit: "2026-10-20T00:00:00Z" }, now), "active");
+  assert.equal(ctx.pulse({ last_commit: "2026-09-01T00:00:00Z" }, now), "recent");
+  assert.equal(ctx.pulse({ last_commit: null }, now), "unknown");
+  const projects = [
+    { title: "Zed", level: "4", type: "code", commits_90d: 5, last_commit: "2026-11-01T00:00:00Z", top_contributors: [{ login: "bob" }] },
+    { title: "Amass", level: "2", type: "tool", commits_90d: 40, last_commit: "2026-10-30T00:00:00Z" },
+    { title: "Cheat", level: "4", type: "documentation", commits_90d: null, last_commit: "2020-01-01T00:00:00Z" },
+  ];
+  const titles = (opts) => ctx.filterProjects(projects, opts, now).map((p) => p.title).join(",");
+  assert.equal(titles({}), "Amass,Zed,Cheat");
+  assert.equal(titles({ sort: "name" }), "Amass,Cheat,Zed");
+  assert.equal(titles({ level: "flagship", sort: "name" }), "Cheat,Zed");
+  assert.equal(titles({ active: true }), "Amass,Zed");
+  assert.equal(titles({ q: "BOB" }), "Zed");
 });
 
 test("projects.html escapes repo names", () => {

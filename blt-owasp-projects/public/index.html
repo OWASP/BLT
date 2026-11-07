@@ -4,22 +4,10 @@
     <title>OWASP Project Matrix</title>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Every OWASP project with its GitHub activity, open issues and pull requests, and top contributors.">
     <script src="theme-init.js"></script>
     <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
-    <link rel="stylesheet" href="https://cdn.datatables.net/1.10.25/css/jquery.dataTables.min.css">
-    <style>
-        body {
-            margin: 0;
-            padding: 10px;
-        }
-
-        th {
-            position: sticky;
-            top: 0;
-            background-color: #f1f1f1;
-        }
-    </style>
-    <link rel="stylesheet" href="blt-theme.css">
+    <link rel="stylesheet" href="matrix.css">
 </head>
 <body>
     <blt-nav project="blt-owasp-projects" name="Projects" current="auto">
@@ -28,119 +16,60 @@
         <a href="issues.html">Issues</a>
         <a href="https://git.owaspblt.org/BLT/BLT-OWASP-Projects" slot="actions" data-primary target="_blank" rel="noopener noreferrer">Source code</a>
     </blt-nav>
-    <h1>OWASP Project Matrix</h1>
-    <table id="projects" class="display">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Repo Name</th>
-                <th>URL</th>
-                <th>Created</th>
-                <th>Updated</th>
-                <th>Build</th>
-                <th>Code URL</th>
-                <th>Title</th>
-                <th>Level</th>
-                <th>Type</th>
-                <th>Region</th>
-                <th>Pitch</th>
-                <th>Meetup Group</th>
-                <th>Github Status</th>
-                <th>Last Commit</th>
-                <th>Date Released</th>
-                <th>Release Version</th>
-                <th>Committers</th>
-                <th>Stars</th>
-                <th>Top Language</th>
-                <th>License</th>
-                <th>Forks</th>
-                <th>PRs</th>
-                <th>Issues</th>
-            </tr>
-        </thead>
-    </table>
 
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdn.datatables.net/1.10.25/js/jquery.dataTables.min.js"></script>
+    <main class="wrap">
+        <header class="hero">
+            <p class="eyebrow">OWASP Foundation projects</p>
+            <h1>OWASP Project Matrix</h1>
+            <p class="lede">Every OWASP project with its GitHub repository: who builds it, how active it is, and
+                what is open. Refreshed daily from GitHub and <a href="https://owasp.org/projects/" target="_blank" rel="noopener noreferrer">owasp.org</a>.</p>
+            <dl class="totals" id="totals" aria-live="polite"></dl>
+            <p class="updated" id="updated"></p>
+        </header>
+
+        <section class="toolbar" aria-label="Filter projects">
+            <label class="search">
+                <span class="sr-only">Search projects</span>
+                <svg viewBox="0 0 20 20" aria-hidden="true"><path d="M8.5 3a5.5 5.5 0 0 1 4.38 8.82l3.65 3.65-1.06 1.06-3.65-3.65A5.5 5.5 0 1 1 8.5 3Zm0 1.5a4 4 0 1 0 0 8 4 4 0 0 0 0-8Z"/></svg>
+                <input id="q" type="search" placeholder="Search name, pitch, language, contributor" autocomplete="off">
+            </label>
+            <label class="field"><span>Level</span>
+                <select id="level">
+                    <option value="">All levels</option>
+                    <option value="flagship">Flagship</option>
+                    <option value="production">Production</option>
+                    <option value="lab">Lab</option>
+                    <option value="incubator">Incubator</option>
+                    <option value="other">Other</option>
+                </select>
+            </label>
+            <label class="field"><span>Type</span>
+                <select id="type">
+                    <option value="">All types</option>
+                    <option value="code">Code</option>
+                    <option value="tool">Tool</option>
+                    <option value="documentation">Documentation</option>
+                    <option value="other">Other</option>
+                </select>
+            </label>
+            <label class="field"><span>Sort</span>
+                <select id="sort">
+                    <option value="activity">Most active</option>
+                    <option value="recent">Last commit</option>
+                    <option value="stars">Stars</option>
+                    <option value="contributors">Contributors</option>
+                    <option value="issues">Open issues</option>
+                    <option value="name">Name</option>
+                </select>
+            </label>
+            <label class="check"><input id="active" type="checkbox"> Active in the last 90 days</label>
+        </section>
+
+        <p class="count" id="count" aria-live="polite">Loading projects…</p>
+        <ol class="grid" id="grid"></ol>
+    </main>
+
     <script src="safe-html.js"></script>
-    <script>
-        // Every field is escaped: DataTables renders cell strings as HTML, and the values come from
-        // OWASP project metadata and the GitHub API.
-        const TEXT_FIELDS = ["name", "created", "updated", "build", "title", "level", "type", "region",
-            "pitch", "meetup-group", "github_status", "last_commit", "date_released", "release_version",
-            "committers", "stars", "top_language", "license", "forks", "prs", "issues"];
-
-        function generateProjectData(projects) {
-            return projects.map(project => {
-                const row = {};
-                for (const field of TEXT_FIELDS) row[field] = escapeHtml(project[field]);
-                row.repo_name = linkHtml(project.codeurl, project.repo_name);
-                row.url = linkHtml(project.url);
-                row.codeurl = linkHtml(project.codeurl);
-                return row;
-            });
-        }
-
-        async function loadRepoStatus() {
-            const response = await fetch('repo_status.json');
-            if (!response.ok) throw new Error(`HTTP ${response.status}`);
-            return response.json();
-        }
-
-        function renderProjects(projectsData, emptyMessage) {
-            $(document).ready(function () {
-                $('#projects').DataTable({
-                    "data": projectsData,
-                    "pageLength": 100,
-                    "language": { "emptyTable": emptyMessage || "No data yet." },
-                    "columns": [
-                        { "data": "name" },
-                        { "data": "repo_name" },
-                        { "data": "url" },
-                        { "data": "created" },
-                        { "data": "updated" },
-                        { "data": "build" },
-                        { "data": "codeurl" },
-                        { "data": "title" },
-                        { "data": "level" },
-                        { "data": "type" },
-                        { "data": "region" },
-                        { "data": "pitch" },
-                        { "data": "meetup-group" },
-                        { "data": "github_status" },
-                        { "data": "last_commit" },
-                        { "data": "date_released" },
-                        { "data": "release_version" },
-                        { "data": "committers" },
-                        { "data": "stars" },
-                        { "data": "top_language" },
-                        { "data": "license" },
-                        { "data": "forks" },
-                        { "data": "prs" },
-                        { "data": "issues" },
-                    ],
-                    "order": [[0, "asc"]]
-                });
-            });
-        }
-
-        async function initializeProjects() {
-            try {
-                const projects = await loadRepoStatus();
-                if (!Array.isArray(projects) || projects.length === 0) {
-                    renderProjects([], "No data yet.");
-                    return;
-                }
-                renderProjects(generateProjectData(projects));
-            } catch (err) {
-                console.error('Failed to load project status:', err);
-                renderProjects([], "Unable to load project status. Please try again later.");
-            }
-        }
-
-        if (typeof $ === 'function') {
-            $(document).ready(initializeProjects);
-        }
-    </script>
+    <script src="matrix.js"></script>
 </body>
 </html>
