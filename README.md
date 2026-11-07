@@ -120,9 +120,9 @@ BLT is a pro-AI project: coding agents and AI assistants are welcome for issues,
 <!-- CONTRIBUTORS-END -->
 
 <!-- WAITING-PRS-START -->
-## ⏳ Pull Requests Waiting for Review (23 open, 2 new contributors)
+## ⏳ Pull Requests Waiting for Review (22 open, 2 new contributors)
 
-*Last updated: 2026-11-07 18:11 UTC — open pull requests on [git.owaspblt.org](https://git.owaspblt.org/BLT/pulls), people making their first BLT contribution first. Reviews help them most.*
+*Last updated: 2026-11-07 18:35 UTC — open pull requests on [git.owaspblt.org](https://git.owaspblt.org/BLT/pulls), people making their first BLT contribution first. Reviews help them most.*
 
 | Contributor | Waiting | Pull requests |
 |---|---|---|
@@ -137,7 +137,6 @@ BLT is a pro-AI project: coding agents and AI assistants are welcome for issues,
 | [nachiket](https://git.owaspblt.org/@nachiket) | 1 | [#25](https://git.owaspblt.org/BLT/pull/25) blt-api: allow public read access for jobs and hackathons GET endpoints |
 | [namrata](https://git.owaspblt.org/@namrata) | 1 | [#72](https://git.owaspblt.org/BLT/pull/72) x(blt-legacy): replace deprecated bleach with nh3 for HTML sanitization |
 | [owasp-marquina](https://git.owaspblt.org/@owasp-marquina) | 1 | [#80](https://git.owaspblt.org/BLT/pull/80) blt-design-contest: strip uppercase [X] checkboxes from descriptions |
-| [vanshika2720](https://git.owaspblt.org/@vanshika2720) | 1 | [#15](https://git.owaspblt.org/BLT/pull/15) blt-mcp: sync AGENT.md with tool definitions |
 <!-- WAITING-PRS-END -->
 
 <!-- DEPLOY-START -->
