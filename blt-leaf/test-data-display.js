@@ -8,6 +8,12 @@
 const fs = require('fs');
 const path = require('path');
 const { spawn } = require('child_process');
+const {
+  buildWranglerDevCommand,
+  hasExited,
+  resolveWranglerBin,
+  stopWranglerDev,
+} = require('./wrangler-dev');
 
 // ANSI color codes for output
 const colors = {
@@ -48,11 +54,18 @@ function getSetCookieHeader(response) {
   return response?.headers?.get('set-cookie') || '';
 }
 
-async function waitForEndpoint(url, timeoutMs = 25000) {
+async function waitForEndpoint(url, timeoutMs = 25000, shouldStop = () => false) {
   const start = Date.now();
   while (Date.now() - start < timeoutMs) {
+    if (shouldStop()) return false;
+    const remainingMs = Math.max(1, timeoutMs - (Date.now() - start));
     try {
-      const resp = await fetch(url, { redirect: 'manual' });
+      // Abort at the deadline: a server that accepts the connection but never
+      // answers would otherwise hang here past timeoutMs.
+      const resp = await fetch(url, {
+        redirect: 'manual',
+        signal: AbortSignal.timeout(remainingMs),
+      });
       if (resp && resp.status) {
         return true;
       }
@@ -67,16 +80,25 @@ async function waitForEndpoint(url, timeoutMs = 25000) {
 async function startRuntimeServer() {
   const port = 8788;
   const baseUrl = `http://127.0.0.1:${port}`;
-  const cmd = process.platform === 'win32' ? 'npx.cmd' : 'npx';
-  const args = ['wrangler', 'dev', '--local', '--ip', '127.0.0.1', '--port', String(port), '--log-level', 'error'];
-
-  const child = spawn(cmd, args, {
+  // On Windows this runs Wrangler's bin script with Node (npx.cmd cannot be
+  // spawned without a shell); elsewhere it is `npx wrangler dev ...`.
+  const platform = process.platform;
+  const { cmd, args, options } = buildWranglerDevCommand({
+    platform,
+    nodePath: process.execPath,
+    wranglerBin: platform === 'win32' ? resolveWranglerBin(__dirname) : undefined,
     cwd: __dirname,
-    env: { ...process.env, BROWSER: 'none' },
-    stdio: ['ignore', 'pipe', 'pipe'],
+    port,
   });
 
+  const child = spawn(cmd, args, options);
+  const runtime = { child, baseUrl };
+
   let output = '';
+  let spawnError = null;
+  child.on('error', (error) => {
+    spawnError = error;
+  });
   child.stdout.on('data', (chunk) => {
     output += chunk.toString();
   });
@@ -84,21 +106,32 @@ async function startRuntimeServer() {
     output += chunk.toString();
   });
 
-  const ready = await waitForEndpoint(`${baseUrl}/api/auth/user`);
-  if (!ready) {
-    child.kill('SIGTERM');
-    throw new Error(`wrangler dev did not become ready within timeout. Output:\n${output}`);
-  }
+  const ready = await waitForEndpoint(
+    `${baseUrl}/api/auth/user`,
+    25000,
+    () => spawnError !== null || hasExited(child)
+  );
+  if (ready) return runtime;
 
-  return { child, baseUrl };
+  await stopRuntimeServer(runtime);
+  if (spawnError) {
+    throw new Error(`Could not start ${cmd}: ${spawnError.message}`);
+  }
+  const reason = hasExited(child)
+    ? 'wrangler dev exited before it was ready ' +
+      `(code ${child.exitCode}, signal ${child.signalCode})`
+    : 'wrangler dev did not become ready within timeout';
+  throw new Error(`${reason}. Output:\n${output}`);
 }
 
 async function stopRuntimeServer(runtime) {
-  if (!runtime || !runtime.child || runtime.child.killed) return;
-  runtime.child.kill('SIGTERM');
-  await sleep(800);
-  if (!runtime.child.killed) {
-    runtime.child.kill('SIGKILL');
+  if (!runtime || !runtime.child) return;
+  const { exited } = await stopWranglerDev(runtime.child);
+  if (!exited) {
+    log(
+      `Warning: wrangler dev (pid ${runtime.child.pid}) did not exit after SIGKILL`,
+      colors.yellow
+    );
   }
 }
 
