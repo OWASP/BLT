@@ -31,6 +31,7 @@ mod api;
 mod app;
 mod mcp_client;
 mod models;
+pub mod netguardian;
 mod scanner;
 mod tui;
 mod ui;
