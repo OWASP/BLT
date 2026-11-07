@@ -33,6 +33,7 @@ const GROUP_TITLES = {
   "python-minor": "Python non-major dependencies",
   wrangler: "wrangler",
   "major-wrangler": "wrangler (major)",
+  pytest: "pytest and pytest-asyncio",
 };
 const GROUP_ORDER = ["npm-minor", "python-minor", "wrangler", "major-wrangler"];
 const COMMIT_NAME = BOT_NAME;

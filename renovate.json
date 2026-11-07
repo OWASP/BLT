@@ -70,6 +70,22 @@
       ],
       "groupName": "{{manager}} (report only)",
       "groupSlug": "{{manager}}-report"
+    },
+    {
+      "description": "pytest and pytest-asyncio move together (each pytest-asyncio release pins the pytest versions it supports); pytest-asyncio 0.22-0.x cap pytest below 9, so only 1.x is proposed",
+      "matchPackageNames": [
+        "pytest",
+        "pytest-asyncio"
+      ],
+      "groupName": "pytest and pytest-asyncio",
+      "groupSlug": "pytest",
+      "separateMajorMinor": false
+    },
+    {
+      "matchPackageNames": [
+        "pytest-asyncio"
+      ],
+      "allowedVersions": ">=1.0"
     }
   ]
 }
