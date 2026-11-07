@@ -24,9 +24,10 @@ PAYLOAD = "\"'><script>alert(1)</script>"
 
 
 class RenderTest(unittest.TestCase):
-    def render(self, **project):
+    def render(self, funding=None, **project):
         base = {"project_name": "p", "repo_url": "https://github.com/OWASP/p", "funding_details": ""}
-        return scraper.render_project_item(1, {**base, **project})
+        base["funding_links"] = scraper.funding_links_from_yaml(funding or {})
+        return scraper.render_project_item({**base, **project})
 
     def test_malicious_name_is_escaped(self):
         out = self.render(project_name=PAYLOAD)
@@ -35,7 +36,7 @@ class RenderTest(unittest.TestCase):
         self.assertIn("&quot;&#x27;&gt;", out)
 
     def test_malicious_funding_values_are_escaped(self):
-        out = self.render(funding_details=f"https://example.org/{PAYLOAD}, {PAYLOAD}")
+        out = self.render({"custom": [f"https://example.org/{PAYLOAD}", PAYLOAD], "patreon": PAYLOAD})
         self.assertNotIn("<script>", out)
         self.assertNotIn("'>", out)
         self.assertIn('href="https://example.org/&quot;&#x27;&gt;&lt;script&gt;', out)
@@ -43,20 +44,37 @@ class RenderTest(unittest.TestCase):
     def test_non_http_hrefs_are_rejected(self):
         for bad in ("javascript:alert(1)", "JavaScript:alert(1)", " javascript:alert(1)",
                     "java\tscript:alert(1)", "data:text/html,x", "//evil.example", "OWASP", "vbscript:x"):
-            out = self.render(funding_details=bad, repo_url=bad)
+            out = self.render({"custom": bad}, repo_url=bad)
             self.assertNotIn("<a ", out, bad)
 
-    def test_http_links_still_render(self):
-        out = self.render(funding_details="https://owasp.org/donate/?x=1&y=2, https://opencollective.com/p")
-        self.assertIn('<a href="https://owasp.org/donate/?x=1&amp;y=2" class="donate-button">Donate</a>', out)
-        self.assertIn('<a href="https://opencollective.com/p" class="heart-icon">', out)
+    def test_platform_handles_become_links(self):
+        out = self.render({"github": ["zdresearch"], "patreon": "someone", "open_collective": "proj",
+                           "ko_fi": None, "unknown_platform": "x"})
+        self.assertIn('href="https://github.com/sponsors/zdresearch"', out)
+        self.assertIn('href="https://www.patreon.com/someone"', out)
+        self.assertIn('href="https://opencollective.com/proj"', out)
+        self.assertNotIn("unknown_platform", out)
         self.assertIn('<a href="https://github.com/OWASP/p">p</a>', out)
 
+    def test_owasp_foundation_links_are_set_apart(self):
+        out = self.render({"custom": "https://owasp.org/donate/?x=1&y=2", "github": "OWASP"})
+        self.assertIn("No funding link of its own yet.", out)
+        self.assertIn('class="foundation"', out)
+        self.assertIn('href="https://owasp.org/donate/?x=1&amp;y=2"', out)
+        self.assertNotIn('class="fund"', out)
+
+    def test_contributor_sponsors_render(self):
+        out = self.render(contributor_sponsors=[{"login": "octocat"}, {"login": PAYLOAD}])
+        self.assertIn('href="https://github.com/sponsors/octocat"', out)
+        self.assertNotIn("<script>", out)
+
     def test_page_wraps_items(self):
-        page = scraper.render_index_html([{"project_name": PAYLOAD, "repo_url": "", "funding_details": ""}])
+        page = scraper.render_index_html([{"project_name": PAYLOAD, "repo_url": "", "funding_details": ""}], built="2026-11-06")
         self.assertTrue(page.lstrip().startswith("<!DOCTYPE html>"))
-        self.assertIn("<li>1. &quot;", page)
-        self.assertNotIn("<script>", page)
+        self.assertIn("OWASP no longer collects donations for individual projects", page)
+        self.assertIn("&quot;&#x27;&gt;&lt;script&gt;", page)
+        self.assertIn("Last built 2026-11-06.", page)
+        self.assertNotIn("<script>alert", page)
 
 
 if __name__ == "__main__":

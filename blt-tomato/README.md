@@ -5,7 +5,10 @@
 
 <p align="center"><img src="logo.png" alt="blt-tomato logo" width="160" height="160"></p>
 Scripts related to projects mainly for high level OWASP project management
-1) Funding site served from `public/`
+1) Funding site served from `public/`: every OWASP project with a `.github/FUNDING.yml`, its own
+   funding links (GitHub Sponsors, Open Collective, Patreon, custom pages, ...) and its top
+   contributors who take GitHub Sponsors. owasp.org/donate links are shown apart: OWASP no longer
+   collects donations earmarked for individual projects.
 
 ## Cloudflare and the weekly refresh (Workers KV)
 
