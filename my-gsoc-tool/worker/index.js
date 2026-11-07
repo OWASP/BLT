@@ -1,10 +1,10 @@
-// my-gsoc-tool Worker: the static dashboard (./public) plus two data files kept in KV.
-// blt-cron calls POST /__scheduled once a day; see README.md.
+// my-gsoc-tool Worker: the static dashboard (./public) plus three data files kept in KV.
+// blt-cron calls POST /__scheduled once a day, and the directory task a few times after; see README.md.
 import { handleCronDispatch, serveData } from "../../scripts/worker-data/kv-data.js";
-import { CONTRIBUTIONS_KEY, FORKS_KEY, refreshContributions, refreshForks } from "./refresh.js";
+import { CONTRIBUTIONS_KEY, DIRECTORY_KEY, FORKS_KEY, refreshContributions, refreshDirectory, refreshForks } from "./refresh.js";
 
-export const TASKS = { contributions: refreshContributions, forks: refreshForks };
-const DATA_PATHS = new Set([`/${CONTRIBUTIONS_KEY}`, `/${FORKS_KEY}`]);
+export const TASKS = { contributions: refreshContributions, forks: refreshForks, directory: refreshDirectory };
+const DATA_PATHS = new Set([`/${CONTRIBUTIONS_KEY}`, `/${FORKS_KEY}`, `/${DIRECTORY_KEY}`]);
 
 export default {
   async fetch(request, env, ctx) {
@@ -15,7 +15,8 @@ export default {
   },
 
   // Unused here (this account's only cron trigger is blt-cron); a fork of the template can add
-  // `[triggers] crons = ["3 0 * * *"]` to wrangler.toml instead.
+  // `[triggers] crons = ["3 0 * * *", "33-52 0 * * *"]` to wrangler.toml instead (the second
+  // range lets the directory finish, a few sites per call).
   async scheduled(controller, env, ctx) {
     const run = async (task) => {
       try {

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Every live GSoC student dashboard built from My GSoC Tool, with each student's project, pull requests, issues and progress posts.">
+    <title>GSoC Dashboards | OWASP BLT</title>
+    <link rel="icon" type="image/svg+xml" href="logo.svg">
+    <script src="theme-init.js"></script>
+    <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <blt-nav project="my-gsoc-tool" name="GSoC Tool" data-sticky>
+        <a href="./">My dashboard</a>
+        <a href="directory.html" aria-current="page">All dashboards</a>
+        <a href="https://git.owaspblt.org/BLT/tree/main/my-gsoc-tool" slot="actions" data-primary target="_blank" rel="noopener noreferrer">Source Code</a>
+    </blt-nav>
+    <main class="container">
+        <header class="dashboard-header directory-header">
+            <div>
+                <h1>GSoC dashboards</h1>
+                <p class="bio">Every live dashboard built from this tool, refreshed daily. Pull request and issue counts are each student's all-time public GitHub totals.</p>
+            </div>
+            <div class="stats-container directory-totals" id="directory-totals">
+                <div class="stat-card"><div class="stat-value" id="total-sites">-</div><div class="stat-label">Live dashboards</div></div>
+                <div class="stat-card"><div class="stat-value" id="total-prs">-</div><div class="stat-label">Pull requests</div></div>
+                <div class="stat-card"><div class="stat-value" id="total-merged">-</div><div class="stat-label">Merged</div></div>
+                <div class="stat-card"><div class="stat-value" id="total-posts">-</div><div class="stat-label">Own posts &amp; updates</div></div>
+            </div>
+        </header>
+
+        <div class="directory-toolbar">
+            <label class="search-field">
+                <i class="fas fa-search" aria-hidden="true"></i>
+                <input id="directory-search" type="search" placeholder="Search students, projects, organizations" aria-label="Search dashboards">
+            </label>
+            <label class="sort-field">
+                <span>Sort by</span>
+                <select id="directory-sort">
+                    <option value="merged">Merged pull requests</option>
+                    <option value="prs">Pull requests</option>
+                    <option value="content">Own posts &amp; updates</option>
+                    <option value="pushed">Recently updated</option>
+                    <option value="name">Name</option>
+                </select>
+            </label>
+        </div>
+
+        <div id="directory-grid" class="directory-grid" aria-live="polite">
+            <p class="empty-note"><span class="loading"></span> Loading dashboards…</p>
+        </div>
+
+        <section class="card join-card">
+            <h2><i class="fas fa-plus-circle"></i> Add your dashboard</h2>
+            <p>Fork the template and turn on GitHub Pages: forks with a live <code>config.json</code> show up here the next day. A dashboard hosted elsewhere can be added to <code>public/data/sites.json</code> with a pull request.</p>
+            <a class="btn-secondary" href="https://git.owaspblt.org/BLT/tree/main/my-gsoc-tool/SETUP.md" target="_blank" rel="noopener noreferrer"><i class="fas fa-book"></i> Setup guide</a>
+        </section>
+
+        <footer class="dashboard-footer">
+            <p>Checked <span id="directory-checked">-</span> sites · last refreshed <span id="directory-updated">-</span></p>
+        </footer>
+    </main>
+
+    <script src="directory.js"></script>
+</body>
+</html>

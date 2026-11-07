@@ -17,6 +17,9 @@ export const JOBS = [
   { name: "blt-sizzle", binding: "SIZZLE", cron: "*/15 * * * *" },
   { name: "blt-netguardian", binding: "NETGUARDIAN", cron: "*/5 * * * *" },
   { name: "my-gsoc-tool", binding: "GSOC_TOOL", cron: "3 0 * * *" },
+  // The directory of live dashboards: 3 sites per call (each probe is up to 9 GETs and GitHub
+  // allows 30 searches a minute); 20 calls cover 60 sites. Idle once the day's run is done.
+  { name: "my-gsoc-tool-directory", binding: "GSOC_TOOL", cron: "33-52 0 * * *", task: "directory" },
   { name: "hackerhouse", binding: "HACKERHOUSE", cron: "2-59/5 * * * *" },
   { name: "blt-sammich", binding: "SAMMICH", cron: "4-59/5 * * * *" },
   // New OWASP www-project repositories to #project-new-projects: hourly at :41. A run is 1 GitHub

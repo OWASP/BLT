@@ -1,0 +1,6 @@
+{
+  "about": "Live dashboards that are not GitHub forks of the template (for example a Cloudflare deploy of a git.owaspblt.org fork). Add yours with a pull request: url is the dashboard's address, repo and repoUrl are optional.",
+  "sites": [
+    { "url": "https://gsoc-tool.owaspblt.org/", "repo": "BLT/my-gsoc-tool", "repoUrl": "https://git.owaspblt.org/BLT/tree/main/my-gsoc-tool" }
+  ]
+}

@@ -106,6 +106,8 @@ test("chunked data refreshes run once a minute in their window", () => {
   assert.ok(!names("2026-10-18T02:17:00Z").includes("blt-gsoc-stats"), "GSoC 2026 stats are off");
   assert.ok(!names("2026-10-18T23:09:00Z").includes("blt-gsoc-progress"), "GSoC 2026 progress is off");
   assert.ok(names("2026-10-18T00:03:00Z").includes("my-gsoc-tool"));
+  assert.ok(names("2026-10-18T00:40:00Z").includes("my-gsoc-tool-directory"));
+  assert.ok(!names("2026-10-18T00:53:00Z").includes("my-gsoc-tool-directory"));
   for (const job of JOBS) assert.ok(job.binding, job.name);
 });
 

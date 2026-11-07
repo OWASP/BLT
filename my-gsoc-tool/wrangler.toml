@@ -1,6 +1,7 @@
 # The dashboard is static (public/). The Worker (worker/index.js) also serves two data files from
 # KV, refreshed daily when blt-cron calls POST /__scheduled:
-#   /data/github-contributions.json  and  /data/forks.json
+#   /data/github-contributions.json, /data/forks.json and /data/directory.json (the directory
+#   takes a few sites per call, so blt-cron also calls task "directory" each minute 00:33-00:52)
 # Secrets: CRON_SECRET (same value as blt-cron), GH_API_TOKEN.
 name = "my-gsoc-tool"
 main = "worker/index.js"
@@ -9,7 +10,7 @@ compatibility_date = "2026-06-06"
 [assets]
 directory = "public"
 binding = "ASSETS"
-run_worker_first = ["/__scheduled", "/data/github-contributions.json", "/data/forks.json"]
+run_worker_first = ["/__scheduled", "/data/github-contributions.json", "/data/forks.json", "/data/directory.json"]
 
 # Created by scripts/worker-data/create-kv.sh, which replaces the placeholder id.
 [[kv_namespaces]]

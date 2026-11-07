@@ -1,0 +1,593 @@
+{
+  "checked": 23,
+  "sites": [
+    {
+      "url": "https://gsoc-tool.owaspblt.org/",
+      "live": true,
+      "repo": "BLT/my-gsoc-tool",
+      "repoUrl": "https://git.owaspblt.org/BLT/tree/main/my-gsoc-tool",
+      "stars": 0,
+      "name": "Sumit Kesarwani",
+      "bio": "Google Summer of Code Contributor",
+      "avatar": "https://github.com/Sumit6307.png",
+      "username": "Sumit6307",
+      "project": {
+        "title": "",
+        "organization": "",
+        "timeline": ""
+      },
+      "stats": {
+        "pullRequests": 67,
+        "mergedPullRequests": 41,
+        "issues": 10
+      },
+      "content": {
+        "blogPosts": 0,
+        "weeklyUpdates": 0,
+        "milestones": 0,
+        "feedback": 0
+      }
+    },
+    {
+      "url": "https://ananya-in-tech.github.io/MY-GSOC-TOOL/",
+      "live": true,
+      "repo": "ananya-in-tech/MY-GSOC-TOOL",
+      "repoUrl": "https://github.com/ananya-in-tech/MY-GSOC-TOOL",
+      "pushedAt": "2026-11-07T04:45:28Z",
+      "stars": 1,
+      "name": "Ananya",
+      "bio": "Google Summer of Code Contributor",
+      "avatar": "https://github.com/ananya-09.png",
+      "username": "ananya-09",
+      "project": {
+        "title": "",
+        "organization": "",
+        "timeline": "May 2026 - September 2026"
+      },
+      "stats": {
+        "pullRequests": 0,
+        "mergedPullRequests": 0,
+        "issues": 0
+      },
+      "content": {
+        "blogPosts": 0,
+        "weeklyUpdates": 0,
+        "milestones": 0,
+        "feedback": 0
+      }
+    },
+    {
+      "url": "https://adarshkumar0509.github.io/MY-GSOC-TOOL/",
+      "live": true,
+      "repo": "Adarshkumar0509/MY-GSOC-TOOL",
+      "repoUrl": "https://github.com/Adarshkumar0509/MY-GSOC-TOOL",
+      "pushedAt": "2026-11-07T04:18:12Z",
+      "stars": 8,
+      "name": "Adarsh Kumar",
+      "bio": "Google Summer of Code 2026 Contributor",
+      "avatar": "https://github.com/Adarshkumar0509.png",
+      "username": "Adarshkumar0509",
+      "project": {
+        "title": "OWASP Cornucopia",
+        "organization": "OWASP",
+        "timeline": "May 2026 - September 2026"
+      },
+      "stats": {
+        "pullRequests": 105,
+        "mergedPullRequests": 77,
+        "issues": 45
+      },
+      "content": {
+        "blogPosts": 0,
+        "weeklyUpdates": 0,
+        "milestones": 0,
+        "feedback": 0
+      }
+    },
+    {
+      "url": "https://pritz395.github.io/MY-GSOC-TOOL/",
+      "live": true,
+      "repo": "Pritz395/MY-GSOC-TOOL",
+      "repoUrl": "https://github.com/Pritz395/MY-GSOC-TOOL",
+      "pushedAt": "2026-11-07T03:31:31Z",
+      "stars": 2,
+      "name": "Preetham Poojari",
+      "bio": "Open-source contributor focused on the OWASP ecosystem, working on BLT-aligned initiatives around automation, developer workflows, and community impact. Passion",
+      "avatar": "https://github.com/Pritz395.png",
+      "username": "Pritz395",
+      "project": {
+        "title": "",
+        "organization": "OWASP BLT",
+        "timeline": ""
+      },
+      "stats": {
+        "pullRequests": 16,
+        "mergedPullRequests": 4,
+        "issues": 20
+      },
+      "content": {
+        "blogPosts": 0,
+        "weeklyUpdates": 0,
+        "milestones": 0,
+        "feedback": 0
+      }
+    },
+    {
+      "url": "https://swaparup36.github.io/MY-GSOC-TOOL/",
+      "live": true,
+      "repo": "swaparup36/MY-GSOC-TOOL",
+      "repoUrl": "https://github.com/swaparup36/MY-GSOC-TOOL",
+      "pushedAt": "2026-11-07T04:21:28Z",
+      "stars": 1,
+      "name": "Swaparup Mukherjee",
+      "bio": "Google Summer of Code Contributor",
+      "avatar": "https://github.com/swaparup36.png",
+      "username": "swaparup36",
+      "project": {
+        "title": "",
+        "organization": "",
+        "timeline": "May 2026 - September 2026"
+      },
+      "stats": {
+        "pullRequests": 50,
+        "mergedPullRequests": 34,
+        "issues": 28
+      },
+      "content": {
+        "blogPosts": 0,
+        "weeklyUpdates": 0,
+        "milestones": 0,
+        "feedback": 0
+      }
+    },
+    {
+      "url": "https://ojaswa072.github.io/MY-GSOC-TOOL/",
+      "live": true,
+      "repo": "ojaswa072/MY-GSOC-TOOL",
+      "repoUrl": "https://github.com/ojaswa072/MY-GSOC-TOOL",
+      "pushedAt": "2026-03-02T19:38:22Z",
+      "stars": 0,
+      "name": "Ojaswa",
+      "bio": "GSoC 2026 Contributor @ OWASP Foundation | Python & Java Developer",
+      "avatar": "https://github.com/ojaswa072.png",
+      "username": "ojaswa072",
+      "project": {
+        "title": "",
+        "organization": "OWASP BLT",
+        "timeline": ""
+      },
+      "stats": {
+        "pullRequests": 3,
+        "mergedPullRequests": 1,
+        "issues": 4
+      },
+      "content": {
+        "blogPosts": 0,
+        "weeklyUpdates": 0,
+        "milestones": 2,
+        "feedback": 0
+      }
+    },
+    {
+      "url": "https://jayant2908.github.io/MY-GSOC-TOOL/",
+      "live": true,
+      "repo": "Jayant2908/MY-GSOC-TOOL",
+      "repoUrl": "https://github.com/Jayant2908/MY-GSOC-TOOL",
+      "pushedAt": "2026-11-07T04:03:19Z",
+      "stars": 0,
+      "name": "Jayant Malvi",
+      "bio": "Google Summer of Code Contributor",
+      "avatar": "https://github.com/Jayant2908.png",
+      "username": "Jayant2908",
+      "project": {
+        "title": "",
+        "organization": "",
+        "timeline": "May 2026 - September 2026"
+      },
+      "stats": {
+        "pullRequests": 10,
+        "mergedPullRequests": 0,
+        "issues": 1
+      },
+      "content": {
+        "blogPosts": 0,
+        "weeklyUpdates": 0,
+        "milestones": 0,
+        "feedback": 0
+      }
+    },
+    {
+      "url": "https://riya-jain-here.github.io/MY-GSOC-TOOL/",
+      "live": true,
+      "repo": "Riya-Jain-here/MY-GSOC-TOOL",
+      "repoUrl": "https://github.com/Riya-Jain-here/MY-GSOC-TOOL",
+      "pushedAt": "2026-11-07T03:46:23Z",
+      "stars": 0,
+      "name": "Riya Jain",
+      "bio": "Google Summer of Code 2026 Contributor @ OWASP | Open-Source Enthusiast | Full-Stack Developer",
+      "avatar": "https://avatars.githubusercontent.com/u/120404043",
+      "username": "Riya-Jain-here",
+      "project": {
+        "title": "OWASP BLT-Next",
+        "organization": "OWASP Foundation",
+        "timeline": "May 2026 - September 2026"
+      },
+      "stats": {
+        "pullRequests": 10,
+        "mergedPullRequests": 6,
+        "issues": 9
+      },
+      "content": {
+        "blogPosts": 0,
+        "weeklyUpdates": 0,
+        "milestones": 0,
+        "feedback": 0
+      }
+    },
+    {
+      "url": "https://tejas-ladhani.github.io/MY-GSOC-TOOL/",
+      "live": true,
+      "repo": "Tejas-Ladhani/MY-GSOC-TOOL",
+      "repoUrl": "https://github.com/Tejas-Ladhani/MY-GSOC-TOOL",
+      "pushedAt": "2026-11-07T05:23:00Z",
+      "stars": 0,
+      "name": "Tejas-Ladhani",
+      "bio": "Google Summer of Code Contributor",
+      "avatar": "https://github.com/Tejas-Ladhani.png",
+      "username": "Tejas-Ladhani",
+      "project": {
+        "title": "",
+        "organization": "",
+        "timeline": "May 2026 - September 2026"
+      },
+      "stats": {
+        "pullRequests": 30,
+        "mergedPullRequests": 24,
+        "issues": 8
+      },
+      "content": {
+        "blogPosts": 0,
+        "weeklyUpdates": 0,
+        "milestones": 0,
+        "feedback": 0
+      }
+    },
+    {
+      "url": "https://rudrawhy.github.io/MY-GSOC-TOOL/",
+      "live": true,
+      "repo": "Rudrawhy/MY-GSOC-TOOL",
+      "repoUrl": "https://github.com/Rudrawhy/MY-GSOC-TOOL",
+      "pushedAt": "2026-11-07T03:52:50Z",
+      "stars": 0,
+      "name": "Rudra Sharma",
+      "bio": "Google Summer of Code Contributor",
+      "avatar": "https://github.com/Rudrawhy.png",
+      "username": "Rudrawhy",
+      "project": {
+        "title": "",
+        "organization": "OWASP BLT",
+        "timeline": ""
+      },
+      "stats": {
+        "pullRequests": 0,
+        "mergedPullRequests": 0,
+        "issues": 1
+      },
+      "content": {
+        "blogPosts": 0,
+        "weeklyUpdates": 0,
+        "milestones": 0,
+        "feedback": 0
+      }
+    },
+    {
+      "url": "https://aryanghai12.github.io/MY-GSOC-TOOL/",
+      "live": true,
+      "repo": "aryanghai12/MY-GSOC-TOOL",
+      "repoUrl": "https://github.com/aryanghai12/MY-GSOC-TOOL",
+      "pushedAt": "2026-03-19T14:04:40Z",
+      "stars": 0,
+      "name": "Aryan Ghai",
+      "bio": "Google Summer of Code Contributor",
+      "avatar": "https://avatars.githubusercontent.com/u/141923179",
+      "username": "aryanghai12",
+      "project": {
+        "title": "",
+        "organization": "",
+        "timeline": "May 2026 - September 2026"
+      },
+      "stats": {
+        "pullRequests": 73,
+        "mergedPullRequests": 49,
+        "issues": 24
+      },
+      "content": {
+        "blogPosts": 0,
+        "weeklyUpdates": 0,
+        "milestones": 0,
+        "feedback": 0
+      }
+    },
+    {
+      "url": "https://azizrebhi.github.io/MY-GSOC-TOOL/",
+      "live": true,
+      "repo": "azizrebhi/MY-GSOC-TOOL",
+      "repoUrl": "https://github.com/azizrebhi/MY-GSOC-TOOL",
+      "pushedAt": "2026-11-07T03:16:52Z",
+      "stars": 0,
+      "name": "Mohamed Aziz Rebhi",
+      "bio": "Google Summer of Code Contributor",
+      "avatar": "https://github.com/yourusername.png",
+      "username": "azizrebhi",
+      "project": {
+        "title": "",
+        "organization": "",
+        "timeline": "May 2026 - September 2026"
+      },
+      "stats": {
+        "pullRequests": 2,
+        "mergedPullRequests": 1,
+        "issues": 0
+      },
+      "content": {
+        "blogPosts": 0,
+        "weeklyUpdates": 0,
+        "milestones": 0,
+        "feedback": 0
+      }
+    },
+    {
+      "url": "https://snk-git-hub.github.io/MY-GSOC-TOOL/",
+      "live": true,
+      "repo": "snk-git-hub/MY-GSOC-TOOL",
+      "repoUrl": "https://github.com/snk-git-hub/MY-GSOC-TOOL",
+      "pushedAt": "2026-03-30T06:57:47Z",
+      "stars": 0,
+      "name": "Shivanandu K",
+      "bio": "Google Summer of Code 2026 Contributor | Final Year B.Tech CS @ Srinivas University | Full-Stack Developer | Open Source Contributor",
+      "avatar": "https://github.com/snk-git-hub.png",
+      "username": "snk-git-hub",
+      "project": {
+        "title": "BLT-Rewards: Gamified Security Contributions with BACON Tokens",
+        "organization": "OWASP Bug Logging Tool (BLT)",
+        "timeline": "May 2026 - August 2026"
+      },
+      "stats": {
+        "pullRequests": null,
+        "mergedPullRequests": null,
+        "issues": null
+      },
+      "content": {
+        "blogPosts": 0,
+        "weeklyUpdates": 0,
+        "milestones": 0,
+        "feedback": 0
+      }
+    },
+    {
+      "url": "https://varshith2403315.github.io/MY-GSOC-TOOL/",
+      "live": true,
+      "repo": "Varshith2403315/MY-GSOC-TOOL",
+      "repoUrl": "https://github.com/Varshith2403315/MY-GSOC-TOOL",
+      "pushedAt": "2026-11-07T05:29:05Z",
+      "stars": 0,
+      "name": "Siva Sai Varshith Mitta",
+      "bio": "2nd year Mathematics & Computing student at IIT Goa contributing to the OWASP BLT NetGuardian autonomous security scanning system and preparing a GSoC 2026 prop",
+      "avatar": "https://github.com/Varshith2403315.png",
+      "username": "Varshith2403315",
+      "project": {
+        "title": "BLT-NetGuardian Architecture Improvements",
+        "organization": "OWASP BLT",
+        "timeline": "GSoC 2026 Preparation"
+      },
+      "stats": {
+        "pullRequests": 8,
+        "mergedPullRequests": 6,
+        "issues": 2
+      },
+      "content": {
+        "blogPosts": 0,
+        "weeklyUpdates": 0,
+        "milestones": 0,
+        "feedback": 0
+      }
+    },
+    {
+      "url": "https://aimaanayaz.github.io/MY-GSOC-TOOL/",
+      "live": true,
+      "repo": "aimaanayaz/MY-GSOC-TOOL",
+      "repoUrl": "https://github.com/aimaanayaz/MY-GSOC-TOOL",
+      "pushedAt": "2026-03-03T20:44:39Z",
+      "stars": 0,
+      "name": "Aimaan Ayaz",
+      "bio": "Google Summer of Code Contributor",
+      "avatar": "https://github.com/aimaan-ayaz.png",
+      "username": "aimaan-ayaz",
+      "project": {
+        "title": "Modernizing BLT-Next & UI/UX Optimization",
+        "organization": "OWASP",
+        "timeline": "May 2026 - September 2026"
+      },
+      "stats": {
+        "pullRequests": null,
+        "mergedPullRequests": null,
+        "issues": null
+      },
+      "content": {
+        "blogPosts": 0,
+        "weeklyUpdates": 0,
+        "milestones": 0,
+        "feedback": 0
+      }
+    },
+    {
+      "url": "https://shhazzz.github.io/MY-GSOC-TOOL/",
+      "live": true,
+      "repo": "Shhazzz/MY-GSOC-TOOL",
+      "repoUrl": "https://github.com/Shhazzz/MY-GSOC-TOOL",
+      "pushedAt": "2026-11-07T04:57:57Z",
+      "stars": 0,
+      "name": "Shaz Zahra Zaidi",
+      "bio": "Google Summer of Code Contributor",
+      "avatar": "https://github.com/Shhazzz.png",
+      "username": "Shhazzz",
+      "project": {
+        "title": "",
+        "organization": "",
+        "timeline": "May 2026 - September 2026"
+      },
+      "stats": {
+        "pullRequests": 0,
+        "mergedPullRequests": 0,
+        "issues": 0
+      },
+      "content": {
+        "blogPosts": 1,
+        "weeklyUpdates": 0,
+        "milestones": 0,
+        "feedback": 0
+      }
+    },
+    {
+      "url": "https://devalprime.github.io/MY-GSOC-TOOL/",
+      "live": true,
+      "repo": "DevalPrime/MY-GSOC-TOOL",
+      "repoUrl": "https://github.com/DevalPrime/MY-GSOC-TOOL",
+      "pushedAt": "2026-11-07T03:55:21Z",
+      "stars": 0,
+      "name": "Devis Lodhwal",
+      "bio": "Google Summer of Code Contributor",
+      "avatar": "https://github.com/DevalPrime.png",
+      "username": "DevalPrime",
+      "project": {
+        "title": "",
+        "organization": "OWASP-BLT",
+        "timeline": "May 2026 - August 2026"
+      },
+      "stats": {
+        "pullRequests": 20,
+        "mergedPullRequests": 13,
+        "issues": 0
+      },
+      "content": {
+        "blogPosts": 1,
+        "weeklyUpdates": 0,
+        "milestones": 0,
+        "feedback": 0
+      }
+    },
+    {
+      "url": "https://rudra-rps.github.io/MY-GSOC-TOOL/",
+      "live": true,
+      "repo": "Rudra-rps/MY-GSOC-TOOL",
+      "repoUrl": "https://github.com/Rudra-rps/MY-GSOC-TOOL",
+      "pushedAt": "2026-03-01T18:33:56Z",
+      "stars": 0,
+      "name": "Rudra Pratap Singh",
+      "bio": "GSoC Contributor & Systems Builder",
+      "avatar": "https://github.com/Rudra-rps.png",
+      "username": "Rudra-rps",
+      "project": {
+        "title": "",
+        "organization": "",
+        "timeline": "May 2026 - August 2026"
+      },
+      "stats": {
+        "pullRequests": 3,
+        "mergedPullRequests": 1,
+        "issues": 1
+      },
+      "content": {
+        "blogPosts": 0,
+        "weeklyUpdates": 0,
+        "milestones": 0,
+        "feedback": 0
+      }
+    },
+    {
+      "url": "https://manahil-afzal.github.io/MY-GSOC-TOOL/",
+      "live": true,
+      "repo": "Manahil-Afzal/MY-GSOC-TOOL",
+      "repoUrl": "https://github.com/Manahil-Afzal/MY-GSOC-TOOL",
+      "pushedAt": "2026-11-07T04:40:40Z",
+      "stars": 0,
+      "name": "Manahil Afzal",
+      "bio": "Google Summer of Code Contributor",
+      "avatar": "https://avatars.githubusercontent.com/u/207878232",
+      "username": "Manahil-Afzal",
+      "project": {
+        "title": "",
+        "organization": "OWASP Foundation",
+        "timeline": "May 2025 - August 2025"
+      },
+      "stats": {
+        "pullRequests": 15,
+        "mergedPullRequests": 2,
+        "issues": 9
+      },
+      "content": {
+        "blogPosts": 0,
+        "weeklyUpdates": 0,
+        "milestones": 0,
+        "feedback": 0
+      }
+    },
+    {
+      "url": "https://nachiket-roy.github.io/MY-GSOC-TOOL/",
+      "live": true,
+      "repo": "Nachiket-Roy/MY-GSOC-TOOL",
+      "repoUrl": "https://github.com/Nachiket-Roy/MY-GSOC-TOOL",
+      "pushedAt": "2026-11-07T05:30:32Z",
+      "stars": 0,
+      "name": "Nachiket Roy",
+      "bio": "Google Summer of Code Contributor",
+      "avatar": "https://github.com/Nachiket-Roy.png",
+      "username": "Nachiket-Roy",
+      "project": {
+        "title": "",
+        "organization": "",
+        "timeline": "May 2024 - August 2024"
+      },
+      "stats": {
+        "pullRequests": 197,
+        "mergedPullRequests": 132,
+        "issues": 65
+      },
+      "content": {
+        "blogPosts": 0,
+        "weeklyUpdates": 0,
+        "milestones": 0,
+        "feedback": 0
+      }
+    },
+    {
+      "url": "https://karunarapolu.github.io/MY-GSOC-TOOL/",
+      "live": true,
+      "repo": "karunarapolu/MY-GSOC-TOOL",
+      "repoUrl": "https://github.com/karunarapolu/MY-GSOC-TOOL",
+      "pushedAt": "2026-11-07T05:01:15Z",
+      "stars": 0,
+      "name": "Rapolu Karuna",
+      "bio": "Google Summer of Code Contributor",
+      "avatar": "https://github.com/YOUR-USERNAME.png",
+      "username": "karunarapolu",
+      "project": {
+        "title": "",
+        "organization": "",
+        "timeline": "May 2024 - August 2024"
+      },
+      "stats": {
+        "pullRequests": 2,
+        "mergedPullRequests": 1,
+        "issues": 1
+      },
+      "content": {
+        "blogPosts": 0,
+        "weeklyUpdates": 0,
+        "milestones": 0,
+        "feedback": 0
+      }
+    }
+  ],
+  "lastUpdated": "2026-11-07T06:34:58.708Z"
+}

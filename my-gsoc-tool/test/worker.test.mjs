@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 import worker from "../worker/index.js";
-import { CONTRIBUTIONS_KEY, FORKS_KEY, summarizeEvents, usernameFromConfig } from "../worker/refresh.js";
+import { CONTRIBUTIONS_KEY, DIRECTORY_KEY, FORKS_KEY, directoryItems, keepKnownStats, sampleTitles, siteCandidates, summarizeEvents, summarizeSite, usernameFromConfig } from "../worker/refresh.js";
 import { MemoryKV, cronRequest, staticAssets, stubFetch } from "../../scripts/worker-data/testing.mjs";
 
 const EVENTS = [
@@ -33,21 +33,26 @@ test("summarizeEvents counts and orders like the old script", () => {
   assert.equal(usernameFromConfig({ student: { github: "https://github.com/a/" } }), "a");
 });
 
-test("the daily refresh writes both files to KV with one request each", async () => {
+test("the daily refresh writes contributions and forks, then probes the forks' sites", async () => {
   const e = env();
   const fetches = stubFetch((url, init) => {
-    assert.equal(init.headers.Authorization, "token gh");
+    if (url.startsWith("https://api.github.com")) assert.equal(init.headers.Authorization, "token gh");
     if (url.includes("/users/Sumit6307/events/public")) return EVENTS;
-    if (url.includes("/repos/OWASP-BLT/MY-GSOC-TOOL/forks")) return [{ full_name: "a/b", html_url: "h", stargazers_count: 2, owner: {} }];
+    if (url.includes("/repos/ananya-in-tech/MY-GSOC-TOOL/forks")) return [{ full_name: "a/b", html_url: "h", stargazers_count: 2, has_pages: false, owner: {} }];
+    if (url.endsWith("/repos/ananya-in-tech/MY-GSOC-TOOL")) return { full_name: "ananya-in-tech/MY-GSOC-TOOL", html_url: "s", has_pages: true };
     return new Response("nope", { status: 404 });
   });
   try {
     const res = await worker.fetch(cronRequest({ scheduledTime: 1 }), e, {});
     assert.equal(res.status, 200);
-    assert.equal(fetches.calls.length, 2);
     const data = JSON.parse(e.DATA.text(CONTRIBUTIONS_KEY));
     assert.equal(data.stats.commits, 2);
-    assert.deepEqual(JSON.parse(e.DATA.text(FORKS_KEY)).forks, [{ full_name: "a/b", html_url: "h", stargazers_count: 2 }]);
+    const forks = JSON.parse(e.DATA.text(FORKS_KEY));
+    assert.deepEqual(forks.forks, [{ full_name: "a/b", html_url: "h", stargazers_count: 2, homepage: "", has_pages: false, pushed_at: null }]);
+    assert.equal(forks.source.full_name, "ananya-in-tech/MY-GSOC-TOOL");
+    // a/b has no Pages site, so only the source repository's site is probed (and is down).
+    assert.ok(fetches.calls.some((c) => c.url === "https://ananya-in-tech.github.io/MY-GSOC-TOOL/config.json"));
+    assert.deepEqual(JSON.parse(e.DATA.text(DIRECTORY_KEY)).sites, []);
     const served = await worker.fetch(new Request(`https://t.test/${CONTRIBUTIONS_KEY}`), e, {});
     assert.equal(served.headers.get("x-data-source"), "kv");
     assert.equal((await served.json()).stats.commits, 2);
@@ -80,12 +85,12 @@ test("other paths are static and /__scheduled needs the secret", async () => {
 
 test("the scheduled handler runs both refreshes for forks with their own cron trigger", async () => {
   const e = env();
-  const fetches = stubFetch((url) => (url.includes("/forks") ? [] : EVENTS));
+  const fetches = stubFetch((url) => (url.includes("/forks") ? [] : url.includes("/repos/") ? {} : EVENTS));
   const waits = [];
   try {
     await worker.scheduled({ scheduledTime: 1 }, e, { waitUntil: (p) => waits.push(p) });
     await Promise.all(waits);
-    assert.equal(fetches.calls.length, 2);
+    assert.equal(fetches.calls.length, 3);
     assert.ok(e.DATA.text(CONTRIBUTIONS_KEY));
     assert.ok(e.DATA.text(FORKS_KEY));
   } finally {
@@ -96,7 +101,7 @@ test("the scheduled handler runs both refreshes for forks with their own cron tr
 test("a missing template repository skips the forks refresh and keeps the last list", async () => {
   const e = env();
   e.DATA.put(FORKS_KEY, JSON.stringify({ forks: [{ full_name: "kept/one" }] }));
-  const fetches = stubFetch((url) => (url.includes("/forks")
+  const fetches = stubFetch((url) => (url.includes("/repos/")
     ? new Response('{"message":"Not Found"}', { status: 404 })
     : EVENTS));
   try {
@@ -108,4 +113,54 @@ test("a missing template repository skips the forks refresh and keeps the last l
   } finally {
     fetches.restore();
   }
+});
+
+test("site candidates skip the deleted original's homepage and use the fork's Pages site", () => {
+  assert.deepEqual(siteCandidates({ full_name: "Jane/MY-GSOC-TOOL", homepage: "https://owasp-blt.github.io/MY-GSOC-TOOL/", has_pages: true }),
+    ["https://jane.github.io/MY-GSOC-TOOL/"]);
+  assert.deepEqual(siteCandidates({ full_name: "j/r", homepage: "https://jane.dev/gsoc?x=1", has_pages: false }), ["https://jane.dev/gsoc/"]);
+  assert.deepEqual(siteCandidates({ full_name: "j/r", homepage: "javascript:alert(1)", has_pages: false }), []);
+  const items = directoryItems(
+    { source: { full_name: "s/r", has_pages: true }, forks: [{ full_name: "s/r", has_pages: true }, { full_name: "x/r", has_pages: false }] },
+    { sites: [{ url: "https://gsoc-tool.owaspblt.org" }] },
+  );
+  assert.deepEqual(items.map((i) => i.id), ["https://gsoc-tool.owaspblt.org/", "https://s.github.io/r/"]);
+});
+
+test("a live site is probed for its student, search counts and own content", async () => {
+  const e = env();
+  e.DATA.put(FORKS_KEY, JSON.stringify({ forks: [{ full_name: "Jane/MY-GSOC-TOOL", html_url: "https://github.com/Jane/MY-GSOC-TOOL", has_pages: true, pushed_at: "2026-11-01T00:00:00Z" }] }));
+  e.ASSETS = staticAssets({ "/data/blog-posts.json": [{ title: "Week 1: sample" }] });
+  const site = "https://jane.github.io/MY-GSOC-TOOL/";
+  const fetches = stubFetch((url) => {
+    if (url === `${site}config.json`) return { student: { name: "Jane <b>", github: "https://github.com/Jane", email: "j@x.org" }, project: { title: "Your GSoC Project Title", organization: "OWASP" } };
+    if (url === `${site}data/blog-posts.json`) return [{ title: "Week 1: sample" }, { title: "My real post" }];
+    if (url.includes("/search/issues")) return { total_count: url.includes("is%3Amerged") ? 3 : 5 };
+    return new Response("nope", { status: 404 });
+  });
+  try {
+    const res = await worker.fetch(cronRequest({ task: "directory", scheduledTime: 1 }), e, {});
+    assert.equal(res.status, 200);
+    const [entry] = JSON.parse(e.DATA.text(DIRECTORY_KEY)).sites;
+    assert.equal(entry.url, site);
+    assert.equal(entry.name, "Jane <b>");
+    assert.equal(entry.username, "Jane");
+    assert.equal(entry.project.title, "");
+    assert.equal(entry.project.organization, "OWASP");
+    assert.deepEqual(entry.stats, { pullRequests: 5, mergedPullRequests: 3, issues: 5 });
+    assert.equal(entry.content.blogPosts, 1);
+    assert.equal(entry.email, undefined);
+    assert.equal(JSON.stringify(entry).includes("j@x.org"), false);
+  } finally {
+    fetches.restore();
+  }
+});
+
+test("titles shared by three dashboards count as sample text; failed searches keep old counts", () => {
+  const sites = ["a", "b", "c"].map((id) => ({ url: id, stats: {}, content: { blogPosts: ["Old sample", `Own ${id}`] } }));
+  const samples = sampleTitles(sites);
+  assert.ok(samples.has("Old sample"));
+  assert.equal(summarizeSite(sites[0], samples).content.blogPosts, 1);
+  const kept = keepKnownStats({ stats: { pullRequests: null, issues: 2 } }, { stats: { pullRequests: 7, issues: 1 } });
+  assert.deepEqual(kept.stats, { pullRequests: 7, issues: 2 });
 });

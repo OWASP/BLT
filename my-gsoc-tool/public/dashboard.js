@@ -20,7 +20,7 @@ function getDefaultConfig() {
         student: {
             name: "GSoC Student",
             bio: "Google Summer of Code Contributor",
-            avatar: "https://via.placeholder.com/120",
+            avatar: "assets/images/sample-avatar.svg",
             github: "",
             email: "",
             blog: "",
@@ -40,7 +40,7 @@ function getDefaultConfig() {
             {
                 name: "Mentor Name",
                 email: "",
-                avatar: "https://via.placeholder.com/80",
+                avatar: "assets/images/sample-mentor.svg",
                 role: "Lead Mentor"
             }
         ]
@@ -120,59 +120,54 @@ async function loadMilestones() {
     }
 }
 
+// Values still holding the template's placeholders (config.example.json) are left out.
+const PLACEHOLDER = /^(your\b|tbd$|mentor name$|co-mentor name$|lead mentor$|co-mentor [12]$)|example\.com|yourblog\.dev|YOUR-|MENTOR-USERNAME|PROJECT-REPOSITORY|20XX|\/xxx$/i;
+
+function filled(value) {
+    const text = String(value == null ? '' : value).trim();
+    return text && !PLACEHOLDER.test(text) ? text : '';
+}
+
 // Render header
 function renderHeader(config) {
-    document.getElementById('student-name').textContent = config.student.name;
-    document.getElementById('student-bio').textContent = config.student.bio;
-    document.getElementById('student-avatar').src = config.student.avatar;
-    document.getElementById('student-avatar').alt = config.student.name;
+    const student = config.student || {};
+    const avatar = document.getElementById('student-avatar');
+    document.getElementById('student-name').textContent = filled(student.name) || 'GSoC Student';
+    document.getElementById('student-bio').textContent = filled(student.bio) || 'Google Summer of Code Contributor';
+    if (httpsUrl(student.avatar)) avatar.src = httpsUrl(student.avatar);
+    avatar.alt = filled(student.name) || 'Student avatar';
+    document.title = `${filled(student.name) || 'GSoC Student'} | GSoC Dashboard`;
 
-    const socialLinks = document.getElementById('social-links');
-    socialLinks.innerHTML = '';
-
-    if (config.student.github) {
-        socialLinks.innerHTML += `
-            <a href="${config.student.github}" target="_blank">
-                <i class="fab fa-github"></i> GitHub
+    const links = [
+        [httpsUrl(filled(student.github)), 'fab fa-github', 'GitHub'],
+        [httpsUrl(filled(student.linkedin)), 'fab fa-linkedin', 'LinkedIn'],
+        [/^[^\s@<>"']+@[^\s@<>"']+$/.test(filled(student.email)) ? `mailto:${filled(student.email)}` : '', 'fas fa-envelope', 'Email'],
+        [httpsUrl(filled(student.blog)), 'fas fa-blog', 'Blog'],
+    ];
+    document.getElementById('social-links').innerHTML = links
+        .filter(([href]) => href)
+        .map(([href, icon, label]) => `
+            <a href="${escapeHtml(href)}"${href.startsWith('mailto:') ? '' : ' target="_blank" rel="noopener noreferrer"'}>
+                <i class="${icon}"></i> ${label}
             </a>
-        `;
-    }
-
-    if (config.student.linkedin) {
-        socialLinks.innerHTML += `
-            <a href="${config.student.linkedin}" target="_blank">
-                <i class="fab fa-linkedin"></i> LinkedIn
-            </a>
-        `;
-    }
-
-    if (config.student.email) {
-        socialLinks.innerHTML += `
-            <a href="mailto:${config.student.email}">
-                <i class="fas fa-envelope"></i> Email
-            </a>
-        `;
-    }
-
-    if (config.student.blog) {
-        socialLinks.innerHTML += `
-            <a href="${config.student.blog}" target="_blank">
-                <i class="fas fa-blog"></i> Blog
-            </a>
-        `;
-    }
+        `).join('');
 }
 
 // Render project info
 function renderProjectInfo(config) {
-    document.getElementById('project-title').textContent = config.project.title;
-    document.getElementById('project-description').textContent = config.project.description;
-    document.getElementById('organization').innerHTML = `
-        <i class="fas fa-building"></i> Organization: ${config.project.organization}
-    `;
-    document.getElementById('timeline').innerHTML = `
-        <i class="fas fa-calendar"></i> Timeline: ${config.project.timeline}
-    `;
+    const project = config.project || {};
+    const repository = httpsUrl(filled(project.repository));
+    document.getElementById('project-title').textContent = filled(project.title) || 'Project to be announced';
+    document.getElementById('project-description').textContent = filled(project.description) || '';
+    const meta = [
+        ['fas fa-building', 'Organization', escapeHtml(filled(project.organization))],
+        ['fas fa-calendar', 'Timeline', escapeHtml(filled(project.timeline))],
+        ['fas fa-code-branch', 'Repository', repository
+            ? `<a href="${escapeHtml(repository)}" target="_blank" rel="noopener noreferrer">${escapeHtml(repository.replace(/^https:\/\//, ''))}</a>` : ''],
+    ].filter(([, , value]) => value);
+    document.getElementById('project-meta').innerHTML = meta
+        .map(([icon, label, value]) => `<span class="meta-item"><i class="${icon}"></i> ${label}: ${value}</span>`)
+        .join('');
 }
 
 // Contributions come from GitHub event data, which carries other people's issue and PR titles
@@ -211,7 +206,7 @@ function renderGitHubStats(data) {
             </div>
         `).join('');
     } else {
-        contributionList.innerHTML = '<p class="empty-note">No contributions data available yet. The GitHub Actions workflow will populate this automatically.</p>';
+        contributionList.innerHTML = '<p class="empty-note">No public GitHub activity yet. It is refreshed daily from your GitHub profile.</p>';
     }
 }
 
@@ -220,19 +215,20 @@ function renderSlackInfo(config) {
     const slackChannels = document.getElementById('slack-channels');
     const slackLink = document.getElementById('slack-link');
 
+    config.slack = config.slack || {};
     if (config.slack.channels && config.slack.channels.length > 0) {
         slackChannels.innerHTML = config.slack.channels.map(channel => `
             <div class="channel-item">
                 <i class="fas fa-hashtag"></i>
-                <span>${channel}</span>
+                <span>${escapeHtml(channel)}</span>
             </div>
         `).join('');
     } else {
         slackChannels.innerHTML = '<p class="empty-note">Configure your Slack channels in config.json</p>';
     }
 
-    if (config.slack.workspaceUrl) {
-        slackLink.href = config.slack.workspaceUrl;
+    if (httpsUrl(filled(config.slack.workspaceUrl))) {
+        slackLink.href = httpsUrl(config.slack.workspaceUrl);
         slackLink.hidden = false;
     }
 }
@@ -243,22 +239,26 @@ function renderBlogPosts(posts, config) {
     const blogLink = document.getElementById('blog-link');
 
     if (posts && posts.length > 0) {
-        blogList.innerHTML = posts.map(post => `
+        blogList.innerHTML = posts.map(post => {
+            const url = httpsUrl(filled(post.url));
+            const title = escapeHtml(post.title);
+            return `
             <div class="blog-post">
-                <h3 onclick="window.open('${post.url}', '_blank')">${post.title}</h3>
+                <h3>${url ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${title}</a>` : title}</h3>
                 <div class="post-meta">
-                    <i class="fas fa-calendar"></i> ${formatDate(post.date)}
-                    ${post.readTime ? `| <i class="fas fa-clock"></i> ${post.readTime}` : ''}
+                    <i class="fas fa-calendar"></i> ${escapeHtml(formatDate(post.date))}
+                    ${post.readTime ? `· <i class="fas fa-clock"></i> ${escapeHtml(post.readTime)}` : ''}
                 </div>
-                <p>${post.excerpt}</p>
+                <p>${escapeHtml(post.excerpt)}</p>
             </div>
-        `).join('');
+        `;
+        }).join('');
     } else {
         blogList.innerHTML = '<p class="empty-note">No blog posts yet. Add your posts to data/blog-posts.json</p>';
     }
 
-    if (config.student.blog) {
-        blogLink.href = config.student.blog;
+    if (httpsUrl(filled(config.student.blog))) {
+        blogLink.href = httpsUrl(config.student.blog);
         blogLink.hidden = false;
     }
 }
@@ -286,51 +286,28 @@ function renderMentorInfo(config, feedback) {
         mentors = [config.mentor];
     }
 
-    // Always show 3 mentor slots, with defaults for unfilled slots
-    const defaultMentors = [
-        { name: 'Lead Mentor', role: 'Lead Mentor', isPlaceholder: true },
-        { name: 'Co-Mentor 1', role: 'Co-Mentor', isPlaceholder: true },
-        { name: 'Co-Mentor 2', role: 'Co-Mentor', isPlaceholder: true },
-    ];
+    // Only mentors with a real name are shown; a placeholder slot says how to add one.
+    const shownMentors = mentors.filter((mentor) => mentor && filled(mentor.name));
 
-    // Fill in actual mentors, preserving order (first = lead, rest = co-mentors)
-    const displayMentors = defaultMentors.map((defaultMentor, index) =>
-        index < mentors.length ? mentors[index] : defaultMentor,
-    );
-
-    if (displayMentors.length === 0) {
+    if (shownMentors.length === 0) {
         mentorDetails.innerHTML =
-            '<p class="empty-note">Mentor information not configured.</p>';
+            '<p class="empty-note">Add your mentors to <code>mentors</code> in config.json.</p>';
     } else {
-        mentorDetails.innerHTML = displayMentors
+        mentorDetails.innerHTML = shownMentors
             .map((mentor, index) => {
-                // Check if this is a placeholder (default mentor that wasn't filled in)
-                // Also check if mentor has default placeholder name (Co-Mentor 1, Co-Mentor 2, Lead Mentor) without email/github
-                const hasDefaultPlaceholderName =
-                    (mentor.name === 'Lead Mentor' ||
-                        mentor.name === 'Co-Mentor 1' ||
-                        mentor.name === 'Co-Mentor 2') &&
-                    (!mentor.email || mentor.email === '') &&
-                    (!mentor.github || mentor.github === '');
-                const isPlaceholder =
-                    mentor.isPlaceholder || index >= mentors.length || hasDefaultPlaceholderName;
-                const placeholderStyle = isPlaceholder
-                    ? 'data-placeholder=\"true\"'
-                    : '';
-                const blankIndicator = isPlaceholder
-                    ? '<span class=\"blank-note\">(blank)</span>'
-                    : '';
-
+                const github = httpsUrl(filled(mentor.github));
+                const email = filled(mentor.email);
                 return `
-                <div class="mentor-card" ${placeholderStyle}>
-                    <img src="${mentor.avatar || 'assets/images/sample-mentor.svg'}"
-                         alt="${mentor.name}"
-                         class="mentor-avatar">
+                <div class="mentor-card">
+                    <img src="${escapeHtml(httpsUrl(filled(mentor.avatar)) || 'assets/images/sample-mentor.svg')}"
+                         alt="" class="mentor-avatar" data-fallback="assets/images/sample-mentor.svg">
                     <div class="mentor-info">
-                        <h3>${mentor.name} ${blankIndicator}</h3>
-                        <p>${mentor.role || (index === 0 ? 'Lead Mentor' : 'Co-Mentor')}</p>
-                        ${mentor.email ? `<p><i class="fas fa-envelope"></i> ${mentor.email}</p>` : ''}
-                        ${mentor.github ? `<p><a href="${mentor.github}" target="_blank" rel="noopener noreferrer"><i class="fab fa-github"></i> GitHub</a></p>` : ''}
+                        <h3>${escapeHtml(filled(mentor.name))}</h3>
+                        <p>${escapeHtml(filled(mentor.role) || (index === 0 ? 'Lead Mentor' : 'Co-Mentor'))}</p>
+                        <p class="mentor-links">
+                            ${github ? `<a href="${escapeHtml(github)}" target="_blank" rel="noopener noreferrer"><i class="fab fa-github"></i> GitHub</a>` : ''}
+                            ${/^[^\s@<>"']+@[^\s@<>"']+$/.test(email) ? `<a href="mailto:${escapeHtml(email)}"><i class="fas fa-envelope"></i> Email</a>` : ''}
+                        </p>
                     </div>
                 </div>
                 `;
@@ -340,9 +317,8 @@ function renderMentorInfo(config, feedback) {
 
     if (feedback && feedback.length > 0) {
         // Get all mentor names (actual mentors only, not placeholders)
-        const actualMentorNames = mentors.map((m) => m.name).filter(Boolean);
-        const primaryMentorName =
-            actualMentorNames[0] || (config.mentor && config.mentor.name) || 'Mentor';
+        const actualMentorNames = shownMentors.map((m) => filled(m.name));
+        const primaryMentorName = actualMentorNames[0] || 'Mentor';
 
         feedbackList.innerHTML = feedback
             .map((item, index) => {
@@ -362,10 +338,10 @@ function renderMentorInfo(config, feedback) {
                 return `
                 <div class="feedback-item">
                     <div class="feedback-header">
-                        <strong>${displayName}</strong>
-                        <span class="feedback-date">${dateText}</span>
+                        <strong>${escapeHtml(displayName)}</strong>
+                        <span class="feedback-date">${escapeHtml(dateText)}</span>
                     </div>
-                    <div class="feedback-content">${item.content || ''}</div>
+                    <div class="feedback-content">${escapeHtml(item.content)}</div>
                 </div>
                 `;
             })
@@ -382,10 +358,10 @@ function renderWeeklyUpdates(updates) {
     if (updates && updates.length > 0) {
         timeline.innerHTML = updates.map(update => `
             <div class="timeline-item">
-                <h4>${update.title}</h4>
-                <p>${update.summary}</p>
+                <h4>${escapeHtml(update.title)}</h4>
+                <p>${escapeHtml(update.summary)}</p>
                 <div class="timeline-date">
-                    <i class="fas fa-calendar"></i> ${formatDate(update.date)}
+                    <i class="fas fa-calendar"></i> ${escapeHtml(formatDate(update.date))}
                 </div>
             </div>
         `).join('');
@@ -401,13 +377,13 @@ function renderMilestones(milestones) {
         milestoneList.innerHTML = milestones.map(milestone => `
             <div class="milestone-item">
                 <div class="milestone-icon">
-                    <i class="fas fa-${milestone.icon || 'trophy'}"></i>
+                    <i class="fas fa-${/^[a-z0-9-]+$/.test(milestone.icon || '') ? milestone.icon : 'trophy'}"></i>
                 </div>
                 <div class="milestone-content">
-                    <h4>${milestone.title}</h4>
-                    <p>${milestone.description}</p>
+                    <h4>${escapeHtml(milestone.title)}</h4>
+                    <p>${escapeHtml(milestone.description)}</p>
                     <div class="milestone-date">
-                        <i class="fas fa-calendar"></i> ${formatDate(milestone.date)}
+                        <i class="fas fa-calendar"></i> ${escapeHtml(formatDate(milestone.date))}
                     </div>
                 </div>
             </div>
@@ -420,26 +396,60 @@ function renderMilestones(milestones) {
 // Format date helper
 function formatDate(dateString) {
     const date = new Date(dateString);
+    if (Number.isNaN(date.getTime())) return '';
     const options = { year: 'numeric', month: 'long', day: 'numeric' };
     return date.toLocaleDateString('en-US', options);
 }
 
-// Update last updated timestamp
-function updateLastUpdated() {
+// When the GitHub activity was last refreshed
+function updateLastUpdated(githubData) {
     const lastUpdated = document.getElementById('last-updated');
-    lastUpdated.textContent = new Date().toLocaleString();
+    const when = githubData && Date.parse(githubData.lastUpdated);
+    lastUpdated.textContent = when ? new Date(when).toLocaleString() : 'not yet';
 }
+
+// A few other live dashboards, linking to the full directory (directory.js has the sources).
+async function renderPeers(config) {
+    const row = document.getElementById('peer-row');
+    if (!row) return;
+    let data = null;
+    for (const source of ['data/directory.json', 'https://gsoc-tool.owaspblt.org/data/directory.json']) {
+        try {
+            const response = await fetch(source);
+            if (response.ok) data = await response.json();
+        } catch (error) {
+            data = null;
+        }
+        if (data && Array.isArray(data.sites) && data.sites.length) break;
+    }
+    const here = location.origin + location.pathname.replace(/[^/]*$/, '');
+    const sites = ((data && data.sites) || [])
+        .filter((site) => httpsUrl(site.url) && site.url !== here)
+        .sort((a, b) => ((b.stats || {}).mergedPullRequests || 0) - ((a.stats || {}).mergedPullRequests || 0));
+    document.getElementById('peer-count').textContent = `${sites.length || 'Other'} students using this dashboard`;
+    row.innerHTML = sites.slice(0, 12).map((site) => `
+        <a class="peer" href="${escapeHtml(site.url)}" target="_blank" rel="noopener noreferrer">
+            <img src="${escapeHtml(httpsUrl(site.avatar) || 'assets/images/sample-avatar.svg')}" alt="" loading="lazy" data-fallback="assets/images/sample-avatar.svg">
+            <span>${escapeHtml(site.name || site.username)}</span>
+            ${site.stats && site.stats.mergedPullRequests ? `<small title="Merged pull requests">${Number(site.stats.mergedPullRequests)}</small>` : ''}
+        </a>
+    `).join('') || '<p class="empty-note">No other dashboards found yet.</p>';
+}
+
+// Broken image links (a placeholder GitHub user, say) fall back to the sample picture.
+document.addEventListener('error', (event) => {
+    const img = event.target;
+    if (img.tagName === 'IMG' && img.dataset.fallback && !img.src.endsWith(img.dataset.fallback)) img.src = img.dataset.fallback;
+}, true);
 
 // Initialize dashboard
 async function initDashboard() {
     try {
         // Load all data
         const config = await loadConfig();
-        const githubData = await loadGitHubData(config);
-        const blogPosts = await loadBlogPosts();
-        const feedback = await loadFeedback();
-        const weeklyUpdates = await loadWeeklyUpdates();
-        const milestones = await loadMilestones();
+        const [githubData, blogPosts, feedback, weeklyUpdates, milestones] = await Promise.all([
+            loadGitHubData(config), loadBlogPosts(), loadFeedback(), loadWeeklyUpdates(), loadMilestones(),
+        ]);
 
         // Render all sections
         renderHeader(config);
@@ -450,7 +460,8 @@ async function initDashboard() {
         renderMentorInfo(config, feedback);
         renderWeeklyUpdates(weeklyUpdates);
         renderMilestones(milestones);
-        updateLastUpdated();
+        updateLastUpdated(githubData);
+        renderPeers(config);
     } catch (error) {
         console.error('Error initializing dashboard:', error);
     }

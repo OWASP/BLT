@@ -18,13 +18,14 @@
         <a href="#mentors">Mentors</a>
         <a href="#updates">Updates</a>
         <a href="#milestones">Milestones</a>
+        <a href="directory.html">All dashboards</a>
         <a href="https://git.owaspblt.org/BLT/tree/main/my-gsoc-tool" slot="actions" data-primary target="_blank" rel="noopener noreferrer">Source Code</a>
     </blt-nav>
     <main class="container">
         <!-- Header Section -->
         <header class="dashboard-header">
             <div class="header-content">
-                <img id="student-avatar" class="avatar" src="assets/images/sample-avatar.svg" alt="Student avatar">
+                <img id="student-avatar" class="avatar" src="assets/images/sample-avatar.svg" alt="Student avatar" data-fallback="assets/images/sample-avatar.svg">
                 <div class="header-info">
                     <h1 id="student-name">Loading...</h1>
                     <p id="student-bio" class="bio">GSoC Contributor</p>
@@ -41,10 +42,7 @@
             <div id="project-details">
                 <h3 id="project-title">Loading...</h3>
                 <p id="project-description">Loading project details...</p>
-                <div class="project-meta">
-                    <span id="organization" class="meta-item"><i class="fas fa-building"></i> Organization: Loading...</span>
-                    <span id="timeline" class="meta-item"><i class="fas fa-calendar"></i> Timeline: Loading...</span>
-                </div>
+                <div class="project-meta" id="project-meta"></div>
             </div>
         </section>
 
@@ -53,6 +51,7 @@
             <!-- GitHub Contributions -->
             <section class="card contributions" id="contributions">
                 <h2><i class="fab fa-github"></i> GitHub Contributions</h2>
+                <p class="section-note">Recent public activity on GitHub, refreshed daily.</p>
                 <div id="github-stats" class="stats-container">
                     <div class="stat-card">
                         <div class="stat-value" id="total-commits">-</div>
@@ -131,10 +130,17 @@
             </section>
         </div>
 
+        <!-- Other students' dashboards (data/directory.json) -->
+        <section class="card peers-card" id="peers">
+            <h2><i class="fas fa-users"></i> <span id="peer-count">Other students using this dashboard</span></h2>
+            <div id="peer-row" class="peer-row"><p class="empty-note"><span class="loading"></span></p></div>
+            <a href="directory.html" class="btn-secondary"><i class="fas fa-th-large"></i> All dashboards and their stats</a>
+        </section>
+
         <!-- Footer -->
         <footer class="dashboard-footer">
-            <p>GSoC Student Dashboard | Generated automatically via GitHub Actions</p>
-            <p>Last updated: <span id="last-updated">-</span></p>
+            <p>GSoC Student Dashboard · <a href="https://git.owaspblt.org/BLT/tree/main/my-gsoc-tool" target="_blank" rel="noopener noreferrer">make your own</a></p>
+            <p>GitHub activity last refreshed: <span id="last-updated">-</span></p>
         </footer>
     </main>
 

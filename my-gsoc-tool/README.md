@@ -22,6 +22,7 @@ A comprehensive, automated dashboard for Google Summer of Code students to showc
 - **🚀 One-Click Setup**: Simply fork this repository and update the config—GitHub Actions handles the rest!
 - **📱 Responsive Design**: Beautiful UI that works on all devices
 - **🔄 Auto-Updates**: Dashboard updates automatically via scheduled GitHub Actions
+- **🗂️ Dashboard directory**: [`directory.html`](https://gsoc-tool.owaspblt.org/directory.html) lists every live dashboard built from this tool with each student's project, pull requests, merged pull requests, issues and own posts; every dashboard links to it
 
 ## 🚀 Quick Start (3 Steps!)
 
@@ -195,9 +196,21 @@ The `public/dashboard.js` file handles all data loading and rendering. Modify it
 
 - the student's recent public GitHub events (user from `public/config.json`) into
   `/data/github-contributions.json`;
-- the forks of `OWASP-BLT/MY-GSOC-TOOL` (or the `FORKS_REPO` variable) into `/data/forks.json`.
+- the forks of `ananya-in-tech/MY-GSOC-TOOL` (or the `FORKS_REPO` variable) into `/data/forks.json`
+  (`OWASP-BLT/MY-GSOC-TOOL` was deleted; that copy is now the root of its fork network);
+- the directory of live dashboards into `/data/directory.json`. A fork counts as live when its
+  homepage or `https://<owner>.github.io/<repo>/` answers `config.json` with a `student`; sites
+  outside the fork network are listed in `public/data/sites.json`. For each one it stores the
+  student's name, avatar and project, their all-time public GitHub pull request, merged pull
+  request and issue counts (GitHub search), and how many blog posts, weekly updates, milestones and
+  feedback notes are their own (titles found on three or more dashboards count as template samples).
+  No email addresses are stored. The probes run 3 sites per call, so blt-cron also calls
+  `{"task": "directory"}` once a minute from 00:33 to 00:52 UTC.
 
-Both are stored in Workers KV (binding `DATA`, namespace `my-gsoc-tool-data`) and served at those
+`directory.html` reads `data/directory.json` and, on a fork without this Worker (GitHub Pages),
+the shared copy at `https://gsoc-tool.owaspblt.org/data/directory.json`.
+
+All three are stored in Workers KV (binding `DATA`, namespace `my-gsoc-tool-data`) and served at those
 paths, falling back to the committed files in `public/data/` until the first refresh. Nothing is
 committed. Worker secrets: `CRON_SECRET` (same as blt-cron) and `GH_API_TOKEN`. After changing
 `student.github` in `config.json`, the dashboard shows the new user's activity after the next daily
@@ -218,6 +231,8 @@ MY-GSOC-TOOL/
 │   ├── data/
 │   │   ├── github-contributions.json # GitHub data fallback (live copy in KV)
 │   │   ├── forks.json                # Forks list fallback (live copy in KV)
+│   │   ├── directory.json            # Live dashboards and their stats (live copy in KV)
+│   │   ├── sites.json                # Dashboards outside the fork network, for the directory
 │   │   ├── blog-posts.json           # Your blog posts
 │   │   ├── feedback.json             # Mentor feedback
 │   │   ├── weekly-updates.json       # Weekly progress
@@ -225,6 +240,8 @@ MY-GSOC-TOOL/
 │   ├── index.html                # Dashboard HTML
 │   ├── styles.css                # Dashboard styles
 │   ├── dashboard.js              # Dashboard logic
+│   ├── directory.html            # All live dashboards and their stats
+│   ├── directory.js              # Directory logic
 │   └── config.json               # Your personal config
 ├── wrangler.toml                 # Cloudflare Worker, assets and KV config
 └── README.md                     # This file
@@ -287,9 +304,12 @@ If you encounter issues or have questions:
 
 ## 🍴 Project Forks
 
-The forks of the template repository (GitHub `OWASP-BLT/MY-GSOC-TOOL`) are listed at
-[`/data/forks.json`](https://gsoc-tool.owaspblt.org/data/forks.json), refreshed daily by the site's
-Worker. This section used to be rewritten by a workflow that committed to the repository.
+The forks of the template repository (GitHub `ananya-in-tech/MY-GSOC-TOOL`, the root of the old
+`OWASP-BLT/MY-GSOC-TOOL` network) are listed at
+[`/data/forks.json`](https://gsoc-tool.owaspblt.org/data/forks.json), and the live ones with their
+stats on the [directory page](https://gsoc-tool.owaspblt.org/directory.html), both refreshed daily
+by the site's Worker. To add a dashboard hosted outside GitHub Pages, add its URL to
+`public/data/sites.json`.
 
 ---
 
