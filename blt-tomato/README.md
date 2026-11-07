@@ -10,6 +10,11 @@ Scripts related to projects mainly for high level OWASP project management
    contributors who take GitHub Sponsors. owasp.org/donate links are shown apart: since OWASP's new
    website they fund the Foundation in general; to give to a project through OWASP, donors contact
    the Foundation.
+2) Tomato 1000 at `/1000` (`public/1000.html`): a drive to get 1,000 OWASP developers to $1,000 a
+   month in GitHub Sponsors. The scraper also collects the top contributors of every OWASP repository
+   it scans, keeps those with GitHub Sponsors turned on, and writes `tomato1000.json` with each
+   one's public sponsor count and Sponsors goal (amounts are private; a monthly-dollar goal is the
+   only public progress). The page reads that file.
 
 ## Cloudflare and the weekly refresh (Workers KV)
 
@@ -19,7 +24,7 @@ with `scripts/deploy.sh blt-tomato` from the monorepo root; test with `scripts/c
 `.forkmesh/blt-tomato--scrape_funding.yml` runs every Friday at 18:00 UTC on git.owaspblt.org (also
 on demand, and when the scraper changes). It runs `scripts/refresh-kv.sh`, which runs
 `.github/scripts/funding/owasp_funding_yml_scraper.py` with `OUTPUT_DIR=public` and writes
-`index.html` and `project_repos_links.json` into the Worker's KV namespace, unless the new list
+`index.html`, `project_repos_links.json` and `tomato1000.json` into the Worker's KV namespace, unless the new list
 has fewer than half as many projects as before. Nothing is committed and nothing is redeployed.
 The Worker serves `/`, `/index.html` and `/project_repos_links.json` from KV and falls back to the
 committed copies in `public/` (no longer updated) while KV has none. The workflow needs the

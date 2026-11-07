@@ -209,18 +209,45 @@ def get_contributors(project):
     return people[:CONTRIBUTORS_CHECKED]
 
 
-def sponsorable_logins(logins):
-    """The subset of GitHub logins with GitHub Sponsors turned on. GraphQL when there is a token
-    (one query per 50 logins); otherwise the public github.com/sponsors/<login> page, which
-    redirects to the profile when there is no listing."""
+PROFILE_FIELDS = (
+    "login name hasSponsorsListing sponsors { totalCount } "
+    "sponsorsListing { activeGoal { kind targetValue percentComplete } }"
+)
+
+
+def profile_from_graphql(user):
+    """Keep what GitHub shows anyone about a Sponsors profile: the sponsor count and the active
+    goal. Sponsorship amounts are private, so a monthly figure exists only when the developer's
+    goal is a monthly dollar amount (target x percent complete)."""
+    goal = ((user.get("sponsorsListing") or {}).get("activeGoal")) or None
+    if goal:
+        goal = {
+            "kind": goal.get("kind"),
+            "target": goal.get("targetValue") or 0,
+            "percent": goal.get("percentComplete") or 0,
+        }
+    monthly = None
+    if goal and goal["kind"] == "MONTHLY_SPONSORSHIP_AMOUNT":
+        monthly = round(goal["target"] * goal["percent"] / 100)
+    return {
+        "login": user["login"],
+        "name": user.get("name") or "",
+        "sponsors": (user.get("sponsors") or {}).get("totalCount"),
+        "goal": goal,
+        "monthly": monthly,
+    }
+
+
+def sponsor_profiles(logins):
+    """{login: profile} for the GitHub logins with GitHub Sponsors turned on. GraphQL when there
+    is a token (one query per 50 logins); otherwise the public github.com/sponsors/<login> page,
+    which redirects to the profile when there is no listing (and no goal or count is known)."""
     logins = sorted({login for login in logins if GITHUB_LOGIN.match(login)}, key=str.lower)
-    found = set()
+    found = {}
     if os.environ.get("GITHUB_TOKEN"):
         for start in range(0, len(logins), 50):
             chunk = logins[start:start + 50]
-            fields = " ".join(
-                f'u{i}: user(login: "{login}") {{ login hasSponsorsListing }}' for i, login in enumerate(chunk)
-            )
+            fields = " ".join(f'u{i}: user(login: "{login}") {{ {PROFILE_FIELDS} }}' for i, login in enumerate(chunk))
             response = requests.post(
                 f"{GITHUB_API_URL}/graphql", json={"query": f"{{ {fields} }}"}, headers=github_headers()
             )
@@ -229,20 +256,30 @@ def sponsorable_logins(logins):
                 continue
             for user in ((response.json() or {}).get("data") or {}).values():
                 if user and user.get("hasSponsorsListing"):
-                    found.add(user["login"])
+                    found[user["login"]] = profile_from_graphql(user)
         return found
     for login in logins:
         response = requests.get(f"https://github.com/sponsors/{login}", allow_redirects=False)
         if response.status_code == 200:
-            found.add(login)
+            found[login] = {"login": login, "name": "", "sponsors": None, "goal": None, "monthly": None}
     return found
 
 
-def add_contributor_sponsors(project_links):
+def sponsorable_logins(logins):
+    """The subset of GitHub logins with GitHub Sponsors turned on."""
+    return set(sponsor_profiles(logins))
+
+
+def add_contributor_sponsors(project_links, contributors=None, sponsorable=None):
     """Give every project a contributor_sponsors list: its top contributors who take GitHub
-    Sponsors, leaving out anyone its FUNDING.yml already lists."""
-    contributors = {p["repo_url"]: get_contributors(p) for p in project_links}
-    sponsorable = sponsorable_logins(c["login"] for people in contributors.values() for c in people)
+    Sponsors, leaving out anyone its FUNDING.yml already lists. `contributors` ({repo_url: people})
+    and `sponsorable` (logins) are looked up when not given."""
+    contributors = contributors or {}
+    for p in project_links:
+        if p["repo_url"] not in contributors:
+            contributors[p["repo_url"]] = get_contributors(p)
+    if sponsorable is None:
+        sponsorable = sponsorable_logins(c["login"] for p in project_links for c in contributors[p["repo_url"]])
     for project in project_links:
         listed = {
             link["handle"].lower() for link in project.get("funding_links", []) if link["platform"] == "github"
@@ -256,6 +293,52 @@ def add_contributor_sponsors(project_links):
             for c in contributors[project["repo_url"]]
             if c["login"] in sponsorable and c["login"].lower() not in listed
         ][:CONTRIBUTORS_SHOWN]
+
+
+TOMATO_1000 = {"developers": 1000, "monthly_dollars": 1000}
+
+
+def goal_progress(profile):
+    """0..1 toward $1,000 a month, from a public monthly-dollar goal; None when not published."""
+    if profile.get("monthly") is None:
+        return None
+    return min(1.0, profile["monthly"] / TOMATO_1000["monthly_dollars"])
+
+
+def build_tomato_1000(projects, contributors, profiles, built=None):
+    """The Tomato 1000 data: every contributor to a scanned project who has GitHub Sponsors on,
+    with the projects they work on and their public progress toward $1,000 a month."""
+    people = {}
+    for project in projects:
+        for c in contributors.get(project["repo_url"]) or []:
+            person = people.setdefault(c["login"], {"contributions": 0, "projects": []})
+            person["contributions"] += c["contributions"] or 0
+            person["projects"].append(
+                {"name": project["name"], "url": project["repo_url"], "contributions": c["contributions"] or 0}
+            )
+    developers = []
+    for login, person in people.items():
+        profile = profiles.get(login)
+        if not profile:
+            continue
+        progress = goal_progress(profile)
+        developers.append({
+            **profile,
+            "url": f"https://github.com/sponsors/{login}",
+            "progress": progress,
+            "reached": progress is not None and progress >= 1,
+            "contributions": person["contributions"],
+            "projects": sorted(person["projects"], key=lambda p: -p["contributions"])[:4],
+        })
+    developers.sort(key=lambda d: (
+        -(d["progress"] or 0), -(d["sponsors"] or 0), -d["contributions"], d["login"].lower()
+    ))
+    return {
+        "built": built or datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "goal": TOMATO_1000,
+        "contributors_checked": len(people),
+        "developers": developers,
+    }
 
 
 PAGE_HEAD = """<!DOCTYPE html>
@@ -321,6 +404,17 @@ PAGE_HEAD = """<!DOCTYPE html>
         .notice p:last-child { margin-bottom: 0; }
         .notice a { color: var(--brand-text); text-decoration: underline; text-underline-offset: 2px; }
 
+        .t1k {
+            display: flex; align-items: center; gap: 16px; margin-bottom: 18px; padding: 14px 18px;
+            border-radius: 16px; color: #fff; background: linear-gradient(120deg, #991b1b, #dc2626 55%, #f97316);
+            box-shadow: var(--shadow-lift); transition: transform .15s;
+        }
+        .t1k:hover { transform: translateY(-1px); }
+        .t1k-num { font: 800 30px/1 var(--sans); letter-spacing: -.04em; padding-right: 16px; border-right: 1px solid rgba(255,255,255,.35); }
+        .t1k-text { flex: 1; min-width: 0; }
+        .t1k-text b { display: block; font-size: 16px; }
+        .t1k-text span { opacity: .92; }
+        .t1k-go { font-size: 22px; }
         .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 18px; }
         .stat { padding: 10px 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); box-shadow: var(--shadow); }
         .stat b { display: block; font-size: 20px; line-height: 26px; font-variant-numeric: tabular-nums; }
@@ -373,6 +467,8 @@ PAGE_HEAD = """<!DOCTYPE html>
 </head>
 <body>
     <blt-nav project="blt-tomato" name="Tomato">
+        <a href="/" aria-current="page">Projects</a>
+        <a href="/1000">Tomato 1000</a>
         <a href="https://git.owaspblt.org/BLT/BLT-Tomato" slot="actions">Source</a>
     </blt-nav>
     <main class="wrap">
@@ -392,6 +488,11 @@ PAGE_HEAD = """<!DOCTYPE html>
                 <p>Maintainers: replace an owasp.org/donate link in your <a href="https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/displaying-a-sponsor-button-in-your-repository">FUNDING.yml</a> with the project's own funding page or <a href="https://owasp.org/contact/">owasp.org/contact</a>, and this list picks it up within a week.</p>
             </div>
         </aside>
+        <a class="t1k" href="/1000">
+            <span class="t1k-num">1000</span>
+            <span class="t1k-text"><b>Tomato 1000</b><span>Help 1,000 OWASP developers reach $1,000 a month in GitHub Sponsors. See who is on the way and sponsor someone.</span></span>
+            <span class="t1k-go" aria-hidden="true">&rarr;</span>
+        </a>
 """
 
 PAGE_FOOT = """    </main>
@@ -505,13 +606,15 @@ def main():
         {"name": repo["name"], "repo_url": repo["html_url"]} for repo in owasp_repos
     ]
 
-    # Combine OWASP repos and additional projects
-    data = owasp_repos_data + ADDITIONAL_PROJECTS
-
-    # Remove duplicates based on the 'repo_url' key
+    # Remove duplicates based on the 'repo_url' key; a listed project also replaces an OWASP repo of
+    # the same name (github.com/OWASP/BLT mirrors the BLT monorepo on git.owaspblt.org).
+    listed = {project["name"].lower() for project in ADDITIONAL_PROJECTS}
+    data = [p for p in owasp_repos_data if p["name"].lower() not in listed] + ADDITIONAL_PROJECTS
     unique_data = {project["repo_url"]: project for project in data}.values()
 
     project_links = []
+    scanned = []
+    contributors = {}
 
     for project in unique_data:
         project_name = project["name"]
@@ -522,6 +625,8 @@ def main():
             continue
 
         print("project name", project_name)
+        scanned.append(project)
+        contributors[repo_url] = get_contributors(project)
         funding_url = check_funding_file(project)
         if funding_url:
             funding_details, funding_links = parse_funding_file(funding_url)
@@ -537,7 +642,9 @@ def main():
             )
             print(f"Added project: {project_name} with funding details: {funding_details}")
 
-    add_contributor_sponsors(project_links)
+    profiles = sponsor_profiles(c["login"] for people in contributors.values() for c in people)
+    add_contributor_sponsors(project_links, contributors, set(profiles))
+    tomato_1000 = build_tomato_1000(scanned, contributors, profiles)
 
     # Write the JSON output file
     OUTPUT_DIR = os.environ.get("OUTPUT_DIR", ".")
@@ -546,6 +653,10 @@ def main():
         json.dump(project_links, f, indent=2)
 
     print(f"Output written to '{output_file}'")
+
+    with open(os.path.join(OUTPUT_DIR, "tomato1000.json"), "w") as f:
+        json.dump(tomato_1000, f, indent=1)
+    print(f"Tomato 1000: {len(tomato_1000['developers'])} developers with GitHub Sponsors")
 
     html_content = render_index_html(project_links)
 

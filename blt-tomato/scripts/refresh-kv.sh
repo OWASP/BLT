@@ -27,4 +27,6 @@ if (( after == 0 || after * 2 < before )); then
   echo "not writing the funding list: $after projects (was $before)" >&2
   exit 1
 fi
-"$ROOT/scripts/worker-data/kv-put.sh" . "$PUB" "$PUB/project_repos_links.json" "$PUB/index.html"
+files=("$PUB/project_repos_links.json" "$PUB/index.html")
+[[ -s "$PUB/tomato1000.json" ]] && files+=("$PUB/tomato1000.json")  # Tomato 1000 (/1000)
+"$ROOT/scripts/worker-data/kv-put.sh" . "$PUB" "${files[@]}"

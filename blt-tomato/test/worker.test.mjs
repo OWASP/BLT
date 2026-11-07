@@ -31,7 +31,7 @@ test("the page and its JSON come from KV, falling back to the committed files", 
 
 test("wrangler.toml runs the Worker first for the page and its JSON", () => {
   const toml = readFileSync(new URL("../wrangler.toml", import.meta.url), "utf8");
-  assert.match(toml, /^run_worker_first = \["\/", "\/index\.html", "\/project_repos_links\.json"\]$/m);
+  assert.match(toml, /^run_worker_first = \["\/", "\/index\.html", "\/project_repos_links\.json", "\/tomato1000\.json"\]$/m);
   assert.match(toml, /binding = "DATA"\nid = "[0-9a-f]{32}"/);
 });
 
@@ -45,6 +45,7 @@ test("refresh-kv.sh writes both files only when the list is not much shorter", (
     writeFileSync(fakepy, `#!/bin/bash
 jq -n --argjson n "$N" '[range($n)]' > "$OUTPUT_DIR/project_repos_links.json"
 echo "<html>" > "$OUTPUT_DIR/index.html"
+echo "{}" > "$OUTPUT_DIR/tomato1000.json"
 `);
     chmodSync(fakepy, 0o755);
     const opts = (n) => ({
@@ -61,6 +62,7 @@ echo "<html>" > "$OUTPUT_DIR/index.html"
     const out = execFileSync("bash", ["scripts/refresh-kv.sh"], opts("3"));
     assert.match(out, /would write project_repos_links\.json/);
     assert.match(out, /would write index\.html/);
+    assert.match(out, /would write tomato1000\.json/);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

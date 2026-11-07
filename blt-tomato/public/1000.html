@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tomato 1000 - BLT Tomato</title>
+    <meta name="description" content="Tomato 1000: help 1,000 OWASP developers reach $1,000 a month in GitHub Sponsors.">
+    <link rel="icon" type="image/svg+xml" href="/logo.svg">
+    <script src="/theme-init.js"></script>
+    <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
+    <style>
+        /* Tokens follow the BLT design guide (design.owaspblt.org), as on the funding page. */
+        :root {
+            --bg: #f9fafb; --surface: #ffffff; --surface-2: #f3f4f6;
+            --border: #e5e7eb; --border-strong: #d1d5db;
+            --text: #111827; --text-2: #374151; --muted: #6b7280; --faint: #9ca3af;
+            --brand: #dc2626; --brand-hover: #b91c1c; --brand-text: #dc2626; --brand-soft: #fee2e2;
+            --brand-ring: rgba(220, 38, 38, .28); --leaf: #16a34a;
+            --cell-open: #eceef1;
+            --shadow: 0 1px 2px rgba(17, 24, 39, .05);
+            --shadow-lift: 0 10px 30px rgba(17, 24, 39, .10);
+            --sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            color-scheme: light;
+        }
+        html.dark {
+            --bg: #030712; --surface: #111827; --surface-2: #1f2937;
+            --border: #1f2937; --border-strong: #374151;
+            --text: #f9fafb; --text-2: #d1d5db; --muted: #9ca3af; --faint: #6b7280;
+            --brand-text: #f87171; --brand-soft: rgba(220, 38, 38, .22); --brand-ring: rgba(248, 113, 113, .4);
+            --leaf: #4ade80; --cell-open: #172033;
+            --shadow: none; --shadow-lift: 0 10px 30px rgba(0, 0, 0, .5);
+            color-scheme: dark;
+        }
+        *, *::before, *::after { box-sizing: border-box; }
+        html { -webkit-text-size-adjust: 100%; overflow-x: clip; }
+        body {
+            margin: 0; min-height: 100vh; display: flex; flex-direction: column;
+            background: var(--bg); color: var(--text); font: 14px/1.5 var(--sans);
+            -webkit-font-smoothing: antialiased;
+        }
+        blt-nav:not(:defined) { display: block; min-height: 61px; }
+        blt-nav:not(:defined) > * { display: none; }
+        a { color: inherit; text-decoration: none; }
+        button, input { font: inherit; color: inherit; }
+        :focus-visible { outline: 2px solid var(--brand-text); outline-offset: 2px; }
+        [hidden] { display: none !important; }
+        .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+        .wrap { width: 100%; max-width: 1100px; margin: 0 auto; padding: 0 16px; }
+        main { flex: 1; }
+        section { padding: 28px 0; }
+        h2 { margin: 0 0 4px; font-size: 22px; line-height: 28px; letter-spacing: -.02em; }
+        .sub { margin: 0 0 16px; color: var(--muted); max-width: 70ch; }
+        .sub a, .fine a { color: var(--brand-text); text-decoration: underline; text-underline-offset: 2px; }
+
+        /* ---------- hero ---------- */
+        .hero {
+            position: relative; overflow: hidden; color: #fff;
+            background:
+                radial-gradient(1200px 400px at 85% -10%, rgba(249, 115, 22, .55), transparent 60%),
+                radial-gradient(800px 380px at 0% 110%, rgba(127, 29, 29, .9), transparent 60%),
+                linear-gradient(135deg, #7f1d1d, #dc2626 55%, #ea580c);
+        }
+        .hero .wrap { position: relative; padding-top: 48px; padding-bottom: 40px; display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 32px; align-items: center; }
+        .eyebrow { display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px 4px 4px; border-radius: 999px; background: rgba(255, 255, 255, .14); font-size: 12px; font-weight: 600; letter-spacing: .02em; }
+        .eyebrow img { width: 22px; height: 22px; border-radius: 50%; background: #fff; }
+        .hero h1 { margin: 14px 0 12px; font-size: clamp(44px, 7.5vw, 80px); line-height: .92; font-weight: 900; letter-spacing: -.05em; }
+        .hero h1 span { display: block; margin-top: 10px; font-size: .38em; line-height: 1.15; letter-spacing: -.02em; color: #fed7aa; }
+        .hero p { margin: 0 0 22px; font-size: 17px; line-height: 1.55; color: rgba(255, 255, 255, .92); max-width: 46ch; }
+        .cta { display: flex; flex-wrap: wrap; gap: 10px; }
+        .btn {
+            display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px; border: 0; border-radius: 999px;
+            font-weight: 700; cursor: pointer; transition: transform .12s, background .12s, box-shadow .12s;
+        }
+        .btn:hover { transform: translateY(-1px); }
+        .btn-light { background: #fff; color: #991b1b; box-shadow: 0 8px 24px rgba(0, 0, 0, .18); }
+        .btn-ghost { background: rgba(255, 255, 255, .14); color: #fff; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .4); }
+        .btn-brand { background: var(--brand); color: #fff; }
+        .btn-brand:hover { background: var(--brand-hover); }
+        .btn-soft { background: var(--surface-2); color: var(--text); box-shadow: inset 0 0 0 1px var(--border); }
+        .hero-board {
+            padding: 20px; border-radius: 22px; background: rgba(255, 255, 255, .1);
+            box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .22); backdrop-filter: blur(6px);
+        }
+        .hero-board .big { font-size: 44px; line-height: 1; font-weight: 900; letter-spacing: -.04em; font-variant-numeric: tabular-nums; }
+        .hero-board .big small { font-size: 18px; font-weight: 600; opacity: .8; letter-spacing: 0; }
+        .hero-board .lbl { margin: 6px 0 14px; font-size: 13px; opacity: .9; }
+        .meter { height: 12px; border-radius: 999px; background: rgba(0, 0, 0, .25); overflow: hidden; }
+        .meter i { display: block; height: 100%; width: 0; border-radius: inherit; background: linear-gradient(90deg, #fde68a, #fff); transition: width 1.2s cubic-bezier(.2, .8, .2, 1); }
+        .hero-stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; margin-top: 16px; }
+        .hero-stats div { padding: 10px 12px; border-radius: 14px; background: rgba(0, 0, 0, .18); }
+        .hero-stats b { display: block; font-size: 20px; line-height: 24px; font-variant-numeric: tabular-nums; }
+        .hero-stats span { font-size: 12px; opacity: .85; }
+
+        /* ---------- the 1000 grid ---------- */
+        .board { padding: 18px; border: 1px solid var(--border); border-radius: 20px; background: var(--surface); box-shadow: var(--shadow); }
+        .grid { display: grid; grid-template-columns: repeat(50, minmax(0, 1fr)); gap: 3px; }
+        .cell {
+            position: relative; aspect-ratio: 1; border-radius: 3px; background: var(--cell-open); padding: 0; border: 0;
+            animation: pop .4s cubic-bezier(.2, .8, .2, 1) both; transition: transform .15s;
+        }
+        @keyframes pop { from { opacity: 0; transform: scale(.4); } }
+        .cell.dev { cursor: pointer; background: var(--brand-soft); box-shadow: inset 0 0 0 1px var(--brand-ring); }
+        .cell.dev::after { content: ""; position: absolute; inset: 0; border-radius: inherit; background: var(--brand); transform-origin: bottom; transform: scaleY(var(--p, 0)); }
+        .cell.reached { background: var(--brand); box-shadow: 0 0 0 1px #fff3, 0 0 10px rgba(220, 38, 38, .55); }
+        .cell.dev:hover { transform: scale(1.6); z-index: 2; }
+        .legend { display: flex; flex-wrap: wrap; gap: 6px 18px; margin-top: 14px; color: var(--muted); font-size: 12px; }
+        .legend span { display: inline-flex; align-items: center; gap: 6px; }
+        .legend i { width: 12px; height: 12px; border-radius: 3px; background: var(--cell-open); }
+        .legend .l-reached { background: var(--brand); }
+        .legend .l-way { background: linear-gradient(to top, var(--brand) 50%, var(--brand-soft) 50%); box-shadow: inset 0 0 0 1px var(--brand-ring); }
+        .legend .l-in { background: var(--brand-soft); box-shadow: inset 0 0 0 1px var(--brand-ring); }
+        .tip {
+            position: fixed; z-index: 50; pointer-events: none; display: flex; gap: 10px; align-items: center;
+            padding: 8px 12px 8px 8px; border-radius: 12px; background: var(--text); color: var(--bg); font-size: 12px;
+            box-shadow: var(--shadow-lift); transform: translate(-50%, calc(-100% - 12px));
+        }
+        .tip img { width: 32px; height: 32px; border-radius: 50%; }
+        .tip b { display: block; font-size: 13px; }
+
+        /* ---------- spotlight ---------- */
+        .spot {
+            display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 20px; align-items: center; padding: 20px;
+            border: 1px solid var(--brand-ring); border-radius: 20px;
+            background: linear-gradient(135deg, var(--brand-soft), var(--surface) 70%); box-shadow: var(--shadow-lift);
+        }
+        .spot img { width: 88px; height: 88px; border-radius: 50%; box-shadow: 0 0 0 4px var(--surface), 0 0 0 6px var(--brand); }
+        .spot .tag { color: var(--brand-text); font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; }
+        .spot h3 { margin: 2px 0; font-size: 22px; letter-spacing: -.02em; }
+        .spot .actions { display: flex; flex-direction: column; gap: 8px; }
+
+        /* ---------- developer cards ---------- */
+        .toolbar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 14px; }
+        .search { flex: 1 1 240px; display: flex; align-items: center; gap: 8px; padding: 0 12px; height: 40px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+        .search input { flex: 1; min-width: 0; border: 0; outline: 0; background: transparent; }
+        .seg { display: inline-flex; padding: 3px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); }
+        .seg button { padding: 6px 12px; border: 0; border-radius: 9px; background: transparent; color: var(--muted); font-weight: 600; font-size: 13px; cursor: pointer; }
+        .seg button[aria-pressed="true"] { background: var(--brand-soft); color: var(--brand-text); }
+        .count { margin: 0 0 12px; color: var(--muted); font-size: 13px; }
+        .cards { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+        .card {
+            display: flex; flex-direction: column; gap: 12px; min-width: 0; padding: 16px;
+            border: 1px solid var(--border); border-radius: 18px; background: var(--surface); box-shadow: var(--shadow);
+            transition: border-color .15s, box-shadow .15s, transform .15s;
+        }
+        .card:hover { border-color: var(--border-strong); box-shadow: var(--shadow-lift); transform: translateY(-2px); }
+        .card.flash { animation: flash 1.6s ease; }
+        @keyframes flash { 0%, 40% { border-color: var(--brand); box-shadow: 0 0 0 4px var(--brand-ring); } }
+        .who { display: flex; gap: 12px; align-items: center; min-width: 0; }
+        .who img { width: 48px; height: 48px; border-radius: 50%; flex: none; background: var(--surface-2); }
+        .who div { min-width: 0; }
+        .who b { display: block; font-size: 15px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .who span { color: var(--faint); font: 12px/18px var(--mono); }
+        .badge { margin-left: auto; flex: none; padding: 2px 8px; border-radius: 999px; background: var(--brand); color: #fff; font-size: 11px; font-weight: 700; }
+        .projects { display: flex; flex-wrap: wrap; gap: 4px; }
+        .projects a { padding: 2px 8px; border-radius: 999px; background: var(--surface-2); color: var(--text-2); font-size: 12px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .projects a:hover { color: var(--brand-text); }
+        .prog { font-size: 12px; color: var(--muted); }
+        .prog .bar { height: 8px; margin-bottom: 6px; border-radius: 999px; background: var(--surface-2); overflow: hidden; }
+        .prog .bar i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #f97316, var(--brand)); }
+        .prog b { color: var(--text); }
+        .card .btn { margin-top: auto; justify-content: center; }
+        .more { display: flex; justify-content: center; margin-top: 16px; }
+        .empty { padding: 28px; border: 1px dashed var(--border-strong); border-radius: 18px; text-align: center; color: var(--muted); }
+
+        /* ---------- how it works ---------- */
+        .how { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+        .how article { padding: 20px; border: 1px solid var(--border); border-radius: 18px; background: var(--surface); box-shadow: var(--shadow); }
+        .how .ico { display: grid; place-items: center; width: 40px; height: 40px; margin-bottom: 10px; border-radius: 12px; background: var(--brand-soft); color: var(--brand-text); font-size: 20px; }
+        .how h3 { margin: 0 0 6px; font-size: 16px; }
+        .how ol, .how p { margin: 0; padding-left: 18px; color: var(--text-2); }
+        .how p { padding-left: 0; }
+        .how li { margin: 4px 0; }
+        .how a { color: var(--brand-text); text-decoration: underline; text-underline-offset: 2px; }
+        .fine { margin: 16px 0 0; padding: 14px 16px; border-radius: 14px; background: var(--surface-2); color: var(--muted); font-size: 13px; }
+
+        .foot { border-top: 1px solid var(--border); padding: 16px 0 20px; color: var(--muted); font-size: 12px; }
+        .foot .wrap { display: flex; flex-wrap: wrap; gap: 6px 16px; justify-content: space-between; }
+        .foot a { color: var(--brand-text); }
+
+        @media (max-width: 860px) {
+            .hero .wrap { grid-template-columns: minmax(0, 1fr); padding-top: 32px; }
+            .cards, .how { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .grid { grid-template-columns: repeat(25, minmax(0, 1fr)); gap: 2px; }
+        }
+        @media (max-width: 560px) {
+            .cards, .how { grid-template-columns: minmax(0, 1fr); }
+            .spot { grid-template-columns: auto minmax(0, 1fr); }
+            .spot img { width: 64px; height: 64px; }
+            .spot .actions { grid-column: 1 / -1; flex-direction: row; }
+            .spot .actions .btn { flex: 1; justify-content: center; }
+            .hero-stats b { font-size: 17px; }
+            .board { padding: 12px; }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .cell, .meter i, .card, .btn { transition: none; animation: none; }
+            .card.flash { animation: none; }
+        }
+    </style>
+</head>
+<body>
+    <blt-nav project="blt-tomato" name="Tomato">
+        <a href="/">Projects</a>
+        <a href="/1000" aria-current="page">Tomato 1000</a>
+        <a href="https://git.owaspblt.org/BLT/BLT-Tomato" slot="actions">Source</a>
+    </blt-nav>
+    <main>
+        <header class="hero">
+            <div class="wrap">
+                <div>
+                    <span class="eyebrow"><img src="/logo.svg" alt="">BLT Tomato</span>
+                    <h1>Tomato 1000 <span>1,000 developers. $1,000 a month each.</span></h1>
+                    <p>The people who build OWASP's tools keep half the internet safer, mostly for free. Tomato 1000 aims to get 1,000 of them to $1,000 a month in GitHub Sponsors, paid by the people and companies who run their code.</p>
+                    <div class="cta">
+                        <a class="btn btn-light" href="#developers">&#10084; Sponsor a developer</a>
+                        <a class="btn btn-ghost" href="#join">Join the 1000</a>
+                    </div>
+                </div>
+                <div class="hero-board" aria-live="polite">
+                    <div class="big"><span id="reached">0</span> <small>/ 1,000</small></div>
+                    <div class="lbl">developers at $1,000 a month</div>
+                    <div class="meter" role="progressbar" aria-label="Developers at $1,000 a month" aria-valuemin="0" aria-valuemax="1000" aria-valuenow="0" id="meter"><i></i></div>
+                    <div class="hero-stats">
+                        <div><b id="enrolled">&ndash;</b><span>on GitHub Sponsors</span></div>
+                        <div><b id="monthly">&ndash;</b><span id="monthly-lbl">a month, public goals</span></div>
+                        <div><b id="sponsors">&ndash;</b><span>sponsors so far</span></div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <section class="wrap" aria-labelledby="board-h">
+            <h2 id="board-h">The 1000</h2>
+            <p class="sub">One square per seat. Every OWASP contributor with GitHub Sponsors turned on takes a seat; it fills up as their public monthly goal fills, and lights up at $1,000 a month. Click a square to meet them.</p>
+            <div class="board">
+                <div class="grid" id="grid" role="list" aria-label="1,000 seats"></div>
+                <div class="legend">
+                    <span><i class="l-reached"></i>$1,000 a month reached</span>
+                    <span><i class="l-way"></i>On the way (public monthly goal)</span>
+                    <span><i class="l-in"></i>On GitHub Sponsors</span>
+                    <span><i></i>Open seat</span>
+                </div>
+            </div>
+        </section>
+
+        <section class="wrap" aria-labelledby="spot-h" id="spotlight" hidden>
+            <h2 id="spot-h" class="sr-only">Spotlight</h2>
+            <div class="spot">
+                <img id="spot-img" src="data:," alt="" width="88" height="88">
+                <div>
+                    <div class="tag">Spotlight</div>
+                    <h3 id="spot-name"></h3>
+                    <div class="projects" id="spot-projects"></div>
+                    <div class="prog" id="spot-prog" style="margin-top:10px"></div>
+                </div>
+                <div class="actions">
+                    <a class="btn btn-brand" id="spot-go" href="#" rel="noopener">&#10084; Sponsor</a>
+                    <button class="btn btn-soft" type="button" id="spot-next">&#8635; Someone else</button>
+                </div>
+            </div>
+        </section>
+
+        <section class="wrap" aria-labelledby="dev-h" id="developers">
+            <h2 id="dev-h">Sponsor a developer</h2>
+            <p class="sub">Contributors to OWASP projects who take GitHub Sponsors. Any amount helps; a monthly sponsorship helps most.</p>
+            <div class="toolbar">
+                <label class="search">
+                    <span aria-hidden="true">&#128269;</span>
+                    <span class="sr-only">Search developers or projects</span>
+                    <input id="q" type="search" placeholder="Search a name or a project, e.g. Juice Shop" autocomplete="off">
+                </label>
+                <div class="seg" role="group" aria-label="Sort">
+                    <button type="button" data-sort="progress" aria-pressed="true">Closest to $1k</button>
+                    <button type="button" data-sort="sponsors" aria-pressed="false">Most sponsors</button>
+                    <button type="button" data-sort="contributions" aria-pressed="false">Most commits</button>
+                </div>
+            </div>
+            <p class="count" id="count" aria-live="polite"></p>
+            <ul class="cards" id="cards"></ul>
+            <div class="more"><button class="btn btn-soft" type="button" id="more" hidden>Show more</button></div>
+        </section>
+
+        <section class="wrap" aria-labelledby="join-h" id="join">
+            <h2 id="join-h">How it works</h2>
+            <p class="sub">No sign-up and no middleman: the money goes from sponsor to developer through GitHub Sponsors.</p>
+            <div class="how">
+                <article>
+                    <div class="ico" aria-hidden="true">&#128187;</div>
+                    <h3>Developers: join the 1000</h3>
+                    <ol>
+                        <li>Contribute to an OWASP project.</li>
+                        <li>Turn on <a href="https://github.com/sponsors">GitHub Sponsors</a>.</li>
+                        <li><a href="https://docs.github.com/en/sponsors/receiving-sponsorships-through-github-sponsors/managing-your-sponsorship-goal">Set a goal</a> of $1,000 a month, so your progress shows here.</li>
+                        <li>You get a seat at the next weekly refresh.</li>
+                    </ol>
+                </article>
+                <article>
+                    <div class="ico" aria-hidden="true">&#10084;</div>
+                    <h3>People: sponsor one</h3>
+                    <p>Pick someone whose tool you use, or let the spotlight pick for you. $5 a month from 200 people is a seat filled. Tell them why you chose them.</p>
+                </article>
+                <article>
+                    <div class="ico" aria-hidden="true">&#127970;</div>
+                    <h3>Companies: back your stack</h3>
+                    <p>If you ship on OWASP tools, sponsor the people who maintain them. GitHub Sponsors <a href="https://docs.github.com/en/sponsors/sponsoring-open-source-contributors/paying-for-github-sponsors-by-invoice">bills organizations by invoice</a>. One $1,000 sponsorship fills a seat on its own.</p>
+                </article>
+            </div>
+            <p class="fine">GitHub keeps sponsorship amounts private. Progress here comes from what each developer publishes: a monthly-dollar goal on their Sponsors profile, and their public sponsor count otherwise. Sponsoring someone pays that person directly; it is not a donation to the OWASP Foundation or to an OWASP project (see the <a href="/">funding page</a> for those). Tomato 1000 is an OWASP BLT community effort.</p>
+        </section>
+    </main>
+    <footer class="foot">
+        <div class="wrap">
+            <span id="built">Built from OWASP repositories' contributors on GitHub, refreshed weekly.</span>
+            <span><a href="/tomato1000.json">JSON</a> &middot; <a href="https://git.owaspblt.org/BLT/BLT-Tomato">View this script</a></span>
+        </div>
+    </footer>
+    <div class="tip" id="tip" hidden></div>
+    <script>
+    (function () {
+        "use strict";
+        var GOAL = 1000, PAGE = 24;
+        var all = [], shown = PAGE, sort = "progress", query = "", spotIndex = -1;
+        var $ = function (id) { return document.getElementById(id); };
+        var fmt = function (n) { return Number(n || 0).toLocaleString("en-US"); };
+        var avatar = function (login, size) { return "https://avatars.githubusercontent.com/" + encodeURIComponent(login) + "?s=" + size; };
+        var LOGIN = /^[A-Za-z0-9](?:[A-Za-z0-9-]{0,38})$/;
+        function el(tag, attrs, text) {
+            var node = document.createElement(tag);
+            for (var k in attrs || {}) node.setAttribute(k, attrs[k]);
+            if (text != null) node.textContent = text;
+            return node;
+        }
+        function safeUrl(url) { return /^https:\/\//.test(String(url || "")) ? url : null; }
+        function label(d) { return d.name ? d.name : d.login; }
+        function progressText(d) {
+            if (d.monthly != null) return "$" + fmt(d.monthly) + " of $1,000 a month";
+            if (d.goal && d.goal.kind === "TOTAL_SPONSORS_COUNT") return fmt(d.sponsors) + " sponsor" + (d.sponsors === 1 ? "" : "s") + " (goal " + fmt(d.goal.target) + ")";
+            if (d.sponsors != null) return fmt(d.sponsors) + " sponsor" + (d.sponsors === 1 ? "" : "s");
+            return "On GitHub Sponsors";
+        }
+        function progressNode(d) {
+            var box = el("div", { "class": "prog" });
+            var bar = el("div", { "class": "bar" }), fill = el("i");
+            var p = d.progress != null ? d.progress
+                : d.goal && d.goal.kind === "TOTAL_SPONSORS_COUNT" ? (d.goal.percent || 0) / 100 : 0;
+            fill.style.width = Math.max(2, Math.min(100, p * 100)) + "%";
+            bar.appendChild(fill); box.appendChild(bar);
+            var b = el("b", null, progressText(d));
+            box.appendChild(b);
+            if (d.monthly == null) box.appendChild(document.createTextNode(" · amount private"));
+            return box;
+        }
+        function projectsNode(d) {
+            var wrap = el("div", { "class": "projects" });
+            (d.projects || []).slice(0, 3).forEach(function (p) {
+                var a = el("a", { href: safeUrl(p.url) || "#", title: p.name + ": " + fmt(p.contributions) + " commits", rel: "noopener" }, p.name);
+                wrap.appendChild(a);
+            });
+            return wrap;
+        }
+
+        function renderGrid() {
+            var grid = $("grid"), frag = document.createDocumentFragment();
+            var seats = all.slice().sort(bySort("progress"));
+            for (var i = 0; i < GOAL; i++) {
+                var d = seats[i];
+                var cell = el(d ? "button" : "span", { "class": "cell", role: "listitem" });
+                if (d) {
+                    cell.type = "button";
+                    cell.className = "cell dev" + (d.reached ? " reached" : "");
+                    cell.style.setProperty("--p", d.progress || 0);
+                    cell.setAttribute("aria-label", label(d) + ": " + progressText(d));
+                    cell.dataset.login = d.login;
+                }
+                cell.style.animationDelay = Math.min(i, 600) * 1.2 + "ms";
+                frag.appendChild(cell);
+            }
+            grid.appendChild(frag);
+            var tip = $("tip");
+            grid.addEventListener("mouseover", function (e) {
+                var c = e.target.closest(".dev"); if (!c) { tip.hidden = true; return; }
+                var d = byLogin[c.dataset.login]; if (!d) return;
+                tip.textContent = "";
+                tip.appendChild(el("img", { src: avatar(d.login, 64), alt: "" }));
+                var t = el("div"); t.appendChild(el("b", null, label(d))); t.appendChild(document.createTextNode(progressText(d)));
+                tip.appendChild(t);
+                var r = c.getBoundingClientRect();
+                tip.style.left = Math.min(Math.max(r.left + r.width / 2, 120), innerWidth - 120) + "px";
+                tip.style.top = r.top + "px";
+                tip.hidden = false;
+            });
+            grid.addEventListener("mouseleave", function () { tip.hidden = true; });
+            grid.addEventListener("click", function (e) {
+                var c = e.target.closest(".dev"); if (!c) return;
+                tip.hidden = true; showDeveloper(c.dataset.login);
+            });
+        }
+
+        function bySort(key) {
+            return function (a, b) {
+                var v = 0;
+                if (key === "progress") v = ((b.progress || 0) - (a.progress || 0)) || ((b.sponsors || 0) - (a.sponsors || 0));
+                else if (key === "sponsors") v = (b.sponsors || 0) - (a.sponsors || 0);
+                v = v || (b.contributions || 0) - (a.contributions || 0);
+                return v || a.login.toLowerCase().localeCompare(b.login.toLowerCase());
+            };
+        }
+        function matches(d) {
+            if (!query) return true;
+            var hay = [d.login, d.name].concat((d.projects || []).map(function (p) { return p.name; })).join(" ").toLowerCase();
+            return query.split(/\s+/).every(function (w) { return hay.indexOf(w) !== -1; });
+        }
+        function card(d) {
+            var li = el("li", { "class": "card", id: "dev-" + d.login });
+            var who = el("div", { "class": "who" });
+            who.appendChild(el("img", { src: avatar(d.login, 96), alt: "", width: 48, height: 48, loading: "lazy" }));
+            var names = el("div"); names.appendChild(el("b", null, label(d))); names.appendChild(el("span", null, "@" + d.login));
+            who.appendChild(names);
+            if (d.reached) who.appendChild(el("span", { "class": "badge" }, "$1k ✓"));
+            li.appendChild(who);
+            li.appendChild(projectsNode(d));
+            li.appendChild(progressNode(d));
+            li.appendChild(el("a", { "class": "btn btn-brand", href: "https://github.com/sponsors/" + d.login, rel: "noopener" }, "❤ Sponsor " + d.login));
+            return li;
+        }
+        function renderCards() {
+            var list = all.filter(matches).sort(bySort(sort));
+            var ul = $("cards"); ul.textContent = "";
+            if (!list.length) {
+                ul.appendChild(el("li", { "class": "empty" }, all.length ? "No developer matches “" + query + "”." : "The developer list is being built. Check back after the next weekly refresh."));
+            }
+            list.slice(0, shown).forEach(function (d) { ul.appendChild(card(d)); });
+            $("count").textContent = list.length === all.length ? fmt(all.length) + " developers" : fmt(list.length) + " of " + fmt(all.length) + " developers";
+            $("more").hidden = list.length <= shown;
+        }
+        function showDeveloper(login) {
+            var list = all.filter(matches).sort(bySort(sort));
+            var at = list.findIndex(function (d) { return d.login === login; });
+            if (at === -1) { query = ""; $("q").value = ""; list = all.slice().sort(bySort(sort)); at = list.findIndex(function (d) { return d.login === login; }); }
+            if (at >= shown) shown = Math.ceil((at + 1) / PAGE) * PAGE;
+            renderCards();
+            var node = $("dev-" + login);
+            if (!node) return;
+            node.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "center" });
+            node.classList.remove("flash"); void node.offsetWidth; node.classList.add("flash");
+        }
+        function spotlight() {
+            var pool = all.filter(function (d) { return !d.reached; });
+            if (!pool.length) pool = all;
+            if (!pool.length) return;
+            var i; do { i = Math.floor(Math.random() * pool.length); } while (pool.length > 1 && i === spotIndex);
+            spotIndex = i;
+            var d = pool[i];
+            $("spot-img").src = avatar(d.login, 176);
+            $("spot-name").textContent = label(d) + (d.name ? " (@" + d.login + ")" : "");
+            var pr = $("spot-projects"); pr.replaceWith(Object.assign(projectsNode(d), { id: "spot-projects" }));
+            var pg = $("spot-prog"); var np = progressNode(d); np.id = "spot-prog"; np.style.marginTop = "10px"; pg.replaceWith(np);
+            $("spot-go").href = "https://github.com/sponsors/" + d.login;
+            $("spot-go").textContent = "❤ Sponsor " + d.login;
+            $("spotlight").hidden = false;
+        }
+        function countUp(node, to, prefix) {
+            var start = performance.now(), dur = 900;
+            if (matchMedia("(prefers-reduced-motion: reduce)").matches) { node.textContent = (prefix || "") + fmt(to); return; }
+            (function step(now) {
+                var t = Math.min(1, (now - start) / dur), e = 1 - Math.pow(1 - t, 3);
+                node.textContent = (prefix || "") + fmt(Math.round(to * e));
+                if (t < 1) requestAnimationFrame(step);
+            })(start);
+        }
+        var byLogin = {};
+        function load(data) {
+            all = (data.developers || []).filter(function (d) { return d && LOGIN.test(d.login || ""); });
+            all.forEach(function (d) { byLogin[d.login] = d; });
+            var reached = all.filter(function (d) { return d.reached; }).length;
+            var monthly = all.reduce(function (s, d) { return s + (d.monthly || 0); }, 0);
+            var sponsors = all.reduce(function (s, d) { return s + (d.sponsors || 0); }, 0);
+            countUp($("reached"), reached);
+            countUp($("enrolled"), all.length);
+            var withGoal = all.filter(function (d) { return d.monthly != null; }).length;
+            if (monthly > 0) countUp($("monthly"), monthly, "$");
+            else { countUp($("monthly"), withGoal); $("monthly-lbl").textContent = "with a public $ goal"; }
+            countUp($("sponsors"), sponsors);
+            $("meter").setAttribute("aria-valuenow", reached);
+            setTimeout(function () { $("meter").firstChild.style.width = Math.max(1, reached / GOAL * 100) + "%"; }, 50);
+            if (data.built) {
+                $("built").textContent = "Built " + String(data.built).slice(0, 10) + " from " + fmt(data.contributors_checked) + " OWASP contributors on GitHub, refreshed weekly.";
+            }
+            renderGrid();
+            renderCards();
+            spotlight();
+        }
+        $("q").addEventListener("input", function (e) { query = e.target.value.trim().toLowerCase(); shown = PAGE; renderCards(); });
+        document.querySelectorAll("[data-sort]").forEach(function (b) {
+            b.addEventListener("click", function () {
+                sort = b.dataset.sort; shown = PAGE;
+                document.querySelectorAll("[data-sort]").forEach(function (o) { o.setAttribute("aria-pressed", String(o === b)); });
+                renderCards();
+            });
+        });
+        $("more").addEventListener("click", function () { shown += PAGE; renderCards(); });
+        $("spot-next").addEventListener("click", spotlight);
+        fetch("/tomato1000.json").then(function (r) { if (!r.ok) throw new Error(r.status); return r.json(); })
+            .then(load)
+            .catch(function () { load({ developers: [] }); });
+    })();
+    </script>
+</body>
+</html>

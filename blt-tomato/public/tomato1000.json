@@ -1,0 +1,1658 @@
+{
+ "built": "2026-11-07T04:20:22Z",
+ "goal": {
+  "developers": 1000,
+  "monthly_dollars": 1000
+ },
+ "contributors_checked": 956,
+ "developers": [
+  {
+   "login": "D4Vinci",
+   "name": "Karim shoair",
+   "sponsors": 13,
+   "goal": {
+    "kind": "TOTAL_SPONSORS_COUNT",
+    "target": 20,
+    "percent": 80
+   },
+   "monthly": null,
+   "url": "https://github.com/sponsors/D4Vinci",
+   "progress": null,
+   "reached": false,
+   "contributions": 50,
+   "projects": [
+    {
+     "name": "QRLJacking",
+     "url": "https://github.com/OWASP/QRLJacking",
+     "contributions": 50
+    }
+   ]
+  },
+  {
+   "login": "UlisesGascon",
+   "name": "Ulises Gasc\u00f3n",
+   "sponsors": 7,
+   "goal": {
+    "kind": "TOTAL_SPONSORS_COUNT",
+    "target": 15,
+    "percent": 46
+   },
+   "monthly": null,
+   "url": "https://github.com/sponsors/UlisesGascon",
+   "progress": null,
+   "reached": false,
+   "contributions": 65,
+   "projects": [
+    {
+     "name": "NodeGoat",
+     "url": "https://github.com/OWASP/NodeGoat",
+     "contributions": 65
+    }
+   ]
+  },
+  {
+   "login": "cure53",
+   "name": "Cure53",
+   "sponsors": 6,
+   "goal": null,
+   "monthly": null,
+   "url": "https://github.com/sponsors/cure53",
+   "progress": null,
+   "reached": false,
+   "contributions": 25,
+   "projects": [
+    {
+     "name": "AppSecAms2019",
+     "url": "https://github.com/OWASP/AppSecAms2019",
+     "contributions": 19
+    },
+    {
+     "name": "java-html-sanitizer",
+     "url": "https://github.com/OWASP/java-html-sanitizer",
+     "contributions": 6
+    }
+   ]
+  },
+  {
+   "login": "jeremylong",
+   "name": "Jeremy Long",
+   "sponsors": 4,
+   "goal": null,
+   "monthly": null,
+   "url": "https://github.com/sponsors/jeremylong",
+   "progress": null,
+   "reached": false,
+   "contributions": 78,
+   "projects": [
+    {
+     "name": "owasp-java-encoder",
+     "url": "https://github.com/OWASP/owasp-java-encoder",
+     "contributions": 78
+    }
+   ]
+  },
+  {
+   "login": "melloware",
+   "name": "Melloware",
+   "sponsors": 3,
+   "goal": null,
+   "monthly": null,
+   "url": "https://github.com/sponsors/melloware",
+   "progress": null,
+   "reached": false,
+   "contributions": 5,
+   "projects": [
+    {
+     "name": "java-html-sanitizer",
+     "url": "https://github.com/OWASP/java-html-sanitizer",
+     "contributions": 5
+    }
+   ]
+  },
+  {
+   "login": "sonukapoor",
+   "name": "Sonu Kapoor",
+   "sponsors": 1,
+   "goal": null,
+   "monthly": null,
+   "url": "https://github.com/sponsors/sonukapoor",
+   "progress": null,
+   "reached": false,
+   "contributions": 617,
+   "projects": [
+    {
+     "name": "cve-lite-cli",
+     "url": "https://github.com/OWASP/cve-lite-cli",
+     "contributions": 617
+    }
+   ]
+  },
+  {
+   "login": "rinkitadhana",
+   "name": "Rinkit Adhana",
+   "sponsors": 1,
+   "goal": null,
+   "monthly": null,
+   "url": "https://github.com/sponsors/rinkitadhana",
+   "progress": null,
+   "reached": false,
+   "contributions": 86,
+   "projects": [
+    {
+     "name": "BLT",
+     "url": "https://git.owaspblt.org/BLT",
+     "contributions": 86
+    }
+   ]
+  },
+  {
+   "login": "victoriadrake",
+   "name": "Victoria Drake",
+   "sponsors": 1,
+   "goal": null,
+   "monthly": null,
+   "url": "https://github.com/sponsors/victoriadrake",
+   "progress": null,
+   "reached": false,
+   "contributions": 58,
+   "projects": [
+    {
+     "name": "wstg",
+     "url": "https://github.com/OWASP/wstg",
+     "contributions": 57
+    },
+    {
+     "name": "AppSecDC2019",
+     "url": "https://github.com/OWASP/AppSecDC2019",
+     "contributions": 1
+    }
+   ]
+  },
+  {
+   "login": "Mr-Rahul-Paul",
+   "name": "Rahul Paul",
+   "sponsors": 1,
+   "goal": {
+    "kind": "MONTHLY_SPONSORSHIP_AMOUNT",
+    "target": 100,
+    "percent": 0
+   },
+   "monthly": 0,
+   "url": "https://github.com/sponsors/Mr-Rahul-Paul",
+   "progress": 0.0,
+   "reached": false,
+   "contributions": 25,
+   "projects": [
+    {
+     "name": "Nest",
+     "url": "https://github.com/OWASP/Nest",
+     "contributions": 25
+    }
+   ]
+  },
+  {
+   "login": "aalmiray",
+   "name": "Andres Almiray",
+   "sponsors": 1,
+   "goal": null,
+   "monthly": null,
+   "url": "https://github.com/sponsors/aalmiray",
+   "progress": null,
+   "reached": false,
+   "contributions": 13,
+   "projects": [
+    {
+     "name": "java-html-sanitizer",
+     "url": "https://github.com/OWASP/java-html-sanitizer",
+     "contributions": 13
+    }
+   ]
+  },
+  {
+   "login": "noraj",
+   "name": "Alexandre ZANNI",
+   "sponsors": 1,
+   "goal": null,
+   "monthly": null,
+   "url": "https://github.com/sponsors/noraj",
+   "progress": null,
+   "reached": false,
+   "contributions": 3,
+   "projects": [
+    {
+     "name": "OWASP-VWAD",
+     "url": "https://github.com/OWASP/OWASP-VWAD",
+     "contributions": 3
+    }
+   ]
+  },
+  {
+   "login": "philsturgeon",
+   "name": "Phil Sturgeon",
+   "sponsors": 1,
+   "goal": null,
+   "monthly": null,
+   "url": "https://github.com/sponsors/philsturgeon",
+   "progress": null,
+   "reached": false,
+   "contributions": 1,
+   "projects": [
+    {
+     "name": "phpsec",
+     "url": "https://github.com/OWASP/phpsec",
+     "contributions": 1
+    }
+   ]
+  },
+  {
+   "login": "arkid15r",
+   "name": "Arkadii Yakovets",
+   "sponsors": 0,
+   "goal": {
+    "kind": "TOTAL_SPONSORS_COUNT",
+    "target": 1,
+    "percent": 0
+   },
+   "monthly": null,
+   "url": "https://github.com/sponsors/arkid15r",
+   "progress": null,
+   "reached": false,
+   "contributions": 1774,
+   "projects": [
+    {
+     "name": "Nest",
+     "url": "https://github.com/OWASP/Nest",
+     "contributions": 1612
+    },
+    {
+     "name": "Nettacker",
+     "url": "https://github.com/OWASP/Nettacker",
+     "contributions": 68
+    },
+    {
+     "name": "BLT",
+     "url": "https://git.owaspblt.org/BLT",
+     "contributions": 42
+    },
+    {
+     "name": "nest-schema",
+     "url": "https://github.com/OWASP/nest-schema",
+     "contributions": 27
+    }
+   ]
+  },
+  {
+   "login": "Nachiket-Roy",
+   "name": "Rosai",
+   "sponsors": 0,
+   "goal": null,
+   "monthly": null,
+   "url": "https://github.com/sponsors/Nachiket-Roy",
+   "progress": null,
+   "reached": false,
+   "contributions": 737,
+   "projects": [
+    {
+     "name": "BLT",
+     "url": "https://git.owaspblt.org/BLT",
+     "contributions": 729
+    },
+    {
+     "name": "cve-lite-cli",
+     "url": "https://github.com/OWASP/cve-lite-cli",
+     "contributions": 8
+    }
+   ]
+  },
+  {
+   "login": "eoftedal",
+   "name": "Erlend Oftedal",
+   "sponsors": 0,
+   "goal": null,
+   "monthly": null,
+   "url": "https://github.com/sponsors/eoftedal",
+   "progress": null,
+   "reached": false,
+   "contributions": 638,
+   "projects": [
+    {
+     "name": "AppSecEurope2018",
+     "url": "https://github.com/OWASP/AppSecEurope2018",
+     "contributions": 160
+    },
+    {
+     "name": "AppSecUSA2018",
+     "url": "https://github.com/OWASP/AppSecUSA2018",
+     "contributions": 155
+    },
+    {
+     "name": "AppSecTLV2019",
+     "url": "https://github.com/OWASP/AppSecTLV2019",
+     "contributions": 147
+    },
+    {
+     "name": "AppSecDC2019",
+     "url": "https://github.com/OWASP/AppSecDC2019",
+     "contributions": 48
+    }
+   ]
+  },
+  {
+   "login": "adeyosemanputra",
+   "name": "",
+   "sponsors": 0,
+   "goal": {
+    "kind": "TOTAL_SPONSORS_COUNT",
+    "target": 10,
+    "percent": 0
+   },
+   "monthly": null,
+   "url": "https://github.com/sponsors/adeyosemanputra",
+   "progress": null,
+   "reached": false,
+   "contributions": 510,
+   "projects": [
+    {
+     "name": "SecureTea-Project",
+     "url": "https://github.com/OWASP/SecureTea-Project",
+     "contributions": 174
+    },
+    {
+     "name": "Top10",
+     "url": "https://github.com/OWASP/Top10",
+     "contributions": 161
+    },
+    {
+     "name": "RiskAssessmentFramework",
+     "url": "https://github.com/OWASP/RiskAssessmentFramework",
+     "contributions": 161
+    },
+    {
+     "name": "owasp-swag",
+     "url": "https://github.com/OWASP/owasp-swag",
+     "contributions": 14
+    }
+   ]
+  },
+  {
+   "login": "mdkaifansari04",
+   "name": "Md Kaif Ansari",
+   "sponsors": 0,
+   "goal": null,
+   "monthly": null,
+   "url": "https://github.com/sponsors/mdkaifansari04",
+   "progress": null,
+   "reached": false,
+   "contributions": 434,
+   "projects": [
+    {
+     "name": "BLT",
+     "url": "https://git.owaspblt.org/BLT",
+     "contributions": 434
+    }
+   ]
+  },
+  {
+   "login": "dmdhrumilmistry",
+   "name": "dmdhrumilmistry",
+   "sponsors": 0,
+   "goal": {
+    "kind": "MONTHLY_SPONSORSHIP_AMOUNT",
+    "target": 5,
+    "percent": 0
+   },
+   "monthly": 0,
+   "url": "https://github.com/sponsors/dmdhrumilmistry",
+   "progress": 0.0,
+   "reached": false,
+   "contributions": 421,
+   "projects": [
+    {
+     "name": "OFFAT",
+     "url": "https://github.com/OWASP/OFFAT",
+     "contributions": 421
+    }
+   ]
+  },
+  {
+   "login": "Pritz395",
+   "name": "preetham",
+   "sponsors": 0,
+   "goal": null,
+   "monthly": null,
+   "url": "https://github.com/sponsors/Pritz395",
+   "progress": null,
+   "reached": false,
+   "contributions": 276,
+   "projects": [
+    {
+     "name": "BLT",
+     "url": "https://git.owaspblt.org/BLT",
+     "contributions": 276
+    }
+   ]
+  },
+  {
+   "login": "cr0hn",
+   "name": "Daniel Alfocea",
+   "sponsors": 0,
+   "goal": {
+    "kind": "MONTHLY_SPONSORSHIP_AMOUNT",
+    "target": 5500,
+    "percent": 0
+   },
+   "monthly": 0,
+   "url": "https://github.com/sponsors/cr0hn",
+   "progress": 0.0,
+   "reached": false,
+   "contributions": 270,
+   "projects": [
+    {
+     "name": "apicheck",
+     "url": "https://github.com/OWASP/apicheck",
+     "contributions": 267
+    },
+    {
+     "name": "Patton",
+     "url": "https://github.com/OWASP/Patton",
+     "contributions": 3
+    }
+   ]
+  },
+  {
+   "login": "Adarshkumar0509",
+   "name": "Adarsh Kumar",
+   "sponsors": 0,
+   "goal": {
+    "kind": "MONTHLY_SPONSORSHIP_AMOUNT",
+    "target": 100,
+    "percent": 0
+   },
+   "monthly": 0,
+   "url": "https://github.com/sponsors/Adarshkumar0509",
+   "progress": 0.0,
+   "reached": false,
+   "contributions": 251,
+   "projects": [
+    {
+     "name": "cornucopia",
+     "url": "https://github.com/OWASP/cornucopia",
+     "contributions": 251
+    }
+   ]
+  },
+  {
+   "login": "infosecdad",
+   "name": "Brian Glas",
+   "sponsors": 0,
+   "goal": null,
+   "monthly": null,
+   "url": "https://github.com/sponsors/infosecdad",
+   "progress": null,
+   "reached": false,
+   "contributions": 191,
+   "projects": [
+    {
+     "name": "Top10",
+     "url": "https://github.com/OWASP/Top10",
+     "contributions": 132
+    },
+    {
+     "name": "SAMM",
+     "url": "https://github.com/OWASP/samm",
+     "contributions": 56
+    },
+    {
+     "name": "opensammbenchmark",
+     "url": "https://github.com/OWASP/opensammbenchmark",
+     "contributions": 3
+    }
+   ]
+  },
+  {
+   "login": "JamesCullum",
+   "name": "James Cullum (Pseudonym)",
+   "sponsors": 0,
+   "goal": {
+    "kind": "TOTAL_SPONSORS_COUNT",
+    "target": 5,
+    "percent": 0
+   },
+   "monthly": null,
+   "url": "https://github.com/sponsors/JamesCullum",
+   "progress": null,
+   "reached": false,
+   "contributions": 167,
+   "projects": [
+    {
+     "name": "SSO_Project",
+     "url": "https://github.com/OWASP/SSO_Project",
+     "contributions": 167
+    }
+   ]
+  },
+  {
+   "login": "S3DFX-CYBER",
+   "name": "Savio Dsouza ",
+   "sponsors": 0,
+   "goal": null,
+   "monthly": null,
+   "url": "https://github.com/sponsors/S3DFX-CYBER",
+   "progress": null,
+   "reached": false,
+   "contributions": 164,
+   "projects": [
+    {
+     "name": "BLT",
+     "url": "https://git.owaspblt.org/BLT",
+     "contributions": 164
+    }
+   ]
+  },
+  {
+   "login": "lwierzbicki",
+   "name": "v13rsba",
+   "sponsors": 0,
+   "goal": null,
+   "monthly": null,
+   "url": "https://github.com/sponsors/lwierzbicki",
+   "progress": null,
+   "reached": false,
+   "contributions": 156,
+   "projects": [
+    {
+     "name": "mastg",
+     "url": "https://github.com/OWASP/mastg",
+     "contributions": 156
+    }
+   ]
+  },
+  {
+   "login": "puneeth072003",
+   "name": "Puneeth",
+   "sponsors": 0,
+   "goal": {
+    "kind": "TOTAL_SPONSORS_COUNT",
+    "target": 10,
+    "percent": 0
+   },
+   "monthly": null,
+   "url": "https://github.com/sponsors/puneeth072003",
+   "progress": null,
+   "reached": false,
+   "contributions": 143,
+   "projects": [
+    {
+     "name": "Wrongsecrets",
+     "url": "https://github.com/OWASP/wrongsecrets",
+     "contributions": 76
+    },
+    {
+     "name": "wrongsecrets-binaries",
+     "url": "https://github.com/OWASP/wrongsecrets-binaries",
+     "contributions": 67
+    }
+   ]
+  },
+  {
+   "login": "sidd190",
+   "name": "SIDDHARTH",
+   "sponsors": 0,
+   "goal": null,
+   "monthly": null,
+   "url": "https://github.com/sponsors/sidd190",
+   "progress": null,
+   "reached": false,
+   "contributions": 131,
+   "projects": [
+    {
+     "name": "BLT",
+     "url": "https://git.owaspblt.org/BLT",
+     "contributions": 131
+    }
+   ]
+  },
+  {
+   "login": "julioliraup",
+   "name": "Julio Lira \ud83e\udd80 | jul10l1r4",
+   "sponsors": 0,
+   "goal": null,
+   "monthly": null,
+   "url": "https://github.com/sponsors/julioliraup",
+   "progress": null,
+   "reached": false,
+   "contributions": 120,
+   "projects": [
+    {
+     "name": "D4N155",
+     "url": "https://github.com/OWASP/D4N155",
+     "contributions": 120
+    }
+   ]
+  },
+  {
+   "login": "ojaswa072",
+   "name": "Ojaswa",
+   "sponsors": 0,
+   "goal": null,
+   "monthly": null,
+   "url": "https://github.com/sponsors/ojaswa072",
+   "progress": null,
+   "reached": false,
+   "contributions": 119,
+   "projects": [
+    {
+     "name": "BLT",
+     "url": "https://git.owaspblt.org/BLT",
+     "contributions": 119
+    }
+   ]
+  },
+  {
+   "login": "ananya-in-tech",
+   "name": "Ananya",
+   "sponsors": 0,
+   "goal": {
+    "kind": "TOTAL_SPONSORS_COUNT",
+    "target": 10,
+    "percent": 0
+   },
+   "monthly": null,
+   "url": "https://github.com/sponsors/ananya-in-tech",
+   "progress": null,
+   "reached": false,
+   "contributions": 89,
+   "projects": [
+    {
+     "name": "BLT",
+     "url": "https://git.owaspblt.org/BLT",
+     "contributions": 89
+    }
+   ]
+  },
+  {
+   "login": "krrish-sehgal",
+   "name": "Krrish Sehgal",
+   "sponsors": 0,
+   "goal": null,
+   "monthly": null,
+   "url": "https://github.com/sponsors/krrish-sehgal",
+   "progress": null,
+   "reached": false,
+   "contributions": 82,
+   "projects": [
+    {
+     "name": "BLT",
+     "url": "https://git.owaspblt.org/BLT",
+     "contributions": 82
+    }
+   ]
+  },
+  {
+   "login": "Rudra-rps",
+   "name": "rp_dex",
+   "sponsors": 0,
+   "goal": null,
+   "monthly": null,
+   "url": "https://github.com/sponsors/Rudra-rps",
+   "progress": null,
+   "reached": false,
+   "contributions": 68,
+   "projects": [
+    {
+     "name": "BLT",
+     "url": "https://git.owaspblt.org/BLT",
+     "contributions": 68
+    }
+   ]
+  },
+  {
+   "login": "ahmedxgouda",
+   "name": "Ahmed Gouda",
+   "sponsors": 0,
+   "goal": null,
+   "monthly": null,
+   "url": "https://github.com/sponsors/ahmedxgouda",
+   "progress": null,
+   "reached": false,
+   "contributions": 67,
+   "projects": [
+    {
+     "name": "Nest",
+     "url": "https://github.com/OWASP/Nest",
+     "contributions": 67
+    }
+   ]
+  },
+  {
+   "login": "rudransh-shrivastava",
+   "name": "Rudransh Shrivastava",
+   "sponsors": 0,
+   "goal": null,
+   "monthly": null,
+   "url": "https://github.com/sponsors/rudransh-shrivastava",
+   "progress": null,
+   "reached": false,
+   "contributions": 66,
+   "projects": [
+    {
+     "name": "Nest",
+     "url": "https://github.com/OWASP/Nest",
+     "contributions": 63
+    },
+    {
+     "name": "nest-schema",
+     "url": "https://github.com/OWASP/nest-schema",
+     "contributions": 3
+    }
+   ]
+  },
+  {
+   "login": "zbraiterman",
+   "name": "Zoe Braiterman",
+   "sponsors": 0,
+   "goal": null,
+   "monthly": null,
+   "url": "https://github.com/sponsors/zbraiterman",
+   "progress": null,
+   "reached": false,
+   "contributions": 65,
+   "projects": [
+    {
+     "name": "OCSD",
+     "url": "https://github.com/OWASP/OCSD",
+     "contributions": 33
+    },
+    {
+     "name": "threat-model-cookbook",
+     "url": "https://github.com/OWASP/threat-model-cookbook",
+     "contributions": 17
+    },
+    {
+     "name": "WIA",
+     "url": "https://github.com/OWASP/WIA",
+     "contributions": 15
+    }
+   ]
+  },
+  {
+   "login": "aryanghai12",
+   "name": "Aryan Ghai",
+   "sponsors": 0,
+   "goal": null,
+   "monthly": null,
+   "url": "https://github.com/sponsors/aryanghai12",
+   "progress": null,
+   "reached": false,
+   "contributions": 61,
+   "projects": [
+    {
+     "name": "BLT",
+     "url": "https://git.owaspblt.org/BLT",
+     "contributions": 61
+    }
+   ]
+  },
+  {
+   "login": "Rajgupta36",
+   "name": "Raj gupta",
+   "sponsors": 0,
+   "goal": null,
+   "monthly": null,
+   "url": "https://github.com/sponsors/Rajgupta36",
+   "progress": null,
+   "reached": false,
+   "contributions": 59,
+   "projects": [
+    {
+     "name": "Nest",
+     "url": "https://github.com/OWASP/Nest",
+     "contributions": 59
+    }
+   ]
+  },
+  {
+   "login": "abhayymishraa",
+   "name": "Abhay Mishra",
+   "sponsors": 0,
+   "goal": null,
+   "monthly": null,
+   "url": "https://github.com/sponsors/abhayymishraa",
+   "progress": null,
+   "reached": false,
+   "contributions": 57,
+   "projects": [
+    {
+     "name": "Nest",
+     "url": "https://github.com/OWASP/Nest",
+     "contributions": 52
+    },
+    {
+     "name": "nest-schema",
+     "url": "https://github.com/OWASP/nest-schema",
+     "contributions": 4
+    },
+    {
+     "name": "nest-sdk-python",
+     "url": "https://github.com/OWASP/nest-sdk-python",
+     "contributions": 1
+    }
+   ]
+  },
+  {
+   "login": "anurag2787",
+   "name": "Anurag Yadav",
+   "sponsors": 0,
+   "goal": null,
+   "monthly": null,
+   "url": "https://github.com/sponsors/anurag2787",
+   "progress": null,
+   "reached": false,
+   "contributions": 57,
+   "projects": [
+    {
+     "name": "Nest",
+     "url": "https://github.com/OWASP/Nest",
+     "contributions": 56
+    },
+    {
+     "name": "nest-schema",
+     "url": "https://github.com/OWASP/nest-schema",
+     "contributions": 1
+    }
+   ]
+  },
+  {
+   "login": "igennova",
+   "name": "Lucky negi",
+   "sponsors": 0,
+   "goal": null,
+   "monthly": null,
+   "url": "https://github.com/sponsors/igennova",
+   "progress": null,
+   "reached": false,
+   "contributions": 53,
+   "projects": [
+    {
+     "name": "BLT",
+     "url": "https://git.owaspblt.org/BLT",
+     "contributions": 53
+    }
+   ]
+  },
+  {
+   "login": "SahilDhillon21",
+   "name": "Sahil Omkumar Dhillon",
+   "sponsors": 0,
+   "goal": null,
+   "monthly": null,
+   "url": "https://github.com/sponsors/SahilDhillon21",
+   "progress": null,
+   "reached": false,
+   "contributions": 51,
+   "projects": [
+    {
+     "name": "BLT",
+     "url": "https://git.owaspblt.org/BLT",
+     "contributions": 51
+    }
+   ]
+  },
+  {
+   "login": "Shhazzz",
+   "name": "Shaz Zahra Zaidi",
+   "sponsors": 0,
+   "goal": null,
+   "monthly": null,
+   "url": "https://github.com/sponsors/Shhazzz",
+   "progress": null,
+   "reached": false,
+   "contributions": 48,
+   "projects": [
+    {
+     "name": "BLT",
+     "url": "https://git.owaspblt.org/BLT",
+     "contributions": 48
+    }
+   ]
+  },
+  {
+   "login": "Ayush7614",
+   "name": "Felix-Ayush",
+   "sponsors": 0,
+   "goal": {
+    "kind": "MONTHLY_SPONSORSHIP_AMOUNT",
+    "target": 50,
+    "percent": 0
+   },
+   "monthly": 0,
+   "url": "https://github.com/sponsors/Ayush7614",
+   "progress": 0.0,
+   "reached": false,
+   "contributions": 45,
+   "projects": [
+    {
+     "name": "cve-lite-cli",
+     "url": "https://github.com/OWASP/cve-lite-cli",
+     "contributions": 45
+    }
+   ]
+  },
+  {
+   "login": "swaparup36",
+   "name": "Swaparup Mukherjee",
+   "sponsors": 0,
+   "goal": null,
+   "monthly": null,
+   "url": "https://github.com/sponsors/swaparup36",
+   "progress": null,
+   "reached": false,
+   "contributions": 45,
+   "projects": [
+    {
+     "name": "BLT",
+     "url": "https://git.owaspblt.org/BLT",
+     "contributions": 45
+    }
+   ]
+  },
+  {
+   "login": "Dishant1804",
+   "name": "Dishant Miyani",
+   "sponsors": 0,
+   "goal": null,
+   "monthly": null,
+   "url": "https://github.com/sponsors/Dishant1804",
+   "progress": null,
+   "reached": false,
+   "contributions": 43,
+   "projects": [
+    {
+     "name": "Nest",
+     "url": "https://github.com/OWASP/Nest",
+     "contributions": 43
+    }
+   ]
+  },
+  {
+   "login": "binarymist",
+   "name": "Kim Carter",
+   "sponsors": 0,
+   "goal": {
+    "kind": "TOTAL_SPONSORS_COUNT",
+    "target": 5,
+    "percent": 0
+   },
+   "monthly": null,
+   "url": "https://github.com/sponsors/binarymist",
+   "progress": null,
+   "reached": false,
+   "contributions": 42,
+   "projects": [
+    {
+     "name": "NodeGoat",
+     "url": "https://github.com/OWASP/NodeGoat",
+     "contributions": 42
+    }
+   ]
+  },
+  {
+   "login": "gojo-satorou-v7",
+   "name": "Abhishek Kumar",
+   "sponsors": 0,
+   "goal": null,
+   "monthly": null,
+   "url": "https://github.com/sponsors/gojo-satorou-v7",
+   "progress": null,
+   "reached": false,
+   "contributions": 42,
+   "projects": [
+    {
+     "name": "BLT",
+     "url": "https://git.owaspblt.org/BLT",
+     "contributions": 42
+    }
+   ]
+  },
+  {
+   "login": "thundel",
+   "name": "Bhasker Puppala (Patel)",
+   "sponsors": 0,
+   "goal": null,
+   "monthly": null,
+   "url": "https://github.com/sponsors/thundel",
+   "progress": null,
+   "reached": false,
+   "contributions": 41,
+   "projects": [
+    {
+     "name": "TriSuElla-AIDLCA-Framework",
+     "url": "https://github.com/OWASP/TriSuElla-AIDLCA-Framework",
+     "contributions": 41
+    }
+   ]
+  },
+  {
+   "login": "yashgoyal0110",
+   "name": "Yash Goyal",
+   "sponsors": 0,
+   "goal": null,
+   "monthly": null,
+   "url": "https://github.com/sponsors/yashgoyal0110",
+   "progress": null,
+   "reached": false,
+   "contributions": 39,
+   "projects": [
+    {
+     "name": "Nest",
+     "url": "https://github.com/OWASP/Nest",
+     "contributions": 39
+    }
+   ]
+  },
+  {
+   "login": "nilp0inter",
+   "name": "Roberto Abdelkader Mart\u00ednez P\u00e9rez",
+   "sponsors": 0,
+   "goal": null,
+   "monthly": null,
+   "url": "https://github.com/sponsors/nilp0inter",
+   "progress": null,
+   "reached": false,
+   "contributions": 37,
+   "projects": [
+    {
+     "name": "Patton",
+     "url": "https://github.com/OWASP/Patton",
+     "contributions": 31
+    },
+    {
+     "name": "apicheck",
+     "url": "https://github.com/OWASP/apicheck",
+     "contributions": 6
+    }
+   ]
+  },
+  {
+   "login": "haroon0x",
+   "name": "Haroon",
+   "sponsors": 0,
+   "goal": null,
+   "monthly": null,
+   "url": "https://github.com/sponsors/haroon0x",
+   "progress": null,
+   "reached": false,
+   "contributions": 33,
+   "projects": [
+    {
+     "name": "BLT",
+     "url": "https://git.owaspblt.org/BLT",
+     "contributions": 33
+    }
+   ]
+  },
+  {
+   "login": "tsu-ki",
+   "name": "Krishna Kaushal",
+   "sponsors": 0,
+   "goal": null,
+   "monthly": null,
+   "url": "https://github.com/sponsors/tsu-ki",
+   "progress": null,
+   "reached": false,
+   "contributions": 32,
+   "projects": [
+    {
+     "name": "BLT",
+     "url": "https://git.owaspblt.org/BLT",
+     "contributions": 32
+    }
+   ]
+  },
+  {
+   "login": "Jozz77",
+   "name": "Jonathan Mmadu",
+   "sponsors": 0,
+   "goal": null,
+   "monthly": null,
+   "url": "https://github.com/sponsors/Jozz77",
+   "progress": null,
+   "reached": false,
+   "contributions": 29,
+   "projects": [
+    {
+     "name": "BLT",
+     "url": "https://git.owaspblt.org/BLT",
+     "contributions": 29
+    }
+   ]
+  },
+  {
+   "login": "Naveen-Pal",
+   "name": "Naveen Pal",
+   "sponsors": 0,
+   "goal": null,
+   "monthly": null,
+   "url": "https://github.com/sponsors/Naveen-Pal",
+   "progress": null,
+   "reached": false,
+   "contributions": 25,
+   "projects": [
+    {
+     "name": "Nest",
+     "url": "https://github.com/OWASP/Nest",
+     "contributions": 25
+    }
+   ]
+  },
+  {
+   "login": "mebjas",
+   "name": "minhaz",
+   "sponsors": 0,
+   "goal": {
+    "kind": "MONTHLY_SPONSORSHIP_AMOUNT",
+    "target": 750,
+    "percent": 0
+   },
+   "monthly": 0,
+   "url": "https://github.com/sponsors/mebjas",
+   "progress": 0.0,
+   "reached": false,
+   "contributions": 23,
+   "projects": [
+    {
+     "name": "phpsec",
+     "url": "https://github.com/OWASP/phpsec",
+     "contributions": 23
+    }
+   ]
+  },
+  {
+   "login": "Aarush289",
+   "name": "Aarush",
+   "sponsors": 0,
+   "goal": null,
+   "monthly": null,
+   "url": "https://github.com/sponsors/Aarush289",
+   "progress": null,
+   "reached": false,
+   "contributions": 19,
+   "projects": [
+    {
+     "name": "Nettacker",
+     "url": "https://github.com/OWASP/Nettacker",
+     "contributions": 19
+    }
+   ]
+  },
+  {
+   "login": "diamant3",
+   "name": "Diamond Rivero",
+   "sponsors": 0,
+   "goal": null,
+   "monthly": null,
+   "url": "https://github.com/sponsors/diamant3",
+   "progress": null,
+   "reached": false,
+   "contributions": 14,
+   "projects": [
+    {
+     "name": "wrongsecrets-binaries",
+     "url": "https://github.com/OWASP/wrongsecrets-binaries",
+     "contributions": 14
+    }
+   ]
+  },
+  {
+   "login": "abhisek",
+   "name": "Abhisek Datta",
+   "sponsors": 0,
+   "goal": null,
+   "monthly": null,
+   "url": "https://github.com/sponsors/abhisek",
+   "progress": null,
+   "reached": false,
+   "contributions": 11,
+   "projects": [
+    {
+     "name": "kstg",
+     "url": "https://github.com/OWASP/kstg",
+     "contributions": 11
+    }
+   ]
+  },
+  {
+   "login": "liamromanis101",
+   "name": "liamromanis101",
+   "sponsors": 0,
+   "goal": {
+    "kind": "MONTHLY_SPONSORSHIP_AMOUNT",
+    "target": 200,
+    "percent": 0
+   },
+   "monthly": 0,
+   "url": "https://github.com/sponsors/liamromanis101",
+   "progress": 0.0,
+   "reached": false,
+   "contributions": 9,
+   "projects": [
+    {
+     "name": "OWASP-Model-Card-Security-Standard",
+     "url": "https://github.com/OWASP/OWASP-Model-Card-Security-Standard",
+     "contributions": 9
+    }
+   ]
+  },
+  {
+   "login": "madhuakula",
+   "name": "Madhu Akula",
+   "sponsors": 0,
+   "goal": {
+    "kind": "TOTAL_SPONSORS_COUNT",
+    "target": 50,
+    "percent": 0
+   },
+   "monthly": null,
+   "url": "https://github.com/sponsors/madhuakula",
+   "progress": null,
+   "reached": false,
+   "contributions": 9,
+   "projects": [
+    {
+     "name": "kstg",
+     "url": "https://github.com/OWASP/kstg",
+     "contributions": 9
+    }
+   ]
+  },
+  {
+   "login": "rajanpanth",
+   "name": "Rajan Pantha",
+   "sponsors": 0,
+   "goal": null,
+   "monthly": null,
+   "url": "https://github.com/sponsors/rajanpanth",
+   "progress": null,
+   "reached": false,
+   "contributions": 6,
+   "projects": [
+    {
+     "name": "pytm",
+     "url": "https://github.com/OWASP/pytm",
+     "contributions": 6
+    }
+   ]
+  },
+  {
+   "login": "0x48piraj",
+   "name": "Piyush Raj",
+   "sponsors": 0,
+   "goal": {
+    "kind": "TOTAL_SPONSORS_COUNT",
+    "target": 50,
+    "percent": 0
+   },
+   "monthly": null,
+   "url": "https://github.com/sponsors/0x48piraj",
+   "progress": null,
+   "reached": false,
+   "contributions": 4,
+   "projects": [
+    {
+     "name": "IoTGoat",
+     "url": "https://github.com/OWASP/IoTGoat",
+     "contributions": 4
+    }
+   ]
+  },
+  {
+   "login": "Jason-Cooke",
+   "name": "Jason Cooke",
+   "sponsors": 0,
+   "goal": null,
+   "monthly": null,
+   "url": "https://github.com/sponsors/Jason-Cooke",
+   "progress": null,
+   "reached": false,
+   "contributions": 4,
+   "projects": [
+    {
+     "name": "OWASPWebGoatPHP",
+     "url": "https://github.com/OWASP/OWASPWebGoatPHP",
+     "contributions": 1
+    },
+    {
+     "name": "MASTG-Hacking-Playground",
+     "url": "https://github.com/OWASP/MASTG-Hacking-Playground",
+     "contributions": 1
+    },
+    {
+     "name": "SEDATED",
+     "url": "https://github.com/OWASP/SEDATED",
+     "contributions": 1
+    },
+    {
+     "name": "Container-Security-Verification-Standard",
+     "url": "https://github.com/OWASP/Container-Security-Verification-Standard",
+     "contributions": 1
+    }
+   ]
+  },
+  {
+   "login": "iamkunal9",
+   "name": "Kunal Sharma",
+   "sponsors": 0,
+   "goal": {
+    "kind": "MONTHLY_SPONSORSHIP_AMOUNT",
+    "target": 20,
+    "percent": 0
+   },
+   "monthly": 0,
+   "url": "https://github.com/sponsors/iamkunal9",
+   "progress": 0.0,
+   "reached": false,
+   "contributions": 3,
+   "projects": [
+    {
+     "name": "owasp-scs",
+     "url": "https://github.com/OWASP/owasp-scs",
+     "contributions": 3
+    }
+   ]
+  },
+  {
+   "login": "karlhorky",
+   "name": "Karl Horky",
+   "sponsors": 0,
+   "goal": {
+    "kind": "TOTAL_SPONSORS_COUNT",
+    "target": 10,
+    "percent": 0
+   },
+   "monthly": null,
+   "url": "https://github.com/sponsors/karlhorky",
+   "progress": null,
+   "reached": false,
+   "contributions": 3,
+   "projects": [
+    {
+     "name": "NodeGoat",
+     "url": "https://github.com/OWASP/NodeGoat",
+     "contributions": 3
+    }
+   ]
+  },
+  {
+   "login": "preetkaran20",
+   "name": "Karan Preet Singh Sasan",
+   "sponsors": 0,
+   "goal": {
+    "kind": "TOTAL_SPONSORS_COUNT",
+    "target": 10,
+    "percent": 0
+   },
+   "monthly": null,
+   "url": "https://github.com/sponsors/preetkaran20",
+   "progress": null,
+   "reached": false,
+   "contributions": 3,
+   "projects": [
+    {
+     "name": "OWASP-VWAD",
+     "url": "https://github.com/OWASP/OWASP-VWAD",
+     "contributions": 3
+    }
+   ]
+  },
+  {
+   "login": "ebell451",
+   "name": "EBell",
+   "sponsors": 0,
+   "goal": null,
+   "monthly": null,
+   "url": "https://github.com/sponsors/ebell451",
+   "progress": null,
+   "reached": false,
+   "contributions": 2,
+   "projects": [
+    {
+     "name": "OWASP-VWAD",
+     "url": "https://github.com/OWASP/OWASP-VWAD",
+     "contributions": 2
+    }
+   ]
+  },
+  {
+   "login": "hazendaz",
+   "name": "Jeremy Landis",
+   "sponsors": 0,
+   "goal": null,
+   "monthly": null,
+   "url": "https://github.com/sponsors/hazendaz",
+   "progress": null,
+   "reached": false,
+   "contributions": 2,
+   "projects": [
+    {
+     "name": "json-sanitizer",
+     "url": "https://github.com/OWASP/json-sanitizer",
+     "contributions": 2
+    }
+   ]
+  },
+  {
+   "login": "rajpratik71",
+   "name": "Pratik Raj",
+   "sponsors": 0,
+   "goal": {
+    "kind": "MONTHLY_SPONSORSHIP_AMOUNT",
+    "target": 100,
+    "percent": 0
+   },
+   "monthly": 0,
+   "url": "https://github.com/sponsors/rajpratik71",
+   "progress": 0.0,
+   "reached": false,
+   "contributions": 2,
+   "projects": [
+    {
+     "name": "raider",
+     "url": "https://github.com/OWASP/raider",
+     "contributions": 2
+    }
+   ]
+  },
+  {
+   "login": "sttor",
+   "name": "Sttor",
+   "sponsors": 0,
+   "goal": {
+    "kind": "MONTHLY_SPONSORSHIP_AMOUNT",
+    "target": 2500,
+    "percent": 0
+   },
+   "monthly": 0,
+   "url": "https://github.com/sponsors/sttor",
+   "progress": 0.0,
+   "reached": false,
+   "contributions": 2,
+   "projects": [
+    {
+     "name": "KubeLight",
+     "url": "https://github.com/OWASP/KubeLight",
+     "contributions": 2
+    }
+   ]
+  },
+  {
+   "login": "Aif4thah",
+   "name": "",
+   "sponsors": 0,
+   "goal": null,
+   "monthly": null,
+   "url": "https://github.com/sponsors/Aif4thah",
+   "progress": null,
+   "reached": false,
+   "contributions": 1,
+   "projects": [
+    {
+     "name": "OWASP-VWAD",
+     "url": "https://github.com/OWASP/OWASP-VWAD",
+     "contributions": 1
+    }
+   ]
+  },
+  {
+   "login": "ajinabraham",
+   "name": "Ajin Abraham",
+   "sponsors": 0,
+   "goal": {
+    "kind": "TOTAL_SPONSORS_COUNT",
+    "target": 100,
+    "percent": 1
+   },
+   "monthly": null,
+   "url": "https://github.com/sponsors/ajinabraham",
+   "progress": null,
+   "reached": false,
+   "contributions": 1,
+   "projects": [
+    {
+     "name": "glue",
+     "url": "https://github.com/OWASP/glue",
+     "contributions": 1
+    }
+   ]
+  },
+  {
+   "login": "Bilge",
+   "name": "",
+   "sponsors": 0,
+   "goal": null,
+   "monthly": null,
+   "url": "https://github.com/sponsors/Bilge",
+   "progress": null,
+   "reached": false,
+   "contributions": 1,
+   "projects": [
+    {
+     "name": "rbac",
+     "url": "https://github.com/OWASP/rbac",
+     "contributions": 1
+    }
+   ]
+  },
+  {
+   "login": "CodeMouse92",
+   "name": "Jason C. McDonald",
+   "sponsors": 0,
+   "goal": null,
+   "monthly": null,
+   "url": "https://github.com/sponsors/CodeMouse92",
+   "progress": null,
+   "reached": false,
+   "contributions": 1,
+   "projects": [
+    {
+     "name": "docs",
+     "url": "https://github.com/OWASP/docs",
+     "contributions": 1
+    }
+   ]
+  },
+  {
+   "login": "MrPowerUp82",
+   "name": "Gustavo Henrique",
+   "sponsors": 0,
+   "goal": null,
+   "monthly": null,
+   "url": "https://github.com/sponsors/MrPowerUp82",
+   "progress": null,
+   "reached": false,
+   "contributions": 1,
+   "projects": [
+    {
+     "name": "QRLJacking",
+     "url": "https://github.com/OWASP/QRLJacking",
+     "contributions": 1
+    }
+   ]
+  },
+  {
+   "login": "snipe",
+   "name": "snipe",
+   "sponsors": 0,
+   "goal": null,
+   "monthly": null,
+   "url": "https://github.com/sponsors/snipe",
+   "progress": null,
+   "reached": false,
+   "contributions": 1,
+   "projects": [
+    {
+     "name": "off",
+     "url": "https://github.com/OWASP/off",
+     "contributions": 1
+    }
+   ]
+  },
+  {
+   "login": "spotlesscoder",
+   "name": "spotlesscoder",
+   "sponsors": 0,
+   "goal": null,
+   "monthly": null,
+   "url": "https://github.com/sponsors/spotlesscoder",
+   "progress": null,
+   "reached": false,
+   "contributions": 1,
+   "projects": [
+    {
+     "name": "passfault",
+     "url": "https://github.com/OWASP/passfault",
+     "contributions": 1
+    }
+   ]
+  },
+  {
+   "login": "wargio",
+   "name": "Giovanni",
+   "sponsors": 0,
+   "goal": null,
+   "monthly": null,
+   "url": "https://github.com/sponsors/wargio",
+   "progress": null,
+   "reached": false,
+   "contributions": 1,
+   "projects": [
+    {
+     "name": "SEDATED",
+     "url": "https://github.com/OWASP/SEDATED",
+     "contributions": 1
+    }
+   ]
+  },
+  {
+   "login": "yashmurty",
+   "name": "Yash Murty",
+   "sponsors": 0,
+   "goal": {
+    "kind": "TOTAL_SPONSORS_COUNT",
+    "target": 10,
+    "percent": 0
+   },
+   "monthly": null,
+   "url": "https://github.com/sponsors/yashmurty",
+   "progress": null,
+   "reached": false,
+   "contributions": 1,
+   "projects": [
+    {
+     "name": "Serverless-Top-10-Project",
+     "url": "https://github.com/OWASP/Serverless-Top-10-Project",
+     "contributions": 1
+    }
+   ]
+  }
+ ]
+}

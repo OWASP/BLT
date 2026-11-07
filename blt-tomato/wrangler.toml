@@ -1,5 +1,6 @@
 # Static site (public/) plus a Worker (worker/index.js) that serves the generated page (/ and
-# /index.html) and /project_repos_links.json from KV (binding DATA). The workflow
+# /index.html), /project_repos_links.json and /tomato1000.json from KV (binding DATA). /1000 (Tomato
+# 1000) is the static public/1000.html, which reads /tomato1000.json. The workflow
 # .forkmesh/blt-tomato--scrape_funding.yml (weekly) writes them; nothing is committed to git.
 name = "blt-tomato"
 main = "worker/index.js"
@@ -8,7 +9,7 @@ compatibility_date = "2026-06-06"
 [assets]
 directory = "./public"
 binding = "ASSETS"
-run_worker_first = ["/", "/index.html", "/project_repos_links.json"]
+run_worker_first = ["/", "/index.html", "/project_repos_links.json", "/tomato1000.json"]
 
 # Created by scripts/worker-data/create-kv.sh, which replaces the placeholder id.
 [[kv_namespaces]]

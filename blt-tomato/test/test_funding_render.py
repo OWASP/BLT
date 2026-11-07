@@ -77,5 +77,41 @@ class RenderTest(unittest.TestCase):
         self.assertNotIn("<script>alert", page)
 
 
+class Tomato1000Test(unittest.TestCase):
+    def profile(self, login, kind=None, target=0, percent=0, sponsors=0):
+        goal = {"kind": kind, "targetValue": target, "percentComplete": percent} if kind else None
+        return scraper.profile_from_graphql({
+            "login": login, "name": login.title(), "hasSponsorsListing": True,
+            "sponsors": {"totalCount": sponsors}, "sponsorsListing": {"activeGoal": goal},
+        })
+
+    def test_only_a_monthly_dollar_goal_gives_an_amount(self):
+        self.assertEqual(self.profile("a", "MONTHLY_SPONSORSHIP_AMOUNT", 2000, 60)["monthly"], 1200)
+        self.assertIsNone(self.profile("b", "TOTAL_SPONSORS_COUNT", 25, 40)["monthly"])
+        self.assertIsNone(self.profile("c")["monthly"])
+
+    def test_developers_are_ranked_by_progress_and_counted_once(self):
+        projects = [{"name": "one", "repo_url": "https://github.com/OWASP/one"},
+                    {"name": "two", "repo_url": "https://github.com/OWASP/two"}]
+        contributors = {
+            "https://github.com/OWASP/one": [{"login": "a", "contributions": 5}, {"login": "x", "contributions": 99}],
+            "https://github.com/OWASP/two": [{"login": "a", "contributions": 7}, {"login": "b", "contributions": 1}],
+        }
+        profiles = {"a": self.profile("a", "TOTAL_SPONSORS_COUNT", 10, 50, 5),
+                    "b": self.profile("b", "MONTHLY_SPONSORSHIP_AMOUNT", 1000, 100, 9)}
+        data = scraper.build_tomato_1000(projects, contributors, profiles, built="2026-11-06T00:00:00Z")
+        self.assertEqual(data["goal"], {"developers": 1000, "monthly_dollars": 1000})
+        self.assertEqual(data["contributors_checked"], 3)
+        self.assertEqual([d["login"] for d in data["developers"]], ["b", "a"])
+        b, a = data["developers"]
+        self.assertTrue(b["reached"])
+        self.assertEqual(b["progress"], 1.0)
+        self.assertFalse(a["reached"])
+        self.assertIsNone(a["progress"])
+        self.assertEqual(a["contributions"], 12)
+        self.assertEqual([p["name"] for p in a["projects"]], ["two", "one"])
+        self.assertEqual(a["url"], "https://github.com/sponsors/a")
+
+
 if __name__ == "__main__":
     unittest.main()

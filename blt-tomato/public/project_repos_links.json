@@ -60,27 +60,33 @@
     ]
   },
   {
-    "project_name": "ASVS",
-    "repo_url": "https://github.com/OWASP/ASVS",
-    "funding_url": "https://raw.githubusercontent.com/OWASP/ASVS/HEAD/.github/FUNDING.yml",
-    "funding_details": "https://owasp.org/donate/?reponame=www-project-application-security-verification-standard&title=OWASP+Application+Security+Verification+Standard, OWASP",
+    "project_name": "owasp-java-encoder",
+    "repo_url": "https://github.com/OWASP/owasp-java-encoder",
+    "funding_url": "https://raw.githubusercontent.com/OWASP/owasp-java-encoder/HEAD/.github/FUNDING.yml",
+    "funding_details": "https://manicode.com/funding.json, https://owasp.org/donate",
     "funding_links": [
+      {
+        "platform": "custom",
+        "label": "manicode.com",
+        "handle": "",
+        "url": "https://manicode.com/funding.json",
+        "owasp": false
+      },
       {
         "platform": "custom",
         "label": "owasp.org",
         "handle": "",
-        "url": "https://owasp.org/donate/?reponame=www-project-application-security-verification-standard&title=OWASP+Application+Security+Verification+Standard",
-        "owasp": true
-      },
-      {
-        "platform": "github",
-        "label": "GitHub Sponsors",
-        "handle": "OWASP",
-        "url": "https://github.com/sponsors/OWASP",
+        "url": "https://owasp.org/donate",
         "owasp": true
       }
     ],
-    "contributor_sponsors": []
+    "contributor_sponsors": [
+      {
+        "login": "jeremylong",
+        "url": "https://github.com/sponsors/jeremylong",
+        "contributions": 78
+      }
+    ]
   },
   {
     "project_name": "ZSC",
@@ -312,42 +318,6 @@
     "contributor_sponsors": []
   },
   {
-    "project_name": "Wrongsecrets",
-    "repo_url": "https://github.com/OWASP/wrongsecrets",
-    "funding_url": "https://raw.githubusercontent.com/OWASP/wrongsecrets/HEAD/.github/FUNDING.yml",
-    "funding_details": "https://owasp.org/donate/?reponame=www-project-wrongsecrets&title=OWASP+wrongsecrets, https://www.icrc.org/en/donate/ukraine, OWASP",
-    "funding_links": [
-      {
-        "platform": "custom",
-        "label": "owasp.org",
-        "handle": "",
-        "url": "https://owasp.org/donate/?reponame=www-project-wrongsecrets&title=OWASP+wrongsecrets",
-        "owasp": true
-      },
-      {
-        "platform": "custom",
-        "label": "icrc.org",
-        "handle": "",
-        "url": "https://www.icrc.org/en/donate/ukraine",
-        "owasp": false
-      },
-      {
-        "platform": "github",
-        "label": "GitHub Sponsors",
-        "handle": "OWASP",
-        "url": "https://github.com/sponsors/OWASP",
-        "owasp": true
-      }
-    ],
-    "contributor_sponsors": [
-      {
-        "login": "puneeth072003",
-        "url": "https://github.com/sponsors/puneeth072003",
-        "contributions": 76
-      }
-    ]
-  },
-  {
     "project_name": "cornucopia",
     "repo_url": "https://github.com/OWASP/cornucopia",
     "funding_url": "https://raw.githubusercontent.com/OWASP/cornucopia/HEAD/.github/FUNDING.yml",
@@ -530,104 +500,120 @@
     ]
   },
   {
-    "project_name": "Juice Shop",
-    "repo_url": "https://github.com/juice-shop/juice-shop",
-    "funding_url": "https://raw.githubusercontent.com/juice-shop/juice-shop/HEAD/.github/FUNDING.yml",
-    "funding_details": "https://sponsor.owasp-juice.shop, OWASP",
-    "funding_links": [
-      {
-        "platform": "custom",
-        "label": "sponsor.owasp-juice.shop",
-        "handle": "",
-        "url": "https://sponsor.owasp-juice.shop",
-        "owasp": false
-      },
-      {
-        "platform": "github",
-        "label": "GitHub Sponsors",
-        "handle": "OWASP",
-        "url": "https://github.com/sponsors/OWASP",
-        "owasp": true
-      }
-    ],
-    "contributor_sponsors": []
-  },
-  {
-    "project_name": "MAS",
-    "repo_url": "https://github.com/OWASP/owasp-masvs",
-    "funding_url": "https://raw.githubusercontent.com/OWASP/owasp-masvs/HEAD/.github/FUNDING.yml",
-    "funding_details": "https://www.icrc.org/en/donate/ukraine",
-    "funding_links": [
-      {
-        "platform": "custom",
-        "label": "icrc.org",
-        "handle": "",
-        "url": "https://www.icrc.org/en/donate/ukraine",
-        "owasp": false
-      }
-    ],
-    "contributor_sponsors": []
-  },
-  {
-    "project_name": "ModSecurity Core Rule Set",
-    "repo_url": "https://github.com/coreruleset/coreruleset",
-    "funding_url": "https://raw.githubusercontent.com/coreruleset/coreruleset/HEAD/.github/FUNDING.yml",
-    "funding_details": "https://owasp.org/donate/?reponame=www-project-modsecurity-core-rule-set&title=OWASP+CRS",
+    "project_name": "DockSec",
+    "repo_url": "https://github.com/OWASP/DockSec",
+    "funding_url": "https://raw.githubusercontent.com/OWASP/DockSec/HEAD/.github/FUNDING.yml",
+    "funding_details": "https://owasp.org/donate/?reponame=DockSec&title=OWASP+DockSec",
     "funding_links": [
       {
         "platform": "custom",
         "label": "owasp.org",
         "handle": "",
-        "url": "https://owasp.org/donate/?reponame=www-project-modsecurity-core-rule-set&title=OWASP+CRS",
+        "url": "https://owasp.org/donate/?reponame=DockSec&title=OWASP+DockSec",
         "owasp": true
       }
     ],
     "contributor_sponsors": [
       {
-        "login": "Xhoenix",
-        "url": "https://github.com/sponsors/Xhoenix",
-        "contributions": 105
+        "login": "arkid15r",
+        "url": "https://github.com/sponsors/arkid15r",
+        "contributions": 2
       }
     ]
   },
   {
-    "project_name": "AMASS",
-    "repo_url": "https://github.com/owasp-amass/amass",
-    "funding_url": "https://raw.githubusercontent.com/owasp-amass/amass/HEAD/.github/FUNDING.yml",
-    "funding_details": "https://owasp.org/donate/?reponame=www-project-amass&title=OWASP+Amass, OWASP",
+    "project_name": "cve-lite-cli",
+    "repo_url": "https://github.com/OWASP/cve-lite-cli",
+    "funding_url": "https://raw.githubusercontent.com/OWASP/cve-lite-cli/HEAD/.github/FUNDING.yml",
+    "funding_details": "https://owasp.org/donate/?reponame=cve-lite-cli&title=OWASP+CVE+Lite+CLI",
     "funding_links": [
       {
         "platform": "custom",
         "label": "owasp.org",
         "handle": "",
-        "url": "https://owasp.org/donate/?reponame=www-project-amass&title=OWASP+Amass",
-        "owasp": true
-      },
-      {
-        "platform": "github",
-        "label": "GitHub Sponsors",
-        "handle": "OWASP",
-        "url": "https://github.com/sponsors/OWASP",
+        "url": "https://owasp.org/donate/?reponame=cve-lite-cli&title=OWASP+CVE+Lite+CLI",
         "owasp": true
       }
     ],
     "contributor_sponsors": [
       {
-        "login": "caffix",
-        "url": "https://github.com/sponsors/caffix",
-        "contributions": 2231
+        "login": "sonukapoor",
+        "url": "https://github.com/sponsors/sonukapoor",
+        "contributions": 617
       },
       {
-        "login": "rxerium",
-        "url": "https://github.com/sponsors/rxerium",
-        "contributions": 34
+        "login": "Ayush7614",
+        "url": "https://github.com/sponsors/Ayush7614",
+        "contributions": 45
       },
       {
-        "login": "thesurlydev",
-        "url": "https://github.com/sponsors/thesurlydev",
+        "login": "Nachiket-Roy",
+        "url": "https://github.com/sponsors/Nachiket-Roy",
         "contributions": 8
       }
     ]
+  },
+  {
+    "project_name": "TriSuElla-AIDLCA-Framework",
+    "repo_url": "https://github.com/OWASP/TriSuElla-AIDLCA-Framework",
+    "funding_url": "https://raw.githubusercontent.com/OWASP/TriSuElla-AIDLCA-Framework/HEAD/.github/FUNDING.yml",
+    "funding_details": "thundel",
+    "funding_links": [
+      {
+        "platform": "github",
+        "label": "GitHub Sponsors",
+        "handle": "thundel",
+        "url": "https://github.com/sponsors/thundel",
+        "owasp": false
+      }
+    ],
+    "contributor_sponsors": []
+  },
+  {
+    "project_name": "DecodeBox",
+    "repo_url": "https://github.com/OWASP/DecodeBox",
+    "funding_url": "https://raw.githubusercontent.com/OWASP/DecodeBox/HEAD/.github/FUNDING.yml",
+    "funding_details": "https://owasp.org/donate/?reponame=www-project-decodebox&title=OWASP+DecodeBox, OWASP",
+    "funding_links": [
+      {
+        "platform": "custom",
+        "label": "owasp.org",
+        "handle": "",
+        "url": "https://owasp.org/donate/?reponame=www-project-decodebox&title=OWASP+DecodeBox",
+        "owasp": true
+      },
+      {
+        "platform": "github",
+        "label": "GitHub Sponsors",
+        "handle": "OWASP",
+        "url": "https://github.com/sponsors/OWASP",
+        "owasp": true
+      }
+    ],
+    "contributor_sponsors": []
+  },
+  {
+    "project_name": "ASVS",
+    "repo_url": "https://github.com/OWASP/ASVS",
+    "funding_url": "https://raw.githubusercontent.com/OWASP/ASVS/HEAD/.github/FUNDING.yml",
+    "funding_details": "https://owasp.org/donate/?reponame=www-project-application-security-verification-standard&title=OWASP+Application+Security+Verification+Standard, OWASP",
+    "funding_links": [
+      {
+        "platform": "custom",
+        "label": "owasp.org",
+        "handle": "",
+        "url": "https://owasp.org/donate/?reponame=www-project-application-security-verification-standard&title=OWASP+Application+Security+Verification+Standard",
+        "owasp": true
+      },
+      {
+        "platform": "github",
+        "label": "GitHub Sponsors",
+        "handle": "OWASP",
+        "url": "https://github.com/sponsors/OWASP",
+        "owasp": true
+      }
+    ],
+    "contributor_sponsors": []
   },
   {
     "project_name": "BLT",
@@ -707,5 +693,119 @@
         "contributions": 53
       }
     ]
+  },
+  {
+    "project_name": "Juice Shop",
+    "repo_url": "https://github.com/juice-shop/juice-shop",
+    "funding_url": "https://raw.githubusercontent.com/juice-shop/juice-shop/HEAD/.github/FUNDING.yml",
+    "funding_details": "https://sponsor.owasp-juice.shop, OWASP",
+    "funding_links": [
+      {
+        "platform": "custom",
+        "label": "sponsor.owasp-juice.shop",
+        "handle": "",
+        "url": "https://sponsor.owasp-juice.shop",
+        "owasp": false
+      },
+      {
+        "platform": "github",
+        "label": "GitHub Sponsors",
+        "handle": "OWASP",
+        "url": "https://github.com/sponsors/OWASP",
+        "owasp": true
+      }
+    ],
+    "contributor_sponsors": []
+  },
+  {
+    "project_name": "MAS",
+    "repo_url": "https://github.com/OWASP/owasp-masvs",
+    "funding_url": "https://raw.githubusercontent.com/OWASP/owasp-masvs/HEAD/.github/FUNDING.yml",
+    "funding_details": "https://www.icrc.org/en/donate/ukraine",
+    "funding_links": [
+      {
+        "platform": "custom",
+        "label": "icrc.org",
+        "handle": "",
+        "url": "https://www.icrc.org/en/donate/ukraine",
+        "owasp": false
+      }
+    ],
+    "contributor_sponsors": []
+  },
+  {
+    "project_name": "ModSecurity Core Rule Set",
+    "repo_url": "https://github.com/coreruleset/coreruleset",
+    "funding_url": "https://raw.githubusercontent.com/coreruleset/coreruleset/HEAD/.github/FUNDING.yml",
+    "funding_details": "https://owasp.org/donate/?reponame=www-project-modsecurity-core-rule-set&title=OWASP+CRS",
+    "funding_links": [
+      {
+        "platform": "custom",
+        "label": "owasp.org",
+        "handle": "",
+        "url": "https://owasp.org/donate/?reponame=www-project-modsecurity-core-rule-set&title=OWASP+CRS",
+        "owasp": true
+      }
+    ],
+    "contributor_sponsors": []
+  },
+  {
+    "project_name": "Wrongsecrets",
+    "repo_url": "https://github.com/OWASP/wrongsecrets",
+    "funding_url": "https://raw.githubusercontent.com/OWASP/wrongsecrets/HEAD/.github/FUNDING.yml",
+    "funding_details": "https://owasp.org/donate/?reponame=www-project-wrongsecrets&title=OWASP+wrongsecrets, https://www.icrc.org/en/donate/ukraine, OWASP",
+    "funding_links": [
+      {
+        "platform": "custom",
+        "label": "owasp.org",
+        "handle": "",
+        "url": "https://owasp.org/donate/?reponame=www-project-wrongsecrets&title=OWASP+wrongsecrets",
+        "owasp": true
+      },
+      {
+        "platform": "custom",
+        "label": "icrc.org",
+        "handle": "",
+        "url": "https://www.icrc.org/en/donate/ukraine",
+        "owasp": false
+      },
+      {
+        "platform": "github",
+        "label": "GitHub Sponsors",
+        "handle": "OWASP",
+        "url": "https://github.com/sponsors/OWASP",
+        "owasp": true
+      }
+    ],
+    "contributor_sponsors": [
+      {
+        "login": "puneeth072003",
+        "url": "https://github.com/sponsors/puneeth072003",
+        "contributions": 76
+      }
+    ]
+  },
+  {
+    "project_name": "AMASS",
+    "repo_url": "https://github.com/owasp-amass/amass",
+    "funding_url": "https://raw.githubusercontent.com/owasp-amass/amass/HEAD/.github/FUNDING.yml",
+    "funding_details": "https://owasp.org/donate/?reponame=www-project-amass&title=OWASP+Amass, OWASP",
+    "funding_links": [
+      {
+        "platform": "custom",
+        "label": "owasp.org",
+        "handle": "",
+        "url": "https://owasp.org/donate/?reponame=www-project-amass&title=OWASP+Amass",
+        "owasp": true
+      },
+      {
+        "platform": "github",
+        "label": "GitHub Sponsors",
+        "handle": "OWASP",
+        "url": "https://github.com/sponsors/OWASP",
+        "owasp": true
+      }
+    ],
+    "contributor_sponsors": []
   }
 ]

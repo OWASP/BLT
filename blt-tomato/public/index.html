@@ -61,6 +61,17 @@
         .notice p:last-child { margin-bottom: 0; }
         .notice a { color: var(--brand-text); text-decoration: underline; text-underline-offset: 2px; }
 
+        .t1k {
+            display: flex; align-items: center; gap: 16px; margin-bottom: 18px; padding: 14px 18px;
+            border-radius: 16px; color: #fff; background: linear-gradient(120deg, #991b1b, #dc2626 55%, #f97316);
+            box-shadow: var(--shadow-lift); transition: transform .15s;
+        }
+        .t1k:hover { transform: translateY(-1px); }
+        .t1k-num { font: 800 30px/1 var(--sans); letter-spacing: -.04em; padding-right: 16px; border-right: 1px solid rgba(255,255,255,.35); }
+        .t1k-text { flex: 1; min-width: 0; }
+        .t1k-text b { display: block; font-size: 16px; }
+        .t1k-text span { opacity: .92; }
+        .t1k-go { font-size: 22px; }
         .stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin-bottom: 18px; }
         .stat { padding: 10px 14px; border: 1px solid var(--border); border-radius: 12px; background: var(--surface); box-shadow: var(--shadow); }
         .stat b { display: block; font-size: 20px; line-height: 26px; font-variant-numeric: tabular-nums; }
@@ -113,6 +124,8 @@
 </head>
 <body>
     <blt-nav project="blt-tomato" name="Tomato">
+        <a href="/" aria-current="page">Projects</a>
+        <a href="/1000">Tomato 1000</a>
         <a href="https://git.owaspblt.org/BLT/BLT-Tomato" slot="actions">Source</a>
     </blt-nav>
     <main class="wrap">
@@ -132,9 +145,14 @@
                 <p>Maintainers: replace an owasp.org/donate link in your <a href="https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/displaying-a-sponsor-button-in-your-repository">FUNDING.yml</a> with the project's own funding page or <a href="https://owasp.org/contact/">owasp.org/contact</a>, and this list picks it up within a week.</p>
             </div>
         </aside>
+        <a class="t1k" href="/1000">
+            <span class="t1k-num">1000</span>
+            <span class="t1k-text"><b>Tomato 1000</b><span>Help 1,000 OWASP developers reach $1,000 a month in GitHub Sponsors. See who is on the way and sponsor someone.</span></span>
+            <span class="t1k-go" aria-hidden="true">&rarr;</span>
+        </a>
         <section class="stats" aria-label="Totals">
-            <div class="stat"><b>25</b><span>projects with a FUNDING.yml</span></div>
-            <div class="stat"><b>11</b><span>with a funding link of their own</span></div>
+            <div class="stat"><b>30</b><span>projects with a FUNDING.yml</span></div>
+            <div class="stat"><b>13</b><span>with a funding link of their own</span></div>
             <div class="stat"><b>32</b><span>contributors on GitHub Sponsors</span></div>
         </section>
         <ul class="cards">
@@ -143,10 +161,6 @@
 <div>
 <p class="label">Fund the project</p>
 <p class="none">No funding link of its own yet.</p>
-</div>
-<div>
-<p class="label">Sponsor its contributors</p>
-<div class="links"><a class="person" href="https://github.com/sponsors/caffix" rel="noopener" title="caffix on GitHub Sponsors"><img src="https://avatars.githubusercontent.com/caffix?s=44" alt="" width="22" height="22" loading="lazy">caffix</a><a class="person" href="https://github.com/sponsors/rxerium" rel="noopener" title="rxerium on GitHub Sponsors"><img src="https://avatars.githubusercontent.com/rxerium?s=44" alt="" width="22" height="22" loading="lazy">rxerium</a><a class="person" href="https://github.com/sponsors/thesurlydev" rel="noopener" title="thesurlydev on GitHub Sponsors"><img src="https://avatars.githubusercontent.com/thesurlydev?s=44" alt="" width="22" height="22" loading="lazy">thesurlydev</a></div>
 </div>
 <p class="foundation">Also lists the OWASP Foundation (<a href="https://owasp.org/donate/?reponame=www-project-amass&amp;title=OWASP+Amass" rel="noopener">owasp.org/donate</a>, <a href="https://github.com/sponsors/OWASP" rel="noopener">GitHub Sponsors</a>); gifts there are no longer credited to this project. To give to it through OWASP, <a href="https://owasp.org/contact/" rel="noopener">contact the Foundation</a>.</p>
 </li>
@@ -188,6 +202,38 @@
 <div class="links"><a class="person" href="https://github.com/sponsors/Adarshkumar0509" rel="noopener" title="Adarshkumar0509 on GitHub Sponsors"><img src="https://avatars.githubusercontent.com/Adarshkumar0509?s=44" alt="" width="22" height="22" loading="lazy">Adarshkumar0509</a></div>
 </div>
 <p class="foundation">Also lists the OWASP Foundation (<a href="https://owasp.org/donate/?reponame=cornucopia&amp;title=OWASP+Cornucopia" rel="noopener">owasp.org/donate</a>, <a href="https://github.com/sponsors/OWASP" rel="noopener">GitHub Sponsors</a>); gifts there are no longer credited to this project. To give to it through OWASP, <a href="https://owasp.org/contact/" rel="noopener">contact the Foundation</a>.</p>
+</li>
+<li class="card">
+<div class="card-head"><h3><a href="https://github.com/OWASP/cve-lite-cli">cve-lite-cli</a></h3><span class="repo">OWASP/cve-lite-cli</span></div>
+<div>
+<p class="label">Fund the project</p>
+<p class="none">No funding link of its own yet.</p>
+</div>
+<div>
+<p class="label">Sponsor its contributors</p>
+<div class="links"><a class="person" href="https://github.com/sponsors/sonukapoor" rel="noopener" title="sonukapoor on GitHub Sponsors"><img src="https://avatars.githubusercontent.com/sonukapoor?s=44" alt="" width="22" height="22" loading="lazy">sonukapoor</a><a class="person" href="https://github.com/sponsors/Ayush7614" rel="noopener" title="Ayush7614 on GitHub Sponsors"><img src="https://avatars.githubusercontent.com/Ayush7614?s=44" alt="" width="22" height="22" loading="lazy">Ayush7614</a><a class="person" href="https://github.com/sponsors/Nachiket-Roy" rel="noopener" title="Nachiket-Roy on GitHub Sponsors"><img src="https://avatars.githubusercontent.com/Nachiket-Roy?s=44" alt="" width="22" height="22" loading="lazy">Nachiket-Roy</a></div>
+</div>
+<p class="foundation">Also lists the OWASP Foundation (<a href="https://owasp.org/donate/?reponame=cve-lite-cli&amp;title=OWASP+CVE+Lite+CLI" rel="noopener">owasp.org/donate</a>); gifts there are no longer credited to this project. To give to it through OWASP, <a href="https://owasp.org/contact/" rel="noopener">contact the Foundation</a>.</p>
+</li>
+<li class="card">
+<div class="card-head"><h3><a href="https://github.com/OWASP/DecodeBox">DecodeBox</a></h3><span class="repo">OWASP/DecodeBox</span></div>
+<div>
+<p class="label">Fund the project</p>
+<p class="none">No funding link of its own yet.</p>
+</div>
+<p class="foundation">Also lists the OWASP Foundation (<a href="https://owasp.org/donate/?reponame=www-project-decodebox&amp;title=OWASP+DecodeBox" rel="noopener">owasp.org/donate</a>, <a href="https://github.com/sponsors/OWASP" rel="noopener">GitHub Sponsors</a>); gifts there are no longer credited to this project. To give to it through OWASP, <a href="https://owasp.org/contact/" rel="noopener">contact the Foundation</a>.</p>
+</li>
+<li class="card">
+<div class="card-head"><h3><a href="https://github.com/OWASP/DockSec">DockSec</a></h3><span class="repo">OWASP/DockSec</span></div>
+<div>
+<p class="label">Fund the project</p>
+<p class="none">No funding link of its own yet.</p>
+</div>
+<div>
+<p class="label">Sponsor its contributors</p>
+<div class="links"><a class="person" href="https://github.com/sponsors/arkid15r" rel="noopener" title="arkid15r on GitHub Sponsors"><img src="https://avatars.githubusercontent.com/arkid15r?s=44" alt="" width="22" height="22" loading="lazy">arkid15r</a></div>
+</div>
+<p class="foundation">Also lists the OWASP Foundation (<a href="https://owasp.org/donate/?reponame=DockSec&amp;title=OWASP+DockSec" rel="noopener">owasp.org/donate</a>); gifts there are no longer credited to this project. To give to it through OWASP, <a href="https://owasp.org/contact/" rel="noopener">contact the Foundation</a>.</p>
 </li>
 <li class="card">
 <div class="card-head"><h3><a href="https://github.com/OWASP/Intelligent-Intrusion-Detection-System">Intelligent-Intrusion-Detection-System</a></h3><span class="repo">OWASP/Intelligent-Intrusion-Detection-System</span></div>
@@ -242,10 +288,6 @@
 <p class="label">Fund the project</p>
 <p class="none">No funding link of its own yet.</p>
 </div>
-<div>
-<p class="label">Sponsor its contributors</p>
-<div class="links"><a class="person" href="https://github.com/sponsors/Xhoenix" rel="noopener" title="Xhoenix on GitHub Sponsors"><img src="https://avatars.githubusercontent.com/Xhoenix?s=44" alt="" width="22" height="22" loading="lazy">Xhoenix</a></div>
-</div>
 <p class="foundation">Also lists the OWASP Foundation (<a href="https://owasp.org/donate/?reponame=www-project-modsecurity-core-rule-set&amp;title=OWASP+CRS" rel="noopener">owasp.org/donate</a>); gifts there are no longer credited to this project. To give to it through OWASP, <a href="https://owasp.org/contact/" rel="noopener">contact the Foundation</a>.</p>
 </li>
 <li class="card">
@@ -279,6 +321,18 @@
 <p class="none">No funding link of its own yet.</p>
 </div>
 <p class="foundation">Also lists the OWASP Foundation (<a href="https://owasp.org/donate/?reponame=www-project-o-saft&amp;title=OWASP+O-Saft" rel="noopener">owasp.org/donate</a>, <a href="https://github.com/sponsors/OWASP" rel="noopener">GitHub Sponsors</a>); gifts there are no longer credited to this project. To give to it through OWASP, <a href="https://owasp.org/contact/" rel="noopener">contact the Foundation</a>.</p>
+</li>
+<li class="card">
+<div class="card-head"><h3><a href="https://github.com/OWASP/owasp-java-encoder">owasp-java-encoder</a></h3><span class="repo">OWASP/owasp-java-encoder</span></div>
+<div>
+<p class="label">Fund the project</p>
+<div class="links"><a class="fund" href="https://manicode.com/funding.json" rel="noopener"><span>&#10084; manicode.com</span></a></div>
+</div>
+<div>
+<p class="label">Sponsor its contributors</p>
+<div class="links"><a class="person" href="https://github.com/sponsors/jeremylong" rel="noopener" title="jeremylong on GitHub Sponsors"><img src="https://avatars.githubusercontent.com/jeremylong?s=44" alt="" width="22" height="22" loading="lazy">jeremylong</a></div>
+</div>
+<p class="foundation">Also lists the OWASP Foundation (<a href="https://owasp.org/donate" rel="noopener">owasp.org/donate</a>); gifts there are no longer credited to this project. To give to it through OWASP, <a href="https://owasp.org/contact/" rel="noopener">contact the Foundation</a>.</p>
 </li>
 <li class="card">
 <div class="card-head"><h3><a href="https://github.com/OWASP/OWASP-VWAD">OWASP-VWAD</a></h3><span class="repo">OWASP/OWASP-VWAD</span></div>
@@ -326,6 +380,13 @@
 <div class="links"><a class="person" href="https://github.com/sponsors/adeyosemanputra" rel="noopener" title="adeyosemanputra on GitHub Sponsors"><img src="https://avatars.githubusercontent.com/adeyosemanputra?s=44" alt="" width="22" height="22" loading="lazy">adeyosemanputra</a><a class="person" href="https://github.com/sponsors/infosecdad" rel="noopener" title="infosecdad on GitHub Sponsors"><img src="https://avatars.githubusercontent.com/infosecdad?s=44" alt="" width="22" height="22" loading="lazy">infosecdad</a></div>
 </div>
 <p class="foundation">Also lists the OWASP Foundation (<a href="https://owasp.org/donate/?reponame=www-project-top-ten&amp;title=OWASP+Top+Ten" rel="noopener">owasp.org/donate</a>, <a href="https://github.com/sponsors/OWASP" rel="noopener">GitHub Sponsors</a>); gifts there are no longer credited to this project. To give to it through OWASP, <a href="https://owasp.org/contact/" rel="noopener">contact the Foundation</a>.</p>
+</li>
+<li class="card">
+<div class="card-head"><h3><a href="https://github.com/OWASP/TriSuElla-AIDLCA-Framework">TriSuElla-AIDLCA-Framework</a></h3><span class="repo">OWASP/TriSuElla-AIDLCA-Framework</span></div>
+<div>
+<p class="label">Fund the project</p>
+<div class="links"><a class="fund" href="https://github.com/sponsors/thundel" rel="noopener"><span>&#10084; GitHub Sponsors <small>thundel</small></span></a></div>
+</div>
 </li>
 <li class="card">
 <div class="card-head"><h3><a href="https://github.com/OWASP/wrongsecrets">Wrongsecrets</a></h3><span class="repo">OWASP/wrongsecrets</span></div>
