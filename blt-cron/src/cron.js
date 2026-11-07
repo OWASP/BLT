@@ -3,7 +3,7 @@ const RANGES = [
   [0, 23],
   [1, 31],
   [1, 12],
-  [0, 6],
+  [0, 7],
 ];
 
 function parseField(field, [min, max]) {
@@ -33,13 +33,17 @@ function parseField(field, [min, max]) {
 export function parseCron(expression) {
   const fields = String(expression).trim().split(/\s+/);
   if (fields.length !== 5) throw new Error(`cron needs 5 fields: "${expression}"`);
-  const dow = fields[4].replace(/\b7\b/g, "0");
+  const dow = parseField(fields[4], RANGES[4]);
+  if (dow.has(7)) {
+    dow.delete(7);
+    dow.add(0);
+  }
   return {
     minute: parseField(fields[0], RANGES[0]),
     hour: parseField(fields[1], RANGES[1]),
     day: parseField(fields[2], RANGES[2]),
     month: parseField(fields[3], RANGES[3]),
-    weekday: parseField(dow, RANGES[4]),
+    weekday: dow,
     dayAny: fields[2] === "*",
     weekdayAny: fields[4] === "*",
   };
