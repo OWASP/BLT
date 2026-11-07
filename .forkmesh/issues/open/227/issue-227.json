@@ -32,9 +32,22 @@
             "sig": "eX13L9VYsCgAL6n43gR9diZedBE4vAwe9lEooTq9gvz23iBYIvZHNfiZbd8NNKprm09Yd-jh8IC5eAngZ7kxBA",
             "ts": 1793985918471,
             "type": "claim"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-smart-labels-227",
+            "labels": [
+                "my-gsoc-tool"
+            ],
+            "sig": "_FIevfuHj6_yROM4o54XOkuIyxPvtj6PmnL1uGFYPjUXBF4B4V-nWiD_ot0SLul9xrL6Vt9_5cTJOpjFQlKEDg",
+            "ts": 1794025420133,
+            "type": "labels"
         }
     ],
-    "labels": [],
+    "labels": [
+        "my-gsoc-tool"
+    ],
     "milestone": "",
     "number": 227,
     "priority": 0,
@@ -43,6 +56,6 @@
     "startDate": 0,
     "status": "open",
     "title": "Fix the MY-GSOC-TOOL with anonymous values to the input attributes",
-    "updatedAt": 1793985918471,
+    "updatedAt": 1794025420133,
     "votes": 0
 }

@@ -240,6 +240,81 @@
       "title": "BLT-Design",
       "url": "https://design.owaspblt.org/",
       "description": "The BLT design system: colors, type, components."
+    },
+    "blt-home": {
+      "title": "BLT-Home",
+      "url": "https://owaspblt.org/",
+      "description": "The owaspblt.org homepage and the shared top bar."
+    },
+    "blt-action": {
+      "title": "BLT-Action",
+      "url": "https://git.owaspblt.org/BLT/tree/blt-action",
+      "description": "Issue and pull request automation, including /assign on the forge."
+    },
+    "blt-autopatch": {
+      "title": "BLT-Autopatch",
+      "url": "https://git.owaspblt.org/BLT/tree/blt-autopatch",
+      "description": "Reviewable security patch automation (early stage)."
+    },
+    "blt-cli": {
+      "title": "BLT-CLI",
+      "url": "https://git.owaspblt.org/BLT/tree/blt-cli",
+      "description": "Terminal client for BLT, written in Rust."
+    },
+    "blt-core": {
+      "title": "BLT-Core",
+      "url": "https://git.owaspblt.org/BLT/tree/blt-legacy",
+      "description": "The original BLT Django app, now kept as BLT-Legacy."
+    },
+    "blt-cron": {
+      "title": "BLT-Cron",
+      "url": "https://git.owaspblt.org/BLT/tree/blt-cron",
+      "description": "One Worker that runs every BLT Worker's scheduled jobs."
+    },
+    "blt-legacy": {
+      "title": "BLT-Legacy",
+      "url": "https://git.owaspblt.org/BLT/tree/blt-legacy",
+      "description": "The original BLT Django app, being replaced project by project."
+    },
+    "blt-mayo": {
+      "title": "BLT-Mayo",
+      "url": "https://git.owaspblt.org/BLT/tree/blt-mayo",
+      "description": "Read-only Linux security auditing with explainable findings."
+    },
+    "blt-netguardian-client": {
+      "title": "BLT-NetGuardian-Client",
+      "url": "https://git.owaspblt.org/BLT/tree/blt-netguardian-client",
+      "description": "Flutter client for BLT-NetGuardian."
+    },
+    "coderabbit": {
+      "title": "coderabbit",
+      "url": "https://git.owaspblt.org/BLT/tree/coderabbit",
+      "description": "Reference CodeRabbit review configuration."
+    },
+    "scripts": {
+      "title": "scripts",
+      "url": "https://git.owaspblt.org/BLT/tree/scripts",
+      "description": "Monorepo deploy, CI and README scripts."
+    },
+    "blt-timer-web": {
+      "title": "BLT-Timer (web)",
+      "url": "https://timer.owaspblt.org/",
+      "description": "Minimal manual work logs."
+    },
+    "blt-timer-flutter": {
+      "title": "BLT-Timer (Flutter app)",
+      "url": "https://git.owaspblt.org/BLT/tree/blt-timer",
+      "description": "Minimal manual work logs."
+    },
+    "blt-vanish-flutter": {
+      "title": "BLT-Vanish (Flutter app)",
+      "url": "https://git.owaspblt.org/BLT/tree/blt-vanish",
+      "description": "Find and remove your personal data online."
+    },
+    "forge": {
+      "title": "BLT forge",
+      "url": "https://git.owaspblt.org/forkmesh-blt",
+      "description": "git.owaspblt.org itself: issues, pull requests, chat and CI."
     }
   }
 }

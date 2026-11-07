@@ -63,9 +63,22 @@
             "sig": "IYnNWD0gRDqrj5lT1M21FCQ9GfoKomJdvzIIZIFV-afQsb2Y8SE7kdPd5tfoOHSGxRTOzWNyY2hYK3f9wp44BQ",
             "ts": 1793888553344,
             "type": "claim"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-smart-labels-224",
+            "labels": [
+                "blt-leaf"
+            ],
+            "sig": "DA8pZ_oDC7t5QXJ8-pW6kxyuZ_krz_7F4ZGCXJ92m2id4VKw3sA6D6Ba6rOVVfvkkpa-2UzWG1HgevJlzXhiCw",
+            "ts": 1794025420133,
+            "type": "labels"
         }
     ],
-    "labels": [],
+    "labels": [
+        "blt-leaf"
+    ],
     "milestone": "",
     "number": 224,
     "priority": 0,
@@ -74,6 +87,6 @@
     "startDate": 0,
     "status": "open",
     "title": "Windows: BLT-Leaf data display tests cannot spawn npx.cmd",
-    "updatedAt": 1793888553344,
+    "updatedAt": 1794025420133,
     "votes": 0
 }

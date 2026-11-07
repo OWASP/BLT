@@ -82,9 +82,22 @@
             "sig": "bYkv3C2S1Q99wBf-6luipPwfldbzJeNN-MOn37X47ksylj2Q-CqvEQM4IKgNGBem2D-tLQEVR7R137r3CH_uDw",
             "ts": 1793808288462,
             "type": "claim"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-smart-labels-226",
+            "labels": [
+                "forge"
+            ],
+            "sig": "_Lb_5HmA6wd5UJyKOJYnmP35EEx4_MSZtnb1UP4Wj6M6ucBV85gZkOvDNTxgTCuA7ZXkRNVYKCzZV6xujgPTAA",
+            "ts": 1794025420133,
+            "type": "labels"
         }
     ],
-    "labels": [],
+    "labels": [
+        "forge"
+    ],
     "milestone": "",
     "number": 226,
     "priority": 0,
@@ -93,6 +106,6 @@
     "startDate": 0,
     "status": "open",
     "title": "forge: allow authors to edit their own pull-request comments",
-    "updatedAt": 1793808288462,
+    "updatedAt": 1794025420133,
     "votes": 3
 }

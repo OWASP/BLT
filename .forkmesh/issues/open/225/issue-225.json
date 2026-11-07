@@ -43,9 +43,22 @@
             "sig": "WOObXkBXKa4bzHB_7h9rt4Aw25W2MnT5tMKdrCOCd6z1rx9Qch5U6ZhF2s9ySQXPNiC0QFVifY76TNy8aJDvBQ",
             "ts": 1793623147569,
             "type": "comment"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-smart-labels-225",
+            "labels": [
+                "blt-pages"
+            ],
+            "sig": "XLFuk0zj8w6Kc4NUeMf9kEysDLOo035xaNfk8Go3mw3oGO9LRj2vfxfa05rgWFnzaxiWtk596KuPDsc-sz9VAw",
+            "ts": 1794025420133,
+            "type": "labels"
         }
     ],
-    "labels": [],
+    "labels": [
+        "blt-pages"
+    ],
     "milestone": "",
     "number": 225,
     "priority": 0,
@@ -54,6 +67,6 @@
     "startDate": 0,
     "status": "open",
     "title": "[UI] Empty-state icons in Leaderboard cards are misaligned and pushed against the left border",
-    "updatedAt": 1793623147569,
+    "updatedAt": 1794025420133,
     "votes": 0
 }

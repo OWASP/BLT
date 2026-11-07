@@ -43,9 +43,22 @@
             "sig": "Dlo8lPv3CASICxNQ3sS78Wh8dzhskrBEHD2-oYRbdaY56N5Act2qUI1uycvGBdnZK_WN4RMKsekv1CgFX0tBDA",
             "ts": 1792499661636,
             "type": "claim"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-smart-labels-40",
+            "labels": [
+                "blt-next"
+            ],
+            "sig": "4ae0tulDllzt95boYHgSefD2Umn8BsP_UJMsqa5VPO3NTttn7IAnRyp5T8YtbVY7V7UR8E3KCsMO_GYMfxy-BQ",
+            "ts": 1794025420131,
+            "type": "labels"
         }
     ],
-    "labels": [],
+    "labels": [
+        "blt-next"
+    ],
     "milestone": "",
     "number": 40,
     "priority": 0,
@@ -54,6 +67,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-next : Automatically shifts to light mode when clicks on login/signup",
-    "updatedAt": 1792499661636,
+    "updatedAt": 1794025420131,
     "votes": 0
 }

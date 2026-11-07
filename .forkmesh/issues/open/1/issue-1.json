@@ -18,9 +18,22 @@
             "title": "deply the new website Kaif made",
             "ts": 1792290689619,
             "type": "open"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-smart-labels-1",
+            "labels": [
+                "blt-home"
+            ],
+            "sig": "gq8IJo5hVUT1VdmFOsw08x-MJqeY96DgMaDwQ6P7h0jJItt15GXthKn3ji0MZrV2ShTOEzScSutT8ZN9NC_sDw",
+            "ts": 1794025420131,
+            "type": "labels"
         }
     ],
-    "labels": [],
+    "labels": [
+        "blt-home"
+    ],
     "milestone": "",
     "number": 1,
     "priority": 0,
@@ -29,6 +42,6 @@
     "startDate": 0,
     "status": "open",
     "title": "deply the new website Kaif made",
-    "updatedAt": 1792290689619,
+    "updatedAt": 1794025420131,
     "votes": 0
 }

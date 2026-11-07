@@ -49,7 +49,7 @@
             "author": "6I64fbHumctKTTTVZW0cDPBfOLWC46GD_JhZa7h9aX8",
             "authorName": "owasp-blt-actions",
             "authorVerified": true,
-            "body": "@arnavghai19 you're assigned to this issue. Please open a pull request for it within 24 hours. Without a pull request or an update from you here for 24 hours, you'll be unassigned (after a warning). If you stop working on it, comment `/unassign` so someone else can pick it up. \u003c!-- blt-assign:f6af128a12c83e97678c --\u003e",
+            "body": "@arnavghai19 you're assigned to this issue. Please open a pull request for it within 24 hours. Without a pull request or an update from you here for 24 hours, you'll be unassigned (after a warning). If you stop working on it, comment `/unassign` so someone else can pick it up. <!-- blt-assign:f6af128a12c83e97678c -->",
             "id": "actions-1792906818497-od15KA6G",
             "sig": "MrJUt_LX5aFH5TRWGnRmdooC9OQDTMuAsNrpgiNk_N5ZcUirK1MkftvssEa_eO9Ty-DBoMVDkTASKjhKnBS5Cw",
             "ts": 1792906818497,
@@ -64,9 +64,22 @@
             "status": "closed",
             "ts": 1792907648415,
             "type": "status"
+        },
+        {
+            "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
+            "authorName": "blt-tasks[bot]",
+            "id": "blt-tasks-smart-labels-221",
+            "labels": [
+                "blt-leaf"
+            ],
+            "sig": "qAAi3demWaypeyzicRu2pzAI1hjsF5uIlSkEVEbWMlIvPLst-kDRgd1cTVT6eSt8VsDnqxo0JmvsKSeJWIokBQ",
+            "ts": 1794025420131,
+            "type": "labels"
         }
     ],
-    "labels": [],
+    "labels": [
+        "blt-leaf"
+    ],
     "milestone": "",
     "number": 221,
     "priority": 0,
@@ -75,6 +88,6 @@
     "startDate": 0,
     "status": "closed",
     "title": "blt-leaf: COMMENTED reviews incorrectly overwrite approval and change-request status",
-    "updatedAt": 1792907648415,
+    "updatedAt": 1794025420131,
     "votes": 0
 }
