@@ -61,7 +61,16 @@ mapfile -t folders < <(git -C "$ROOT" ls-files \
   | grep -v '/node_modules/' | grep / | cut -d/ -f1 | sort -u)
 echo "=== Renovate $RENOVATE_VERSION lookup (renovate.json), ${#folders[@]} folders"
 failed=()
+# The job installs Renovate with --ignore-scripts, so the optional re2 addon is never built and every
+# Renovate process warns "RE2 not usable, falling back to RegExp" with a 30-line stack trace. The
+# fallback is fine; drop that warning (its indented lines included) so the log shows what matters.
+drop_re2_warning() {
+  awk '/^ WARN: RE2 not usable/ { skip = 1; next } skip && /^  / { next } { skip = 0; print; fflush() }'
+}
+n=0
 for folder in "${folders[@]}"; do
+  n=$((n + 1))
+  echo "--- $folder ($n/${#folders[@]})"
   if ! (
     cd "$ROOT"
     export LOG_LEVEL="${LOG_LEVEL:-warn}"
@@ -77,8 +86,8 @@ for folder in "${folders[@]}"; do
     if [[ -n "${GH_API_TOKEN:-}" ]]; then export RENOVATE_GITHUB_COM_TOKEN="$GH_API_TOKEN"; fi
     unset GITHUB_TOKEN FORKMESH_TOKEN BLT_RENOVATE_SEED GH_API_TOKEN
     "$node_dir/bin/node" --max-old-space-size="$RENOVATE_HEAP_MB" --max-semi-space-size=4 \
-      "$renovate_dir/node_modules/renovate/dist/renovate.js"
-  ); then
+      "$renovate_dir/node_modules/renovate/dist/renovate.js" 2>&1
+  ) | drop_re2_warning; then
     echo "--- $folder: Renovate failed" >&2
     failed+=(--failed "$folder")
   fi
