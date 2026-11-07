@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Suggested projects to archive · OWASP Bumper</title>
+  <meta name="description" content="OWASP projects that look finished, with the evidence for each: a list for the Project working group to archive or mark inactive.">
+  <link rel="icon" href="https://owaspblt.org/_home/symbols/blt-owasp-bumper.svg" type="image/svg+xml">
+  <script>
+    // Before first paint: the saved OWASP BLT theme (localStorage "theme"), else the system preference.
+    (function () {
+      var saved = null;
+      try { saved = localStorage.getItem("theme"); } catch (e) { saved = null; }
+      var dark = saved === "dark" || (saved !== "light" && window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches);
+      document.documentElement.classList.toggle("dark", dark);
+    })();
+  </script>
+  <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
+  <script type="module" src="sweep-app.js"></script>
+  <link rel="stylesheet" href="bumper.css">
+  <style>
+    .lede { max-width: 80ch; margin: 0 0 12px; color: var(--muted); }
+    .tiles { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+    .tile .dot.bad { background: var(--bad); } .tile .dot.warn { background: var(--warn); }
+    .tile .dot.ok { background: var(--ok); } .tile .dot.info { background: var(--faint); }
+    .rec { display: inline-block; padding: 1px 8px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; }
+    .rec.bad { color: #fff; background: var(--bad); }
+    .rec.warn { color: var(--warn); background: var(--warn-bg); }
+    .rec.info { color: var(--muted); background: var(--chip); }
+    .rec.ok { color: var(--ok); background: var(--ok-bg); }
+    .caution { display: block; margin-top: 3px; font-size: 11px; color: var(--warn); white-space: normal; }
+    .evidence { margin: 0; padding: 0; list-style: none; font-size: 13px; }
+    .evidence li { display: flex; gap: 6px; align-items: baseline; }
+    .evidence .pts { flex: none; min-width: 30px; text-align: right; font-size: 11px; font-weight: 700; font-variant-numeric: tabular-nums; }
+    .evidence .against .pts { color: var(--bad); }
+    .evidence .for .pts { color: var(--ok); }
+    .evidence .for { color: var(--muted); }
+    .evidence .info { color: var(--faint); }
+    .links { display: flex; flex-wrap: wrap; gap: 2px 10px; margin-top: 2px; font-size: 12px; }
+    .links a { color: var(--muted); }
+    .links a:hover { color: var(--red-text); }
+    .c-ev { min-width: 320px; }
+    th.num button { width: 100%; text-align: right; }
+    .export { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin: 0 0 8px; }
+    .export .grow { flex: 1; }
+    @media (max-width: 900px) { .tiles { grid-template-columns: repeat(3, minmax(0, 1fr)); } .c-stars, .c-level { display: none; } }
+    @media (max-width: 640px) {
+      table { table-layout: auto; }
+      thead { display: none; }
+      tbody tr { display: block; padding: 8px 4px; border-bottom: 1px solid var(--border); }
+      tbody td { display: block; border: 0; padding: 3px 8px; }
+      .c-score, .c-last { display: block; }
+      .c-ev { min-width: 0; }
+      .export .btn { flex: 1 1 auto; }
+    }
+  </style>
+</head>
+<body>
+  <blt-nav project="blt-owasp-bumper" name="Bumper" data-sticky>
+    <a href="./">Repositories</a>
+    <a href="sweep">Suggested archives</a>
+    <a href="#how">How it's scored</a>
+    <a href="https://git.owaspblt.org/BLT/tree/blt-owasp-bumper" slot="actions" target="_blank" rel="noopener">Source</a>
+  </blt-nav>
+
+  <main class="wrap">
+    <div class="head">
+      <h1>Suggested projects to archive</h1>
+      <p class="stamp" id="stamp">Loading projects…</p>
+    </div>
+    <p class="lede">Every project in the <a href="https://owasp.org/projects/">owasp.org inventory</a>, plus the
+      active <code>www-project</code> repositories it doesn't list, checked against GitHub. Each suggestion lists
+      the evidence behind it, so the Project working group can review it before archiving a project or marking
+      it inactive. <a href="#how">How it's scored</a>.</p>
+
+    <div class="tiles" id="tiles" aria-label="Recommendations"></div>
+
+    <form class="toolbar" id="filters" role="search" onsubmit="return false">
+      <input type="search" name="q" placeholder="Search project, repository, leader…" aria-label="Search" autocomplete="off">
+      <select name="rec" aria-label="Recommendation">
+        <option value="suggested">All suggestions</option>
+        <option value="archive">Archive</option>
+        <option value="inactive">Mark inactive</option>
+        <option value="delisted">Archive website repo</option>
+        <option value="ask">Ask leaders first</option>
+        <option value="unlisted_active">Active, not listed</option>
+        <option value="active">Active</option>
+        <option value="all">Every project</option>
+      </select>
+      <select name="level" aria-label="Level">
+        <option value="">Any level</option>
+        <option value="flagship">Flagship</option>
+        <option value="production">Production</option>
+        <option value="lab">Lab</option>
+        <option value="incubator">Incubator</option>
+        <option value="other">Other</option>
+      </select>
+    </form>
+
+    <div class="export">
+      <span class="muted" id="count" aria-live="polite"></span>
+      <span class="grow"></span>
+      <button type="button" class="btn" id="copy">Copy list for the working group</button>
+      <button type="button" class="btn" id="csv">Download CSV</button>
+      <p class="msg" id="msg" role="status" aria-live="polite"></p>
+    </div>
+
+    <div class="card">
+      <table>
+        <thead>
+          <tr>
+            <th><button type="button" data-sort="title">Project</button></th>
+            <th class="c-level"><button type="button" data-sort="level">Level</button></th>
+            <th><button type="button" data-sort="rec">Suggestion</button></th>
+            <th class="num c-score"><button type="button" data-sort="score">Score</button></th>
+            <th class="c-last"><button type="button" data-sort="idle">Last activity</button></th>
+            <th class="c-ev">Evidence</th>
+            <th class="num c-stars"><button type="button" data-sort="stars">Stars</button></th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+
+    <details class="about" id="how" open>
+      <summary>How it's scored</summary>
+      <p>Each project gets points for evidence that it has ended and loses points for evidence that it is alive.
+        The points add up to a score from 0 to 100, which picks the suggestion: <strong>Archive</strong> at 70 or
+        more, <strong>Mark inactive</strong> at 45, <strong>Ask leaders first</strong> at 25. Hover a score for its sum.</p>
+      <h3>Against (adds points)</h3>
+      <ul>
+        <li><strong>Idle:</strong> 15 points a year (up to 60) since the last commit by a person or the last release on
+          the project's code repository. Bot commits (Dependabot, GitHub Actions…) don't count. The website repository
+          (<code>www-project-…</code>) only counts when it is the project's only repository, because OWASP staff edit
+          every project site in bulk.</li>
+        <li><strong>Archived repository:</strong> 60 when the repository owasp.org links is archived on GitHub while the
+          project is still listed (it ended, or moved and the link is stale).</li>
+        <li><strong>Missing repository:</strong> 40 when it doesn't exist (404), 25 when owasp.org lists none.</li>
+        <li><strong>Says it's finished:</strong> 30 when its description says deprecated, unmaintained, moved to…</li>
+        <li><strong>Never set up:</strong> 20 when its owasp.org page is still the unedited www-project template.</li>
+        <li><strong>Unanswered reminder:</strong> 20 for a <a href="./">Bumper</a> reminder (or a hand-written
+          "still maintained?" issue) open for a month with no reply, 10 for one closed without a reply.</li>
+        <li><strong>Ignored contributions:</strong> 8 for three or more pull requests by people untouched for a year.</li>
+      </ul>
+      <h3>For (takes points away)</h3>
+      <ul>
+        <li>A commit in the last 90 days (−30), a release in the last year (−25), a maintainer's reply to a reminder
+          (−15), and 1,000 or more stars (−10: widely used, so new leaders are worth looking for first).</li>
+      </ul>
+      <h3>Held back for review</h3>
+      <ul>
+        <li>Flagship and Production projects, and projects whose linked repository is archived while their website
+          was edited this year, never go above <strong>Ask leaders first</strong>; the row says what the score alone
+          would suggest.</li>
+        <li><strong>Archive website repo:</strong> projects no longer in the owasp.org inventory whose
+          <code>www-project</code> repository is still open and idle. <strong>Active, not listed:</strong> the same, with
+          recent commits: worth asking whether they belong in the inventory.</li>
+      </ul>
+      <h3>Data</h3>
+      <p>Refreshed daily: the owasp.org project inventory and each project's GitHub statistics from the
+        <a href="https://projects.owaspblt.org/">OWASP Project Matrix</a>; the last commit by a person, archived
+        status, reminder issues and website templates from Bumper's own scan of the
+        <a href="https://github.com/OWASP">OWASP organization</a>; open pull requests from the Matrix. For repositories
+        outside the OWASP organization the last commit may be a bot's. Every suggestion is a starting point for a
+        person to check, not a decision.</p>
+    </details>
+  </main>
+</body>
+</html>

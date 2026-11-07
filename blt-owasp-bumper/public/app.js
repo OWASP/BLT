@@ -10,7 +10,7 @@ const PAGE = 200;
 const BUMPED_KEY = "bumper-bumped";
 const KIND_LABEL = { project: "Project", site: "Project site", chapter: "Chapter", other: "Repo" };
 const KIND_TITLE = {
-  project: "Its GitHub homepage is its owasp.org project page",
+  project: "An owasp.org project: its GitHub homepage is the project page, or owasp.org names it as the project's code",
   site: "An owasp.org project website repo (www-project-*)",
   chapter: "An owasp.org chapter website repo (www-chapter-*)",
   other: "Not linked to an owasp.org project page: set the repo's homepage to link it (see Why am I seeing this?)",

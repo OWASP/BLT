@@ -12,6 +12,7 @@ on:
     branches: [main]
     paths:
       - blt-owasp-bumper/generate_repo_list.py
+      - blt-owasp-bumper/generate_sweep.py
       - blt-owasp-bumper/scripts/refresh-kv.sh
       - .forkmesh/blt-owasp-bumper--generate-repo-list.yml
 permissions:

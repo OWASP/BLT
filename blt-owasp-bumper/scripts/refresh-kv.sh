@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Regenerate the repository data into KV (run by .forkmesh/blt-owasp-bumper--generate-repo-list.yml).
+# Regenerate the repository data and the sweep into KV (run by .forkmesh/blt-owasp-bumper--generate-repo-list.yml).
 #
 #   scripts/refresh-kv.sh                    generate, then write public/data/repos.json to KV
 #   KV_PUT_DRY_RUN=1 scripts/refresh-kv.sh   generate, show what would be written
@@ -27,4 +27,12 @@ if (( after == 0 || after * 2 < before )); then
   echo "not writing data/repos.json: $after repositories (was $before)" >&2
   exit 1
 fi
-"$ROOT/scripts/worker-data/kv-put.sh" . "$PUB" "$data"
+# The sweep (sweep.html) joins this data with the OWASP Project Matrix's; when that fails, the
+# repository list is still written.
+sweep="$PUB/data/sweep.json"
+if REPOS_FILE="$data" OUTPUT_FILE="$sweep" "$PYTHON" generate_sweep.py; then
+  "$ROOT/scripts/worker-data/kv-put.sh" . "$PUB" "$data" "$sweep"
+else
+  echo "warning: generate_sweep.py failed; writing data/repos.json only" >&2
+  "$ROOT/scripts/worker-data/kv-put.sh" . "$PUB" "$data"
+fi

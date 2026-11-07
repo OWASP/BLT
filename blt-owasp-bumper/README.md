@@ -53,7 +53,7 @@ Types come from what GitHub shows, not from OWASP project status:
 
 | Type | Rule |
 | --- | --- |
-| Project | the repo's homepage (*About → Website*) is its owasp.org project page (`owasp.org/projects/<slug>` or `owasp.org/www-project-<slug>`); the pill links to it |
+| Project | the repo's homepage (*About → Website*) is its owasp.org project page (`owasp.org/projects/<slug>` or `owasp.org/www-project-<slug>`), or the owasp.org inventory names it as a project's code; the pill links to the project page |
 | Project site | an owasp.org project website repo (`www-project-*`) |
 | Chapter | a chapter website repo (`www-chapter-*`) |
 | Repo | anything else; a maintainer links it by setting the homepage |
@@ -70,14 +70,40 @@ Why tabs and not the API: the repositories are OWASP's, on GitHub, and Bumper ha
 credentials of its own. A prefilled form lets each reminder go out under the volunteer's own
 account, after they've read it, with no token to store.
 
+## Suggested projects to archive (`/sweep`)
+
+[bumper.owaspblt.org/sweep](https://bumper.owaspblt.org/sweep) lists OWASP projects that look
+finished, for the Project working group to archive or mark inactive. It covers every project in the
+[owasp.org inventory](https://owasp.org/projects/) plus the active `www-project-*` repositories it
+doesn't list, and gives each one a score from 0 to 100 with the evidence behind every point:
+
+- **Against** (adds points): years since the last commit by a person or release on its code
+  repository (15 a year, up to 60); the repository owasp.org links is archived (60), missing (40) or
+  absent (25); its description says deprecated / moved (30); its owasp.org page is still the
+  www-project template (20); a reminder issue unanswered for a month (20) or closed without a reply
+  (10); three or more contributors' pull requests untouched for a year (8).
+- **For** (takes points away): a commit in 90 days (−30), a release in the last year (−25), a
+  maintainer's reply to a reminder (−15), 1,000+ stars (−10).
+
+Archive at 70, Mark inactive at 45, Ask leaders first at 25. Flagship and Production projects, and
+archived links whose project website was edited this year, are held at Ask leaders first. Projects
+no longer in the inventory get *Archive website repo* (idle) or *Active, not listed*. The page
+exports the list as a Markdown checklist grouped by suggestion (with the evidence) or as CSV. The
+scoring lives in `public/sweep.js`, tested under Node like `bumper.js`.
+
+`generate_sweep.py` (standard library, no GitHub requests) builds `public/data/sweep.json` after
+`generate_repo_list.py`, joining Bumper's repositories with the
+[OWASP Project Matrix](https://projects.owaspblt.org/)'s `repo_status.json` and `open_prs.json`.
+
 ## How it works
 
 | Piece | What it does |
 | --- | --- |
-| `generate_repo_list.py` | Writes `public/data/repos.json` for every repo in the org (standard library only). With `GITHUB_TOKEN` it uses one GraphQL query per 25 repos (about 60 requests, ~5 minutes; a page GitHub times out is retried at half the size): stars, forks, open issues and PRs, the last 5 commits (so bot commits can be skipped), topics and `index.md` front matter. Before, it made about 4 REST requests per repo (~5,800). Without a token it falls back to the REST repo list (about 15 requests; no PR counts, last commit or front matter). Either way it then finds reminder issues and their last replies (two searches plus one request per reminder with replies). |
-| `public/index.html`, `public/app.js`, `public/bumper.js` | The static page. `bumper.js` holds the filtering, sorting and link logic (tested under Node); `app.js` draws the page. It uses the shared OWASP BLT bar (`blt-nav.js`) for the header and theme toggle. |
-| `worker/index.js` | Serves `/data/repos.json` from Workers KV, falling back to the committed copy in `public/data/`. Everything else is static. |
-| `scripts/refresh-kv.sh` | Regenerates the data and writes it to KV, unless it lists fewer than half as many repositories as before. Run daily by `.forkmesh/blt-owasp-bumper--generate-repo-list.yml` (monorepo root). |
+| `generate_repo_list.py` | Writes `public/data/repos.json` for every repo in the org (standard library only). Repositories an owasp.org project names as its code or website are linked to it (title, level) through the Project Matrix's `repo_status.json`, so a project's code repo is a *Project* without a homepage set; `template_page` marks a www-project site whose `index.md` is still the template. With `GITHUB_TOKEN` it uses one GraphQL query per 25 repos (about 60 requests, ~5 minutes; a page GitHub times out is retried at half the size): stars, forks, open issues and PRs, the last 5 commits (so bot commits can be skipped), topics and `index.md` front matter. Before, it made about 4 REST requests per repo (~5,800). Without a token it falls back to the REST repo list (about 15 requests; no PR counts, last commit or front matter). Either way it then finds reminder issues and their last replies (two searches plus one request per reminder with replies). |
+| `generate_sweep.py`, `public/sweep.html`, `public/sweep-app.js`, `public/sweep.js` | The suggested-archive list (above). |
+| `public/index.html`, `public/app.js`, `public/bumper.js`, `public/bumper.css` | The static page. `bumper.js` holds the filtering, sorting and link logic (tested under Node); `app.js` draws the page. It uses the shared OWASP BLT bar (`blt-nav.js`) for the header and theme toggle. |
+| `worker/index.js` | Serves `/data/repos.json` and `/data/sweep.json` from Workers KV, falling back to the committed copy in `public/data/`. Everything else is static. |
+| `scripts/refresh-kv.sh` | Regenerates the data and the sweep and writes them to KV, unless it lists fewer than half as many repositories as before. Run daily by `.forkmesh/blt-owasp-bumper--generate-repo-list.yml` (monorepo root). |
 
 ## Development
 

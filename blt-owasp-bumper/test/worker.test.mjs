@@ -28,7 +28,7 @@ test("data/repos.json comes from KV, falling back to the committed file; the pag
 
 test("wrangler.toml runs the Worker first for the page", () => {
   const toml = readFileSync(new URL("../wrangler.toml", import.meta.url), "utf8");
-  assert.match(toml, /^run_worker_first = \["\/data\/repos\.json"\]$/m);
+  assert.match(toml, /^run_worker_first = \["\/data\/repos\.json", "\/data\/sweep\.json"\]$/m);
   assert.match(toml, /binding = "DATA"\nid = "[0-9a-f]{32}"/);
 });
 
@@ -54,7 +54,9 @@ test("refresh-kv.sh writes the data only when it lists enough repositories", () 
     assert.equal(bad.status, 1);
     assert.match(bad.stderr, /not writing data\/repos\.json: 12 repositories \(was 1000\)/);
     writeFileSync(join(pub, "data", "repos.json"), '{"total":1000}');
-    assert.match(execFileSync("bash", ["scripts/refresh-kv.sh"], opts("990")), /would write data\/repos\.json/);
+    const out = execFileSync("bash", ["scripts/refresh-kv.sh"], opts("990"));
+    assert.match(out, /would write data\/repos\.json/);
+    assert.match(out, /would write data\/sweep\.json/);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }

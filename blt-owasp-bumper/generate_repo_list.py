@@ -6,8 +6,11 @@ Fetch every repository in the OWASP GitHub organization and write the data the B
     GITHUB_TOKEN=... python3 generate_repo_list.py   # full data: GraphQL, 25 repos per request (~60, ~5 min)
     python3 generate_repo_list.py                    # no token: REST repo list (~15 requests)
 
-Both also look up reminder issues (2 searches, plus one request per reminder with replies).
-Environment: GITHUB_ORG (owasp), OUTPUT_FILE (public/data/repos.json).
+Both also look up reminder issues (2 searches, plus one request per reminder with replies), and
+link repositories to owasp.org projects with the OWASP Project Matrix's repo_status.json
+(projects.owaspblt.org, built from the owasp.org inventory): a repository an inventory project names
+as its code is a "project", and gets that project's title and level.
+Environment: GITHUB_ORG (owasp), OUTPUT_FILE (public/data/repos.json), PROJECTS_URL.
 """
 
 import json
@@ -125,6 +128,10 @@ def _graphql(query: str, variables: Dict, token: str) -> Dict:
     return data["data"]
 
 
+# The text of the www-project template's index.md: a project page nobody filled in still has it
+# (blt-owasp-projects/scripts/sweep.py looks for the same line).
+TEMPLATE_PAGE = "This is an example of a Project or Chapter Page"
+
 # Commit authors that are automation, not maintainers (same list as public/bumper.js).
 BOT = re.compile(r"\[bot\]$|^(dependabot|renovate|github-actions|owasp-?bot|owasp-nest|snyk-bot|allcontributors)|bot$", re.I)
 
@@ -171,6 +178,7 @@ def _rest_shape(node: Dict) -> Dict:
             "date": commit.get("committedDate", ""),
         } if commit else {},
         "index_md": parse_yaml_frontmatter(index_text) if index_text else {},
+        "template_page": TEMPLATE_PAGE in index_text,
         "human_at": human_at,
         "bot_only": bool(history) and not humans,
     }
@@ -312,15 +320,51 @@ def project_page(homepage: str) -> str:
     return f"https://owasp.org/projects/{m.group(1).lower()}" if m else ""
 
 
-def repo_kind(name: str, page: str) -> str:
+def repo_kind(name: str, page: str, linked: bool = False) -> str:
     """site: an owasp.org project website repo (www-project-*); project: a repo whose homepage is
-    its owasp.org project page; chapter: a chapter website repo; other: everything else."""
+    its owasp.org project page, or that an owasp.org project names as its code; chapter: a chapter
+    website repo; other: everything else."""
     lower = name.lower()
     if lower.startswith("www-project-"):
         return "site"
     if lower.startswith("www-chapter-"):
         return "chapter"
-    return "project" if page else "other"
+    return "project" if page or linked else "other"
+
+
+PROJECTS_URL = "https://projects.owaspblt.org/repo_status.json"
+LEVEL_NUMBER = {"flagship": 4, "production": 3.5, "lab": 3, "incubator": 2}
+
+
+def fetch_projects(url: str = PROJECTS_URL) -> List[Dict]:
+    """The OWASP Project Matrix's projects (owasp.org inventory plus unlisted www-project repos);
+    [] when it can't be read, so the repo list never depends on it."""
+    try:
+        req = urllib.request.Request(url, headers={"User-Agent": "OWASP-Bumper-Repo-List-Generator"})
+        with urllib.request.urlopen(req, timeout=60) as response:
+            data = json.loads(response.read().decode())
+        return data if isinstance(data, list) else []
+    except Exception as exc:
+        print(f"Warning: project list from {url} failed: {exc}", file=sys.stderr)
+        return []
+
+
+def project_links(projects: List[Dict], org: str) -> Dict[str, Dict]:
+    """{lower-case repo name in the org: its project} for code and website repos. A repo named by
+    several projects keeps the first listed one."""
+    links: Dict[str, Dict] = {}
+    prefix = f"{org.lower()}/"
+    for p in sorted(projects, key=lambda p: p.get("listed") is False):
+        info = {
+            "slug": p.get("slug", ""), "title": p.get("title") or p.get("name", ""),
+            "level": p.get("level", ""), "listed": p.get("listed") is not False,
+            "page": p.get("url", ""),
+        }
+        for role, full in (("code", p.get("repo_name")), ("site", p.get("www_repo"))):
+            full = (full or "").lower()
+            if full.startswith(prefix):
+                links.setdefault(full[len(prefix):], {**info, "role": role})
+    return links
 
 
 def repo_record(repo: Dict) -> Dict:
@@ -328,7 +372,8 @@ def repo_record(repo: Dict) -> Dict:
     index_md = repo.get("index_md") or {}
     last_commit = repo.get("last_commit") or {}
     name = repo.get("name", "")
-    page = project_page(repo.get("homepage", ""))
+    linked = repo.get("project") or {}
+    page = project_page(repo.get("homepage", "")) or linked.get("page", "")
     topics = repo.get("topics") or []
     record = {
         "name": name,
@@ -351,14 +396,16 @@ def repo_record(repo: Dict) -> Dict:
         "template": bool(repo.get("is_template")),
         "empty": repo.get("size") == 0,
         "reminder": repo.get("open_reminder") or {},
-        "kind": repo_kind(name, page),
+        "kind": repo_kind(name, page, linked.get("role") == "code"),
+        "project": {k: linked[k] for k in ("slug", "title", "level", "listed", "role")} if linked else {},
+        "template_page": bool(repo.get("template_page")),
         "project_page": page,
         "opted_out": bool(OPT_OUT_TOPICS & {t.lower() for t in topics}),
         "commit": {k: last_commit.get(k, "") for k in ("message", "author", "author_url", "date")} if last_commit else {},
-        "title": index_md.get("title", ""),
+        "title": index_md.get("title", "") or linked.get("title", ""),
         "pitch": index_md.get("pitch", ""),
         "tags": index_md.get("tags") or [],
-        "level": index_md.get("level"),
+        "level": index_md.get("level") or LEVEL_NUMBER.get(str(linked.get("level", "")).lower()),
         "region": index_md.get("region", ""),
         "country": index_md.get("country", ""),
     }
@@ -385,8 +432,11 @@ def main():
     print(f"Found {len(repos)} repositories")
     reminders = fetch_reminders(org, token)
     print(f"Found reminder issues on {len(reminders)} repositories ({sum(r['state'] == 'open' for r in reminders.values())} open)")
+    links = project_links(fetch_projects(os.environ.get("PROJECTS_URL", PROJECTS_URL)), org)
+    print(f"Linked {sum(r.get('name', '').lower() in links for r in repos)} repositories to owasp.org projects")
     for repo in repos:
         repo["open_reminder"] = reminders.get(repo.get("name", ""))
+        repo["project"] = links.get(repo.get("name", "").lower())
 
     data = build_data(repos, org)
     output_dir = os.path.dirname(output_file)
