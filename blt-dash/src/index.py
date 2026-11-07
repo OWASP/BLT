@@ -1,6 +1,6 @@
 """Main entry point for BLT-Dash Cybersecurity Dashboard - Cloudflare Worker"""
 
-from js import Response, URL
+from js import Request, Response, URL
 
 
 async def on_fetch(request, env):
@@ -8,11 +8,9 @@ async def on_fetch(request, env):
     url = URL.new(request.url)
     path = url.pathname
 
-    # Strip /dash prefix
-    if path == '/dash':
-        path = '/'
-    elif path.startswith('/dash/'):
-        path = path[5:]
+    # Redirect /dash and /dash/ to root (navigation-only redirect; browser addresses follow 302)
+    if path == '/dash' or path == '/dash/':
+        return Response.redirect(str(URL.new('/', request.url)), 302)
 
     # CORS headers
     cors_headers = {
@@ -24,16 +22,18 @@ async def on_fetch(request, env):
     # Handle CORS preflight
     if request.method == 'OPTIONS':
         return Response.new('', {'headers': cors_headers})
+        
+    # Sub-path rewrite: strip /dash prefix (e.g. /dash/logo.svg -> /logo.svg)
+    if path.startswith('/dash/'):
+        new_url = URL.new(request.url)
+        new_url.pathname = path[5:]
+        request = Request.new(str(new_url), request)
 
     # Serve static assets
     if hasattr(env, 'ASSETS'):
         return await env.ASSETS.fetch(request)
 
-    # Fallback for root path
-    if path == '/' or path == '/index.html':
-        return Response.new(
-            '<h1>BLT-Dash Cybersecurity Dashboard</h1><p>Please configure assets in wrangler.toml</p>',
-            {'status': 200, 'headers': {**cors_headers, 'Content-Type': 'text/html'}},
-        )
-
-    return Response.new('Not Found', {'status': 404, 'headers': cors_headers})
+    return Response.new(
+        'Server misconfiguration: ASSETS binding is missing in wrangler.toml',
+        {'status': 500, 'headers': cors_headers},
+    )
