@@ -1,7 +1,5 @@
 {
-    "assignees": [
-        "namrata"
-    ],
+    "assignees": [],
     "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
     "authorName": "blt-tasks[bot]",
     "bountyAddress": "",
@@ -44,6 +42,17 @@
             "sig": "op7kafQ48OGAdHR2_LVhjtk9fbUPqcI7ImYc0UVtoNgKzpKL0rXSk9jQWSNHSKWtXbHyKHqqDvmxT8Vhe5xqDQ",
             "ts": 1794064937126,
             "type": "claim"
+        },
+        {
+            "assignee": "namrata",
+            "author": "asCxHCiy0QGUc6jW42W2W-x8mJsIhQ3dwUwp5okaYYw",
+            "authorName": "namrata",
+            "authorVerified": true,
+            "claimState": "released",
+            "id": "claim-web-1794070048912-jlhm7y",
+            "sig": "_Z97sYsh4QYYQHBLcBvmMrVlMLSNDM7ep_u8NxSaBaOCPQquMiHWCi2NUwCyG4yZbcoFElcoD8ADOtr4ZPLeAg",
+            "ts": 1794070048912,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -59,6 +68,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-next: make the Report Bug form send data the worker can parse",
-    "updatedAt": 1794064937126,
+    "updatedAt": 1794070048912,
     "votes": 0
 }
