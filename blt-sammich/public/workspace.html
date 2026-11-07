@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Workspace · BLT-Sammich</title>
+    <meta name="description" content="Channels, newcomers and fun facts for a Slack workspace connected to BLT-Sammich" />
+    <link rel="icon" href="./static/blt-logo.svg" type="image/svg+xml" />
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>tailwind.config = { darkMode: "class" };</script>
+    <script src="/_brand/theme-init.js"></script>
+    <link rel="stylesheet" href="/_brand/blt-dark.css" />
+    <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+    <style>
+      body {
+        font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      }
+      blt-nav:not(:defined) {
+        display: block;
+        min-height: 61px;
+      }
+      blt-nav:not(:defined) > * {
+        display: none;
+      }
+    </style>
+  </head>
+  <body class="bg-gray-50">
+    <blt-nav project="blt-sammich" name="Sammich">
+      <a href="/#connections">Connections</a>
+      <a href="#channels">Top channels</a>
+      <a href="#fun-stats">Fun stats</a>
+      <a href="https://git.owaspblt.org/BLT/BLT-Sammich" target="_blank" rel="noopener noreferrer" slot="actions">Contribute</a>
+      <a href="/install-slack" slot="actions" data-primary>Install to Workspace</a>
+    </blt-nav>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <a href="/#connections" class="inline-flex items-center gap-2 text-sm text-red-600 hover:underline mb-4"><i class="fas fa-arrow-left"></i>All workspaces</a>
+
+      <section class="bg-white rounded-lg shadow p-6 mb-8" id="overview">
+        <div class="text-center py-8 text-gray-400" id="overview-body">Loading workspace…</div>
+      </section>
+
+      <section class="bg-white rounded-lg shadow p-6 mb-8 hidden" id="channels">
+        <div class="flex flex-wrap items-baseline justify-between gap-2 mb-4">
+          <h2 class="text-2xl font-bold text-gray-900">Top 10 channels</h2>
+          <span class="text-sm text-gray-500">Open public channels, by members</span>
+        </div>
+        <ol class="space-y-3" id="top-channels"></ol>
+      </section>
+
+      <section class="bg-white rounded-lg shadow p-6 mb-8 hidden" id="fun-stats">
+        <div class="flex flex-wrap items-baseline justify-between gap-2 mb-4">
+          <h2 class="text-2xl font-bold text-gray-900">10 fun stats</h2>
+          <span class="text-sm text-gray-500" id="stats-updated"></span>
+        </div>
+        <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3" id="stat-cards"></div>
+        <p class="text-xs text-gray-400 mt-6">
+          From what the bot can see: the workspace's open public channels, the joins and welcome messages it has
+          recorded, and the time zones of newcomers it has met. Nothing about any one person is shown.
+        </p>
+      </section>
+    </main>
+
+    <footer class="bg-white border-t mt-12">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-center text-gray-600">
+        <p>Powered by <a href="https://git.owaspblt.org/BLT/BLT-Sammich" class="text-red-600 hover:underline" target="_blank">BLT-Sammich</a></p>
+      </div>
+    </footer>
+
+    <script>
+      const WEEKDAYS = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+      const formatNumber = (value) => Number(value || 0).toLocaleString();
+      const escapeHtml = (value) => String(value ?? "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#x27;");
+      const fromUnix = (seconds) => (Number(seconds) > 0 ? new Date(Number(seconds) * 1000) : null);
+      const longDate = (date, timeZone) => (date ? date.toLocaleDateString(undefined, { year: "numeric", month: "long", day: "numeric", timeZone }) : "");
+      // A recorded day ("2026-06-06") is a UTC date; showing it in local time could move it a day.
+      const dayDate = (text) => longDate(text ? new Date(String(text) + "T00:00:00Z") : null, "UTC");
+      const yearsSince = (date) => (date ? Math.floor((Date.now() - date.getTime()) / (365.25 * 86400000)) : 0);
+      const percent = (part, whole) => (whole ? Math.round((Number(part) / Number(whole)) * 100) : 0);
+      const hourLabel = (hour) => `${String(hour).padStart(2, "0")}:00`;
+      const zoneLabel = (tz) => String(tz || "").split("/").pop().replace(/_/g, " ");
+
+      const card = (icon, title, headline, body) => `
+        <div class="border border-gray-200 rounded-lg p-4 flex flex-col">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="w-10 h-10 bg-red-100 text-red-600 rounded-lg flex items-center justify-center text-lg shrink-0"><i class="fas ${icon}"></i></div>
+            <h3 class="font-semibold text-gray-700">${title}</h3>
+          </div>
+          <div class="text-2xl font-bold text-gray-900 mb-2">${headline}</div>
+          <div class="text-sm text-gray-600 flex-1">${body}</div>
+        </div>`;
+      const empty = (text) => `<span class="text-gray-400">${text}</span>`;
+
+      const bars = (values, labels, highlight) => {
+        const max = Math.max(1, ...values);
+        return `<div class="flex h-16 items-end gap-[2px] mt-2" role="img" aria-label="${escapeHtml(labels.join(", "))}">
+          ${values.map((value, index) => {
+            const height = value > 0 ? Math.max(4, Math.round((value / max) * 64)) : 2;
+            const color = index === highlight ? "bg-red-600" : "bg-red-300";
+            return `<div class="flex-1 rounded-t ${color}" style="height:${height}px" title="${escapeHtml(labels[index] + ": " + formatNumber(value))}"></div>`;
+          }).join("")}
+        </div>`;
+      };
+      const argmax = (values) => values.reduce((best, value, index) => (value > values[best] ? index : best), 0);
+      const channelLink = (domain, channel) => {
+        const name = `#${escapeHtml(channel.name)}`;
+        return domain && channel.id
+          ? `<a href="https://${escapeHtml(domain)}.slack.com/archives/${escapeHtml(channel.id)}" target="_blank" rel="noopener noreferrer" class="text-red-600 hover:underline">${name}</a>`
+          : name;
+      };
+
+      function renderOverview(workspace, stats) {
+        const activity = stats.activity || {};
+        const icon = workspace.icon_url
+          ? `<img src="${escapeHtml(workspace.icon_url)}" alt="" class="w-16 h-16 rounded-xl object-cover" />`
+          : `<div class="w-16 h-16 rounded-xl bg-red-100 text-red-600 flex items-center justify-center text-2xl font-bold">${escapeHtml(String(workspace.team_name || "W").slice(0, 1))}</div>`;
+        const tiles = [
+          ["fa-users", "members", workspace.member_count],
+          ["fa-hashtag", "channels", workspace.channel_count],
+          ["fa-user-plus", "joins, last 30 days", activity.joins_last_30_days],
+          ["fa-door-open", "joins recorded", activity.joins],
+        ];
+        const invite = String(workspace.invite_link || "").trim();
+        document.getElementById("overview-body").outerHTML = `
+          <div class="flex flex-wrap items-center gap-4 mb-6">
+            ${icon}
+            <div class="min-w-0 flex-1">
+              <h1 class="text-3xl font-bold text-gray-900 break-words">${escapeHtml(workspace.team_name || workspace.team_id)}</h1>
+              <p class="text-sm text-gray-500">${stats.team && stats.team.domain ? escapeHtml(stats.team.domain) + ".slack.com · " : ""}<span class="font-mono">${escapeHtml(workspace.team_id)}</span></p>
+            </div>
+            ${invite ? `<a href="${escapeHtml(invite)}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-2 text-sm font-semibold text-red-700 bg-red-50 border border-red-200 rounded-md px-3 py-2 hover:bg-red-100"><i class="fas fa-user-plus"></i>Join</a>` : ""}
+          </div>
+          <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+            ${tiles.map(([tileIcon, label, value]) => `
+              <div class="border border-gray-200 rounded-lg p-4 text-center">
+                <i class="fas ${tileIcon} text-red-600 mb-2"></i>
+                <div class="text-2xl font-bold text-gray-900">${formatNumber(value)}</div>
+                <div class="text-sm text-gray-500">${label}</div>
+              </div>`).join("")}
+          </div>`;
+        document.title = `${workspace.team_name || workspace.team_id} · BLT-Sammich`;
+      }
+
+      function renderTopChannels(channels, domain) {
+        const top = channels.top || [];
+        const list = document.getElementById("top-channels");
+        if (!top.length) {
+          list.outerHTML = `<p class="text-center py-6 text-gray-400">The bot can't list this workspace's channels yet.</p>`;
+          return;
+        }
+        const max = Math.max(1, ...top.map((channel) => channel.members));
+        list.innerHTML = top.map((channel, index) => `
+          <li class="flex items-center gap-3">
+            <span class="w-6 text-right font-bold text-gray-400">${index + 1}</span>
+            <div class="flex-1 min-w-0">
+              <div class="flex items-baseline justify-between gap-3">
+                <span class="font-semibold truncate">${channelLink(domain, channel)}</span>
+                <span class="text-sm font-bold text-gray-900 shrink-0">${formatNumber(channel.members)}</span>
+              </div>
+              <div class="h-2 rounded bg-gray-100 mt-1"><div class="h-2 rounded bg-red-500" style="width:${Math.max(2, Math.round((channel.members / max) * 100))}%"></div></div>
+              ${channel.purpose ? `<p class="text-xs text-gray-500 truncate mt-1">${escapeHtml(channel.purpose)}</p>` : ""}
+            </div>
+          </li>`).join("");
+      }
+
+      function renderStats(workspace, stats) {
+        const team = stats.team || {};
+        const channels = stats.channels || {};
+        const activity = stats.activity || {};
+        const domain = team.domain || "";
+        const founded = fromUnix(team.founded);
+        const oldest = channels.oldest;
+        const born = founded || (oldest ? fromUnix(oldest.created) : null);
+        const weekdays = activity.joins_by_weekday || [];
+        const hours = activity.joins_by_hour_utc || [];
+        const busiestDay = argmax(weekdays.length ? weekdays : [0]);
+        const peakHour = argmax(hours.length ? hours : [0]);
+        const zones = activity.time_zones || [];
+        const families = channels.families || [];
+        const newest = channels.newest || [];
+        const record = activity.record_day || {};
+
+        const cards = [
+          card("fa-cake-candles", "Founded",
+            born ? `${yearsSince(born)} years ago` : empty("Unknown"),
+            (founded ? `Opened on ${longDate(founded)}.` : "") +
+            (oldest ? ` Its oldest open channel is ${channelLink(domain, oldest)}, from ${longDate(fromUnix(oldest.created))}.` : "")),
+          card("fa-hand", "Newcomers",
+            `${formatNumber(activity.joins_last_30_days)} <span class="text-base font-normal text-gray-500">in 30 days</span>`,
+            activity.tracking_since
+              ? `${formatNumber(activity.joins)} people have joined since the bot started counting on ${dayDate(activity.tracking_since)}.`
+              : "No joins recorded yet."),
+          card("fa-trophy", "Record day",
+            record.joins ? `${formatNumber(record.joins)} joins` : empty("No joins yet"),
+            record.joins ? `The busiest day for new members was ${dayDate(record.day)}.` : ""),
+          card("fa-calendar-day", "Favorite day to join",
+            weekdays.some((value) => value > 0) ? WEEKDAYS[busiestDay] : empty("Not enough data"),
+            weekdays.some((value) => value > 0) ? bars(weekdays, WEEKDAYS, busiestDay) + `<div class="flex justify-between text-[10px] text-gray-400 mt-1"><span>Mon</span><span>Sun</span></div>` : ""),
+          card("fa-clock", "Peak join hour",
+            hours.some((value) => value > 0) ? `${hourLabel(peakHour)} UTC` : empty("Not enough data"),
+            hours.some((value) => value > 0) ? bars(hours, hours.map((_, hour) => hourLabel(hour) + " UTC"), peakHour) + `<div class="flex justify-between text-[10px] text-gray-400 mt-1"><span>00:00</span><span>12:00</span><span>23:00</span></div>` : ""),
+          card("fa-earth-americas", "Around the world",
+            activity.time_zone_count ? `${formatNumber(activity.time_zone_count)} time zones` : empty("No time zones yet"),
+            zones.length
+              ? `<ul class="space-y-1">${zones.map((zone) => `<li class="flex justify-between gap-2"><span>${escapeHtml(zoneLabel(zone.tz))}</span><span class="font-semibold">${percent(zone.people, activity.people_with_time_zone)}%</span></li>`).join("")}</ul><p class="text-xs text-gray-400 mt-2">Among ${formatNumber(activity.people_with_time_zone)} newcomers the bot has met.</p>`
+              : ""),
+          card("fa-envelope-open-text", "Welcome mat",
+            activity.welcome_sent ? `${formatNumber(activity.welcome_sent)} welcomes` : empty("No welcomes yet"),
+            activity.welcome_sent
+              ? `${formatNumber(activity.welcome_opened)} were opened, ${formatNumber(activity.welcome_opened_in_app)} of them in the Slack app on a person's own device.`
+              : ""),
+          card("fa-layer-group", "Channel families",
+            families.length ? `${escapeHtml(families[0].prefix)}-*` : empty("No families yet"),
+            families.length
+              ? `<div class="flex flex-wrap gap-2">${families.map((family) => `<span class="px-2 py-1 rounded-md bg-red-50 text-red-700 text-xs font-semibold">${escapeHtml(family.prefix)}-* · ${formatNumber(family.channels)}</span>`).join("")}</div>`
+              : ""),
+          card("fa-seedling", "Fresh channels",
+            channels.total ? `${formatNumber(channels.created_last_year)} <span class="text-base font-normal text-gray-500">this year</span>` : empty("Unknown"),
+            newest.length
+              ? `Newest: <ul class="mt-1 space-y-1">${newest.map((channel) => `<li class="flex justify-between gap-2"><span class="truncate">${channelLink(domain, channel)}</span><span class="text-gray-400 shrink-0">${escapeHtml(fromUnix(channel.created).toLocaleDateString(undefined, { month: "short", day: "numeric", year: "numeric" }))}</span></li>`).join("")}</ul>`
+              : ""),
+          card("fa-ghost", "Quiet corners",
+            channels.total ? `${formatNumber(channels.quiet)} <span class="text-base font-normal text-gray-500">near-empty channels</span>` : empty("Unknown"),
+            channels.total
+              ? `Channels with two members or fewer. The typical channel has ${formatNumber(channels.median_members)} members, and ${percent(channels.described, channels.total)}% say what they're for.`
+              : ""),
+        ];
+        document.getElementById("stat-cards").innerHTML = cards.join("");
+        if (stats.updated_at) {
+          document.getElementById("stats-updated").textContent = "Updated " + new Date(stats.updated_at).toLocaleString();
+        }
+      }
+
+      async function init() {
+        const team = new URLSearchParams(window.location.search).get("team") || "";
+        const overview = document.getElementById("overview-body");
+        if (!/^[A-Z0-9]{2,20}$/.test(team)) {
+          overview.textContent = "No workspace picked. Go back and choose one.";
+          return;
+        }
+        try {
+          const response = await fetch(`/api/workspaces/${encodeURIComponent(team)}`);
+          if (!response.ok) throw new Error(`HTTP ${response.status}`);
+          const { workspace } = await response.json();
+          const stats = workspace.stats || {};
+          renderOverview(workspace, stats);
+          renderTopChannels(stats.channels || {}, (stats.team || {}).domain || "");
+          renderStats(workspace, stats);
+          document.getElementById("channels").classList.remove("hidden");
+          document.getElementById("fun-stats").classList.remove("hidden");
+          if (window.location.hash) document.querySelector(window.location.hash)?.scrollIntoView();
+        } catch (error) {
+          overview.textContent = "This workspace's dashboard is unavailable.";
+        }
+      }
+      init();
+    </script>
+  </body>
+</html>
