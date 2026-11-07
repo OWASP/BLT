@@ -59,6 +59,20 @@ CONTRIBUTORS_CHECKED = 12  # top contributors per repository checked for GitHub 
 CONTRIBUTORS_SHOWN = 8
 
 
+TIMEOUT = 30  # seconds per request; without one a single stalled connection hangs the whole refresh
+
+
+def http(method, url, **kwargs):
+    """requests.request with a timeout, tried twice; None when both attempts fail to connect or
+    time out (callers treat that like a failed response)."""
+    for attempt in (1, 2):
+        try:
+            return requests.request(method, url, timeout=TIMEOUT, **kwargs)
+        except requests.RequestException as e:
+            print(f"{method} {url}: {type(e).__name__} (attempt {attempt})")
+    return None
+
+
 def github_headers():
     token = os.environ.get("GITHUB_TOKEN")
     return {"Authorization": f"token {token}"} if token else {}
@@ -68,7 +82,9 @@ def get_owasp_repos():
     url = f"{GITHUB_API_URL}/orgs/{ORG_NAME}/repos?per_page=100"
     repos = []
     while url:
-        response = requests.get(url, headers=github_headers())
+        response = http("GET", url, headers=github_headers())
+        if response is None:
+            sys.exit(f"Could not list {ORG_NAME} repositories: no answer from GitHub")
         if not response.ok:
             # GitHub's message says why (e.g. a token the OWASP enterprise refuses); raise_for_status drops it.
             sys.exit(f"Could not list {ORG_NAME} repositories: HTTP {response.status_code}: {response.text[:500]}")
@@ -101,9 +117,9 @@ def check_funding_file(project):
     funding_url = raw_file_url(project, ".github/FUNDING.yml")
     if not funding_url:
         return None
-    response = requests.get(funding_url)
-    print(f"Checking funding URL: {funding_url} - Status Code: {response.status_code}")
-    if response.status_code == 200:
+    response = http("GET", funding_url)
+    print(f"Checking funding URL: {funding_url} - Status Code: {response.status_code if response is not None else 'none'}")
+    if response is not None and response.status_code == 200:
         return funding_url
 
 
@@ -151,8 +167,8 @@ def funding_links_from_yaml(content):
 
 def parse_funding_file(funding_url):
     """(funding_details, funding_links): the raw values joined, as before, and the links."""
-    response = requests.get(funding_url)
-    if response.status_code != 200:
+    response = http("GET", funding_url)
+    if response is None or response.status_code != 200:
         return "", []
     try:
         content = yaml.safe_load(response.text)
@@ -170,9 +186,9 @@ def parse_funding_file(funding_url):
 def get_forge_contributors(project):
     """Top contributors with a GitHub account, from the .forkmesh/contributors/contributors.json
     that the BLT monorepo's README generator keeps."""
-    response = requests.get(raw_file_url(project, ".forkmesh/contributors/contributors.json"))
-    if response.status_code != 200:
-        print(f"Contributors of {project['name']}: status {response.status_code}")
+    response = http("GET", raw_file_url(project, ".forkmesh/contributors/contributors.json"))
+    if response is None or response.status_code != 200:
+        print(f"Contributors of {project['name']}: status {response.status_code if response is not None else 'none'}")
         return []
     people = sorted(
         (p for p in (response.json() or {}).get("contributors") or [] if isinstance(p, dict)),
@@ -192,13 +208,14 @@ def get_contributors(project):
     repo_name = github_repo(project["repo_url"])
     if not repo_name:
         return []
-    response = requests.get(
+    response = http(
+        "GET",
         f"{GITHUB_API_URL}/repos/{repo_name}/contributors",
         params={"per_page": CONTRIBUTORS_CHECKED + 5},
         headers=github_headers(),
     )
-    if response.status_code != 200:
-        print(f"Contributors of {repo_name}: status {response.status_code}")
+    if response is None or response.status_code != 200:
+        print(f"Contributors of {repo_name}: status {response.status_code if response is not None else 'none'}")
         return []
     people = []
     for person in response.json():
@@ -248,8 +265,8 @@ def profile_from_graphql(user):
 def page_profile(login):
     """A profile from the public github.com/sponsors/<login> page, which redirects to the user's
     profile when there is no listing; no goal, count or repositories are known this way."""
-    response = requests.get(f"https://github.com/sponsors/{login}", allow_redirects=False)
-    if response.status_code == 200:
+    response = http("GET", f"https://github.com/sponsors/{login}", allow_redirects=False)
+    if response is not None and response.status_code == 200:
         return {"login": login, "name": "", "sponsors": None, "goal": None, "monthly": None, "repos": []}
     return None
 
@@ -258,7 +275,9 @@ def graphql_users(logins, fields):
     """[user] for the logins, or None when GitHub answers with no data at all (it says why in
     "errors", which is printed: a token without access to these fields, for example)."""
     query = " ".join(f'u{i}: user(login: "{login}") {{ {fields} }}' for i, login in enumerate(logins))
-    response = requests.post(f"{GITHUB_API_URL}/graphql", json={"query": f"{{ {query} }}"}, headers=github_headers())
+    response = http("POST", f"{GITHUB_API_URL}/graphql", json={"query": f"{{ {query} }}"}, headers=github_headers())
+    if response is None:
+        return None
     body = response.json() if response.headers.get("content-type", "").startswith("application/json") else {}
     if body.get("errors"):
         reasons = {e.get("type") or e.get("message") for e in body["errors"] if isinstance(e, dict)}
