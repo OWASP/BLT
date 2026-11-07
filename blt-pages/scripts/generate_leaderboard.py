@@ -202,13 +202,14 @@ def _row_class(rank):
 def render_leaderboard_rows(leaderboard):
     if not leaderboard:
         return (
-            '<tr><td colspan="4" class="text-center py-12 text-gray-500 dark:text-gray-400">'
-            '<svg class="fa-icon text-4xl text-gray-300 dark:text-gray-600 block mb-3" aria-hidden="true">'
+            '<tr><td colspan="4" class="py-12 text-gray-500 dark:text-gray-400">'
+            '<div class="flex flex-col items-center justify-center text-center gap-2">'
+            '<svg class="fa-icon text-4xl text-gray-300 dark:text-gray-600" aria-hidden="true">'
             '<use href="#fa-trophy"></use></svg>'
-            'No reports yet. Be the first to '
+            '<p>No reports yet. Be the first to '
             f'<a href="{NEW_BUG_URL}" '
-            'class="text-primary underline hover:no-underline">report a bug</a>!'
-            '</td></tr>'
+            'class="text-primary underline hover:no-underline">report a bug</a>!</p>'
+            '</div></td></tr>'
         )
     max_lb = leaderboard[0]["count"] or 1
     rows = []
@@ -252,14 +253,15 @@ def render_leaderboard_rows(leaderboard):
 def render_commenters_rows(commenters):
     if not commenters:
         return (
-            '<tr><td colspan="4" class="text-center py-12 text-gray-500 dark:text-gray-400">'
-            '<svg class="fa-icon text-4xl text-gray-300 dark:text-gray-600 block mb-3" aria-hidden="true">'
+            '<tr><td colspan="4" class="py-12 text-gray-500 dark:text-gray-400">'
+            '<div class="flex flex-col items-center justify-center text-center gap-2">'
+            '<svg class="fa-icon text-4xl text-gray-300 dark:text-gray-600" aria-hidden="true">'
             '<use href="#fa-comment"></use></svg>'
-            'No comments yet. Start a conversation on a '
+            '<p>No comments yet. Start a conversation on a '
             f'<a href="{ISSUES_URL}" '
             'class="text-primary underline hover:no-underline" '
             'target="_blank" rel="noopener noreferrer">bug report</a>!'
-            '</td></tr>'
+            '</p></div></td></tr>'
         )
     max_cm = commenters[0]["count"] or 1
     rows = []
@@ -303,13 +305,14 @@ def render_commenters_rows(commenters):
 def render_domains_rows(domains):
     if not domains:
         return (
-            '<tr><td colspan="4" class="text-center py-12 text-gray-500 dark:text-gray-400">'
-            '<svg class="fa-icon text-4xl text-gray-300 dark:text-gray-600 block mb-3" aria-hidden="true">'
+            '<tr><td colspan="4" class="py-12 text-gray-500 dark:text-gray-400">'
+            '<div class="flex flex-col items-center justify-center text-center gap-2">'
+            '<svg class="fa-icon text-4xl text-gray-300 dark:text-gray-600" aria-hidden="true">'
             '<use href="#fa-globe"></use></svg>'
-            'No domain data yet. '
+            '<p>No domain data yet. '
             f'<a href="{NEW_BUG_URL}" '
-            'class="text-primary underline hover:no-underline">Be the first to report a bug!</a>'
-            '</td></tr>'
+            'class="text-primary underline hover:no-underline">Be the first to report a bug!</a></p>'
+            '</div></td></tr>'
         )
     max_dm = domains[0]["count"] or 1
     rows = []
@@ -354,12 +357,14 @@ def render_domains_rows(domains):
 def render_recent_bugs(bugs):
     if not bugs:
         return (
-            '<div class="col-span-3 text-center py-12 text-gray-400 dark:text-gray-500">'
-            '<svg class="fa-icon text-4xl text-gray-300 dark:text-gray-600 block mb-3" aria-hidden="true">'
+            '<div class="col-span-3 py-12 text-gray-400 dark:text-gray-500">'
+            '<div class="flex flex-col items-center justify-center text-center gap-2">'
+            '<svg class="fa-icon text-4xl text-gray-300 dark:text-gray-600" aria-hidden="true">'
             '<use href="#fa-bug"></use></svg>'
-            'No bug reports yet. '
+            '<p>No bug reports yet. '
             f'<a href="{NEW_BUG_URL}" '
-            'class="text-primary hover:underline">Be the first to report!</a></div>'
+            'class="text-primary hover:underline">Be the first to report!</a></p>'
+            '</div></div>'
         )
     cards = []
     for bug in bugs:

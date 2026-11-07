@@ -215,9 +215,11 @@ function renderLeaderboard(container, data, limit = 0, filter = "") {
   }
 
   if (!data.leaderboard || data.leaderboard.length === 0) {
-    container.innerHTML = `<tr><td colspan="4" class="text-center py-12 text-gray-500 dark:text-gray-400">
-      <svg class="fa-icon text-4xl text-gray-300 dark:text-gray-600 block mb-3" aria-hidden="true"><use href="#fa-trophy"></use></svg>
-      No reports yet. Be the first to <a href="https://git.owaspblt.org/BLT/issues/new" class="text-primary underline hover:no-underline">report a bug</a>!
+    container.innerHTML = `<tr><td colspan="4" class="py-12 text-gray-500 dark:text-gray-400">
+      <div class="flex flex-col items-center justify-center text-center gap-2">
+        <svg class="fa-icon text-4xl text-gray-300 dark:text-gray-600" aria-hidden="true"><use href="#fa-trophy"></use></svg>
+        <p>No reports yet. Be the first to <a href="https://git.owaspblt.org/BLT/issues/new" class="text-primary underline hover:no-underline">report a bug</a>!</p>
+      </div>
     </td></tr>`;
     return;
   }
@@ -352,9 +354,11 @@ function renderRecentBugs(bugs) {
   if (!grid) return;
 
   if (!bugs || bugs.length === 0) {
-    grid.innerHTML = `<div class="col-span-3 text-center py-12 text-gray-400 dark:text-gray-500">
-      <svg class="fa-icon text-4xl text-gray-300 dark:text-gray-600 block mb-3" aria-hidden="true"><use href="#fa-bug"></use></svg>
-      No bug reports yet. <a href="https://git.owaspblt.org/BLT/issues/new" class="text-primary hover:underline">Be the first to report!</a>
+    grid.innerHTML = `<div class="col-span-3 py-12 text-gray-400 dark:text-gray-500">
+      <div class="flex flex-col items-center justify-center text-center gap-2">
+        <svg class="fa-icon text-4xl text-gray-300 dark:text-gray-600" aria-hidden="true"><use href="#fa-bug"></use></svg>
+        <p>No bug reports yet. <a href="https://git.owaspblt.org/BLT/issues/new" class="text-primary hover:underline">Be the first to report!</a></p>
+      </div>
     </div>`;
     return;
   }
@@ -488,9 +492,11 @@ function renderTopCommenters(container, data, limit = 0, filter = "") {
   }
 
   if (!data.top_commenters || data.top_commenters.length === 0) {
-    container.innerHTML = `<tr><td colspan="4" class="text-center py-12 text-gray-500 dark:text-gray-400">
-      <svg class="fa-icon text-4xl text-gray-300 dark:text-gray-600 block mb-3" aria-hidden="true"><use href="#fa-comment"></use></svg>
-      No comments yet. Start a conversation on a <a href="${ISSUES_URL}" class="text-primary underline hover:no-underline" target="_blank" rel="noopener noreferrer">bug report</a>!
+    container.innerHTML = `<tr><td colspan="4" class="py-12 text-gray-500 dark:text-gray-400">
+      <div class="flex flex-col items-center justify-center text-center gap-2">
+        <svg class="fa-icon text-4xl text-gray-300 dark:text-gray-600" aria-hidden="true"><use href="#fa-comment"></use></svg>
+        <p>No comments yet. Start a conversation on a <a href="${ISSUES_URL}" class="text-primary underline hover:no-underline" target="_blank" rel="noopener noreferrer">bug report</a>!</p>
+      </div>
     </td></tr>`;
     return;
   }
@@ -584,9 +590,11 @@ function renderTopDomains(container, data, limit = 0, filter = "") {
   }
 
   if (!data.top_domains || data.top_domains.length === 0) {
-    container.innerHTML = `<tr><td colspan="4" class="text-center py-12 text-gray-500 dark:text-gray-400">
-      <svg class="fa-icon text-4xl text-gray-300 dark:text-gray-600 block mb-3" aria-hidden="true"><use href="#fa-globe"></use></svg>
-      No domain data yet. <a href="${NEW_BUG_URL}" class="text-primary underline hover:no-underline">Be the first to report a bug!</a>
+    container.innerHTML = `<tr><td colspan="4" class="py-12 text-gray-500 dark:text-gray-400">
+      <div class="flex flex-col items-center justify-center text-center gap-2">
+        <svg class="fa-icon text-4xl text-gray-300 dark:text-gray-600" aria-hidden="true"><use href="#fa-globe"></use></svg>
+        <p>No domain data yet. <a href="${NEW_BUG_URL}" class="text-primary underline hover:no-underline">Be the first to report a bug!</a></p>
+      </div>
     </td></tr>`;
     return;
   }
