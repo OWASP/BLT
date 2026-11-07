@@ -6,6 +6,13 @@
     <title>Tomato 1000 - BLT Tomato</title>
     <meta name="description" content="Tomato 1000: help 1,000 open-source developers, from anywhere, reach $1,000 a month in GitHub Sponsors.">
     <link rel="icon" type="image/svg+xml" href="/logo.svg">
+    <link rel="canonical" href="https://tomato.owaspblt.org/1000">
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://tomato.owaspblt.org/1000">
+    <meta property="og:title" content="Tomato 1000: 1,000 developers. $1,000 a month each.">
+    <meta property="og:description" content="Help 1,000 open-source developers, from anywhere, reach $1,000 a month in GitHub Sponsors. Sponsor one, or join. #tomato1000">
+    <meta property="og:image" content="https://tomato.owaspblt.org/logo.png">
+    <meta name="twitter:card" content="summary">
     <script src="/theme-init.js"></script>
     <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
     <style>
@@ -62,9 +69,7 @@
                 linear-gradient(135deg, #7f1d1d, #dc2626 55%, #ea580c);
         }
         .hero .wrap { position: relative; padding-top: 48px; padding-bottom: 40px; display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 32px; align-items: center; }
-        .eyebrow { display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px 4px 4px; border-radius: 999px; background: rgba(255, 255, 255, .14); font-size: 12px; font-weight: 600; letter-spacing: .02em; }
-        .eyebrow img { width: 22px; height: 22px; border-radius: 50%; background: #fff; }
-        .hero h1 { margin: 14px 0 12px; font-size: clamp(44px, 7.5vw, 80px); line-height: .92; font-weight: 900; letter-spacing: -.05em; }
+        .hero h1 { margin: 0 0 12px; font-size: clamp(44px, 7.5vw, 80px); line-height: .92; font-weight: 900; letter-spacing: -.05em; }
         .hero h1 span { display: block; margin-top: 10px; font-size: .38em; line-height: 1.15; letter-spacing: -.02em; color: #fed7aa; }
         .hero p { margin: 0 0 22px; font-size: 17px; line-height: 1.55; color: rgba(255, 255, 255, .92); max-width: 46ch; }
         .cta { display: flex; flex-wrap: wrap; gap: 10px; }
@@ -91,6 +96,33 @@
         .hero-stats div { padding: 10px 12px; border-radius: 14px; background: rgba(0, 0, 0, .18); }
         .hero-stats b { display: block; font-size: 20px; line-height: 24px; font-variant-numeric: tabular-nums; }
         .hero-stats span { font-size: 12px; opacity: .85; }
+
+        /* ---------- sharing ---------- */
+        .share { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin-top: 18px; }
+        .share-lbl { margin-right: 4px; font-size: 13px; font-weight: 700; letter-spacing: .01em; }
+        .sb {
+            display: inline-grid; place-items: center; width: 38px; height: 38px; padding: 0; border: 0; border-radius: 50%;
+            background: rgba(255, 255, 255, .14); color: #fff; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .35);
+            cursor: pointer; transition: transform .12s, background .12s, color .12s;
+        }
+        .sb:hover { transform: translateY(-2px); background: rgba(255, 255, 255, .28); }
+        .sb svg { width: 17px; height: 17px; fill: currentColor; }
+        .sb.done { background: #fff; color: #991b1b; }
+        .share.alt .sb { width: 44px; height: 44px; background: var(--surface); color: var(--text-2); box-shadow: inset 0 0 0 1px var(--border), var(--shadow); }
+        .share.alt .sb:hover { color: var(--brand-text); box-shadow: inset 0 0 0 1px var(--brand-ring), var(--shadow-lift); }
+        .share.alt .sb.done { background: var(--brand); color: #fff; }
+        .spread {
+            display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 24px; align-items: center; padding: 24px;
+            border-radius: 22px; border: 1px solid var(--brand-ring);
+            background: radial-gradient(600px 220px at 100% 0%, var(--brand-soft), transparent 70%), var(--surface); box-shadow: var(--shadow-lift);
+        }
+        .spread h2 { font-size: 26px; line-height: 32px; }
+        .hash { background: linear-gradient(90deg, #ea580c, var(--brand)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+        .post { display: flex; gap: 12px; align-items: flex-start; padding: 12px 12px 12px 16px; border-radius: 14px; background: var(--surface-2); }
+        .post p { flex: 1; margin: 0; color: var(--text-2); }
+        .post .btn { flex: none; padding: 7px 14px; font-size: 13px; }
+        .spread .share { margin: 0; justify-content: center; }
+        .toast { position: fixed; left: 50%; bottom: 24px; z-index: 60; padding: 10px 16px; border-radius: 999px; background: var(--text); color: var(--bg); font-weight: 600; font-size: 13px; transform: translateX(-50%); box-shadow: var(--shadow-lift); }
 
         /* ---------- the 1000 grid ---------- */
         .board { padding: 18px; border: 1px solid var(--border); border-radius: 20px; background: var(--surface); box-shadow: var(--shadow); }
@@ -179,6 +211,8 @@
         .foot a { color: var(--brand-text); }
 
         @media (max-width: 860px) {
+            .spread { grid-template-columns: minmax(0, 1fr); }
+            .spread .share { justify-content: flex-start; }
             .hero .wrap { grid-template-columns: minmax(0, 1fr); padding-top: 32px; }
             .cards, .how { grid-template-columns: repeat(2, minmax(0, 1fr)); }
             .grid { grid-template-columns: repeat(25, minmax(0, 1fr)); gap: 2px; }
@@ -187,8 +221,11 @@
             .cards, .how { grid-template-columns: minmax(0, 1fr); }
             .spot { grid-template-columns: auto minmax(0, 1fr); }
             .spot img { width: 64px; height: 64px; }
-            .spot .actions { grid-column: 1 / -1; flex-direction: row; }
-            .spot .actions .btn { flex: 1; justify-content: center; }
+            .spot .actions { grid-column: 1 / -1; flex-direction: row; flex-wrap: wrap; }
+            .spot .actions .btn { flex: 1 1 0; justify-content: center; white-space: nowrap; }
+            .spot .actions #spot-go { flex-basis: 100%; }
+            .post { flex-direction: column; }
+            .post .btn { align-self: flex-start; }
             .hero-stats b { font-size: 17px; }
             .board { padding: 12px; }
         }
@@ -208,13 +245,13 @@
         <header class="hero">
             <div class="wrap">
                 <div>
-                    <span class="eyebrow"><img src="/logo.svg" alt="">BLT Tomato</span>
                     <h1>Tomato 1000 <span>1,000 developers. $1,000 a month each.</span></h1>
                     <p>Open-source developers build the software the world runs on, mostly for free. Tomato 1000 aims to get 1,000 of them, from any project and anywhere, to $1,000 a month in GitHub Sponsors, paid by the people and companies who use their code.</p>
                     <div class="cta">
                         <a class="btn btn-light" href="#developers">&#10084; Sponsor a developer</a>
                         <a class="btn btn-ghost" href="#join">Join the 1000</a>
                     </div>
+                    <div class="share" data-share aria-label="Share Tomato 1000"><span class="share-lbl">Share #tomato1000</span></div>
                 </div>
                 <div class="hero-board" aria-live="polite">
                     <div class="big"><span id="reached">0</span> <small>/ 1,000</small></div>
@@ -255,6 +292,7 @@
                 </div>
                 <div class="actions">
                     <a class="btn btn-brand" id="spot-go" href="#" rel="noopener">&#10084; Sponsor</a>
+                    <button class="btn btn-soft" type="button" id="spot-share">&#8599; Share them</button>
                     <button class="btn btn-soft" type="button" id="spot-next">&#8635; Someone else</button>
                 </div>
             </div>
@@ -278,6 +316,17 @@
             <p class="count" id="count" aria-live="polite"></p>
             <ul class="cards" id="cards"></ul>
             <div class="more"><button class="btn btn-soft" type="button" id="more" hidden>Show more</button></div>
+        </section>
+
+        <section class="wrap" aria-labelledby="share-h" id="share">
+            <div class="spread">
+                <div>
+                    <h2 id="share-h">Share <span class="hash">#tomato1000</span></h2>
+                    <p class="sub">Every share puts these developers in front of someone who might sponsor them. Post it, tag a company that runs on open source, or send it to a developer who should join.</p>
+                    <div class="post"><p id="share-text"></p><button class="btn btn-brand" type="button" id="copy-post">Copy post</button></div>
+                </div>
+                <div class="share alt" data-share aria-label="Share Tomato 1000"></div>
+            </div>
         </section>
 
         <section class="wrap" aria-labelledby="join-h" id="join">
@@ -315,6 +364,7 @@
         </div>
     </footer>
     <div class="tip" id="tip" hidden></div>
+    <div class="toast" id="toast" role="status" hidden></div>
     <script>
     (function () {
         "use strict";
@@ -460,6 +510,7 @@
             $("spot-name").textContent = label(d) + (d.name ? " (@" + d.login + ")" : "");
             var pr = $("spot-projects"); pr.replaceWith(Object.assign(projectsNode(d), { id: "spot-projects" }));
             var pg = $("spot-prog"); var np = progressNode(d); np.id = "spot-prog"; np.style.marginTop = "10px"; pg.replaceWith(np);
+            spotDev = d;
             $("spot-go").href = "https://github.com/sponsors/" + d.login;
             $("spot-go").textContent = "❤ Sponsor " + d.login;
             $("spotlight").hidden = false;
@@ -473,6 +524,74 @@
                 if (t < 1) requestAnimationFrame(step);
             })(start);
         }
+        // ---------- sharing ----------
+        var SHARE_URL = "https://tomato.owaspblt.org/1000", TAG = "tomato1000";
+        var SHARE_TEXT = "Help 1,000 open-source developers reach $1,000 a month in GitHub Sponsors. Sponsor one, or join the 1000:";
+        var ICONS = {
+            x: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>',
+            linkedin: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.45 20.45h-3.55v-5.57c0-1.33-.03-3.04-1.85-3.04-1.85 0-2.14 1.45-2.14 2.94v5.67H9.35V9h3.41v1.56h.05c.48-.9 1.64-1.85 3.37-1.85 3.6 0 4.27 2.37 4.27 5.46v6.28zM5.34 7.43a2.06 2.06 0 1 1 0-4.12 2.06 2.06 0 0 1 0 4.12zM7.12 20.45H3.56V9h3.56v11.45zM22.22 0H1.77C.79 0 0 .77 0 1.73v20.54C0 23.23.79 24 1.77 24h20.45c.98 0 1.78-.77 1.78-1.73V1.73C24 .77 23.2 0 22.22 0z"/></svg>',
+            bluesky: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 10.8c-1.09-2.11-4.05-6.05-6.8-8C2.57.94 1.56 1.27.9 1.57.14 1.91 0 3.08 0 3.77c0 .69.38 5.65.62 6.48.82 2.74 3.71 3.66 6.38 3.36-3.91.58-7.39 2-2.83 7.08 5.01 5.19 6.87-1.11 7.83-4.31.95 3.2 2.05 9.27 7.73 4.31 4.27-4.31 1.17-6.5-2.74-7.08 2.67.3 5.57-.62 6.38-3.36.25-.83.63-5.79.63-6.48 0-.69-.14-1.86-.9-2.2-.66-.3-1.66-.62-4.3 1.24C16.05 4.75 13.09 8.69 12 10.8z"/></svg>',
+            facebook: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.1 23.69v-7.98H6.63v-3.67H9.1v-1.58c0-4.09 1.85-5.98 5.86-5.98.4 0 .96.04 1.47.1.38.04.76.11 1.14.2v3.32c-.22-.02-.43-.03-.65-.04h-.73c-.71 0-1.26.1-1.68.31-.28.14-.51.36-.68.62-.26.42-.37 1-.37 1.75v1.3h3.92l-.39 2.1-.29 1.57h-3.25v8.24C19.4 23.24 24 18.18 24 12.04 24 5.42 18.63.04 12 .04S0 5.42 0 12.04c0 5.63 3.87 10.35 9.1 11.65z"/></svg>',
+            reddit: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 0a12 12 0 1 0 0 24 12 12 0 0 0 0-24zm6.67 13.2c.02.15.03.3.03.45 0 2.73-3.18 4.94-7.1 4.94s-7.1-2.21-7.1-4.94c0-.15.01-.3.03-.45a1.5 1.5 0 1 1 1.66-2.44 8.6 8.6 0 0 1 4.6-1.42l.86-4.04a.32.32 0 0 1 .38-.25l2.86.6a1.06 1.06 0 1 1-.12.53l-2.55-.54-.77 3.7a8.6 8.6 0 0 1 4.54 1.42 1.5 1.5 0 1 1 1.66 2.44zM9.07 12.6a1.06 1.06 0 1 0 0 2.12 1.06 1.06 0 0 0 0-2.12zm5.86 0a1.06 1.06 0 1 0 0 2.12 1.06 1.06 0 0 0 0-2.12zm-.32 3.26a.27.27 0 0 0-.38 0 3.4 3.4 0 0 1-2.23.66 3.4 3.4 0 0 1-2.23-.66.27.27 0 0 0-.38.38c.68.6 1.6.9 2.61.83 1 .07 1.93-.23 2.61-.83a.27.27 0 0 0 0-.38z"/></svg>',
+            hn: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M0 0v24h24V0H0zm12.95 13.83v5.08h-1.9v-5.08L7.1 5.09h2.15l2.8 6.35 2.79-6.35h2.06l-3.95 8.74z"/></svg>',
+            link: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.6 13.4a1 1 0 0 1 0-1.4l3.5-3.5a1 1 0 1 1 1.4 1.4L12 13.4a1 1 0 0 1-1.4 0zm-2.8 5.3a3.5 3.5 0 0 1-2.5-6l2.5-2.5a1 1 0 1 1 1.4 1.4l-2.5 2.5a1.5 1.5 0 0 0 2.1 2.1l2.5-2.5a1 1 0 1 1 1.4 1.4l-2.5 2.5c-.67.67-1.56 1.1-2.4 1.1zm7.1-4.5a1 1 0 0 1-.7-1.7l2.5-2.5a1.5 1.5 0 0 0-2.1-2.1l-2.5 2.5a1 1 0 1 1-1.4-1.4l2.5-2.5a3.5 3.5 0 0 1 5 5l-2.5 2.5a1 1 0 0 1-.8.2z"/></svg>',
+            more: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a1 1 0 0 1 .7.3l4 4a1 1 0 1 1-1.4 1.4L13 5.4V15a1 1 0 1 1-2 0V5.4L8.7 7.7a1 1 0 0 1-1.4-1.4l4-4A1 1 0 0 1 12 2zM5 12a1 1 0 0 1 1 1v6a1 1 0 0 0 1 1h10a1 1 0 0 0 1-1v-6a1 1 0 1 1 2 0v6a3 3 0 0 1-3 3H7a3 3 0 0 1-3-3v-6a1 1 0 0 1 1-1z"/></svg>'
+        };
+        function enc(v) { return encodeURIComponent(v); }
+        function shareTargets(text, url) {
+            var tagged = text + " " + url + " #" + TAG;
+            return [
+                { key: "x", name: "X", href: "https://twitter.com/intent/tweet?text=" + enc(text) + "&url=" + enc(url) + "&hashtags=" + TAG },
+                { key: "linkedin", name: "LinkedIn", href: "https://www.linkedin.com/sharing/share-offsite/?url=" + enc(url) },
+                { key: "bluesky", name: "Bluesky", href: "https://bsky.app/intent/compose?text=" + enc(tagged) },
+                { key: "facebook", name: "Facebook", href: "https://www.facebook.com/sharer/sharer.php?u=" + enc(url) + "&hashtag=" + enc("#" + TAG) },
+                { key: "reddit", name: "Reddit", href: "https://www.reddit.com/submit?url=" + enc(url) + "&title=" + enc("Tomato 1000: help 1,000 developers reach $1,000 a month in GitHub Sponsors") },
+                { key: "hn", name: "Hacker News", href: "https://news.ycombinator.com/submitlink?u=" + enc(url) + "&t=" + enc("Tomato 1000: help 1,000 developers reach $1,000 a month") }
+            ];
+        }
+        var toastTimer;
+        function toast(msg) {
+            var t = $("toast"); t.textContent = msg; t.hidden = false;
+            clearTimeout(toastTimer); toastTimer = setTimeout(function () { t.hidden = true; }, 2200);
+        }
+        function copy(text, done) {
+            var ok = function () { toast(done); };
+            if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(ok, function () { prompt("Copy this:", text); });
+            else prompt("Copy this:", text);
+        }
+        function nativeShare(text, url, fallbackDone) {
+            if (navigator.share) {
+                navigator.share({ title: "Tomato 1000", text: text + " #" + TAG, url: url }).catch(function () {});
+            } else copy(text + " " + url + " #" + TAG, fallbackDone);
+        }
+        function shareButton(tag, attrs, icon) {
+            var b = el(tag, attrs); b.className = "sb"; b.innerHTML = ICONS[icon]; return b;
+        }
+        document.querySelectorAll("[data-share]").forEach(function (box) {
+            shareTargets(SHARE_TEXT, SHARE_URL).forEach(function (t) {
+                box.appendChild(shareButton("a", { href: t.href, target: "_blank", rel: "noopener", title: "Share on " + t.name, "aria-label": "Share on " + t.name }, t.key));
+            });
+            var link = shareButton("button", { type: "button", title: "Copy link", "aria-label": "Copy link" }, "link");
+            link.addEventListener("click", function () {
+                copy(SHARE_URL, "Link copied. Share it with #tomato1000");
+                link.classList.add("done"); setTimeout(function () { link.classList.remove("done"); }, 1500);
+            });
+            box.appendChild(link);
+            if (navigator.share) {
+                var more = shareButton("button", { type: "button", title: "More ways to share", "aria-label": "More ways to share" }, "more");
+                more.addEventListener("click", function () { nativeShare(SHARE_TEXT, SHARE_URL); });
+                box.appendChild(more);
+            }
+        });
+        $("share-text").textContent = SHARE_TEXT + " " + SHARE_URL + " #" + TAG;
+        $("copy-post").addEventListener("click", function () { copy($("share-text").textContent, "Post copied. Paste it anywhere."); });
+        var spotDev = null;
+        $("spot-share").addEventListener("click", function () {
+            if (!spotDev) return;
+            nativeShare("Sponsor @" + spotDev.login + " on GitHub Sponsors and help them reach $1,000 a month.",
+                SHARE_URL + "#dev-" + spotDev.login, "Copied. Share them with #tomato1000");
+        });
+
         var byLogin = {};
         function load(data) {
             all = (data.developers || []).filter(function (d) { return d && LOGIN.test(d.login || ""); });
@@ -494,6 +613,8 @@
             renderGrid();
             renderCards();
             spotlight();
+            var hash = decodeURIComponent(location.hash.slice(1));
+            if (hash.indexOf("dev-") === 0 && byLogin[hash.slice(4)]) showDeveloper(hash.slice(4));
         }
         $("q").addEventListener("input", function (e) { query = e.target.value.trim().toLowerCase(); shown = PAGE; renderCards(); });
         document.querySelectorAll("[data-sort]").forEach(function (b) {

@@ -4,6 +4,7 @@ import json
 import os
 import re
 import sys
+import time
 from urllib.parse import quote, urlsplit
 
 import requests
@@ -60,16 +61,40 @@ CONTRIBUTORS_SHOWN = 8
 
 
 TIMEOUT = 30  # seconds per request; without one a single stalled connection hangs the whole refresh
+# GH_API_TOKEN shares its account's 5,000-an-hour budget with every other token and job of that
+# account, so a run that finds it spent waits for the reset (the job may run 60 minutes).
+RATE_LIMIT_WAIT = 20 * 60
+
+
+def rate_limit_wait(response):
+    """Seconds until GitHub's rate limit resets, when this response says it is spent; else None."""
+    if response.status_code not in (403, 429) or response.headers.get("X-RateLimit-Remaining") != "0":
+        return None
+    try:
+        return max(0, int(response.headers.get("X-RateLimit-Reset", "0")) - time.time()) + 5
+    except ValueError:
+        return None
 
 
 def http(method, url, **kwargs):
     """requests.request with a timeout, tried twice; None when both attempts fail to connect or
-    time out (callers treat that like a failed response)."""
-    for attempt in (1, 2):
+    time out (callers treat that like a failed response). A spent rate limit is waited out once
+    when the reset is within RATE_LIMIT_WAIT."""
+    waited = False
+    attempt = 0
+    while attempt < 2:
+        attempt += 1
         try:
-            return requests.request(method, url, timeout=TIMEOUT, **kwargs)
+            response = requests.request(method, url, timeout=TIMEOUT, **kwargs)
         except requests.RequestException as e:
             print(f"{method} {url}: {type(e).__name__} (attempt {attempt})")
+            continue
+        wait = rate_limit_wait(response)
+        if wait is None or waited or wait > RATE_LIMIT_WAIT:
+            return response
+        print(f"GitHub rate limit spent; waiting {int(wait)} s for the reset")
+        time.sleep(wait)
+        waited, attempt = True, attempt - 1
     return None
 
 

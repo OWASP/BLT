@@ -132,5 +132,37 @@ class Tomato1000Test(unittest.TestCase):
         self.assertEqual(scraper.profile_from_graphql(user)["repos"], [{"name": "r", "url": "https://github.com/a/r", "stars": 7}])
 
 
+class RateLimitTest(unittest.TestCase):
+    class Response:
+        def __init__(self, status, remaining=None, reset=None):
+            self.status_code = status
+            self.headers = {}
+            if remaining is not None:
+                self.headers["X-RateLimit-Remaining"] = remaining
+            if reset is not None:
+                self.headers["X-RateLimit-Reset"] = str(reset)
+
+    def test_only_a_spent_limit_waits(self):
+        now = scraper.time.time()
+        self.assertIsNone(scraper.rate_limit_wait(self.Response(200)))
+        self.assertIsNone(scraper.rate_limit_wait(self.Response(403, "12", int(now) + 60)))
+        self.assertAlmostEqual(scraper.rate_limit_wait(self.Response(403, "0", int(now) + 60)), 65, delta=2)
+        self.assertEqual(scraper.rate_limit_wait(self.Response(429, "0", int(now) - 100)), 5)
+
+    def test_http_waits_once_then_retries(self):
+        calls, sleeps = [], []
+        responses = [self.Response(403, "0", int(scraper.time.time()) + 30), self.Response(200)]
+        # requests may be a stub here (see the top of this file), so restore whatever was there.
+        orig_request, orig_sleep = getattr(scraper.requests, "request", None), scraper.time.sleep
+        scraper.requests.request = lambda *a, **k: calls.append(a) or responses.pop(0)
+        scraper.time.sleep = sleeps.append
+        try:
+            self.assertEqual(scraper.http("GET", "https://api.github.com/x").status_code, 200)
+        finally:
+            scraper.requests.request, scraper.time.sleep = orig_request, orig_sleep
+        self.assertEqual(len(calls), 2)
+        self.assertEqual(len(sleeps), 1)
+
+
 if __name__ == "__main__":
     unittest.main()
