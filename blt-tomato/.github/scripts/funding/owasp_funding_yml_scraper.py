@@ -245,30 +245,57 @@ def profile_from_graphql(user):
     }
 
 
+def page_profile(login):
+    """A profile from the public github.com/sponsors/<login> page, which redirects to the user's
+    profile when there is no listing; no goal, count or repositories are known this way."""
+    response = requests.get(f"https://github.com/sponsors/{login}", allow_redirects=False)
+    if response.status_code == 200:
+        return {"login": login, "name": "", "sponsors": None, "goal": None, "monthly": None, "repos": []}
+    return None
+
+
+def graphql_users(logins, fields):
+    """[user] for the logins, or None when GitHub answers with no data at all (it says why in
+    "errors", which is printed: a token without access to these fields, for example)."""
+    query = " ".join(f'u{i}: user(login: "{login}") {{ {fields} }}' for i, login in enumerate(logins))
+    response = requests.post(f"{GITHUB_API_URL}/graphql", json={"query": f"{{ {query} }}"}, headers=github_headers())
+    body = response.json() if response.headers.get("content-type", "").startswith("application/json") else {}
+    if body.get("errors"):
+        reasons = {e.get("type") or e.get("message") for e in body["errors"] if isinstance(e, dict)}
+        # NOT_FOUND only means a renamed or deleted account; anything else is worth reading.
+        if reasons - {"NOT_FOUND"}:
+            print(f"GraphQL sponsors check: HTTP {response.status_code}: {str(body['errors'])[:500]}")
+    data = body.get("data")
+    if response.status_code != 200 or not data:
+        if not body.get("errors"):
+            print(f"GraphQL sponsors check: HTTP {response.status_code}: {response.text[:300]}")
+        return None
+    return [user for user in data.values() if user]
+
+
 def sponsor_profiles(logins):
-    """{login: profile} for the GitHub logins with GitHub Sponsors turned on. GraphQL when there
-    is a token (one query per 50 logins); otherwise the public github.com/sponsors/<login> page,
-    which redirects to the profile when there is no listing (and no goal or count is known)."""
+    """{login: profile} for the GitHub logins with GitHub Sponsors turned on. With a token, one
+    GraphQL query per 50 logins, retried with the bare Sponsors flag if GitHub refuses the full
+    profile; without a token, or when GraphQL gives nothing, the public Sponsors page."""
     logins = sorted({login for login in logins if GITHUB_LOGIN.match(login)}, key=str.lower)
     found = {}
-    if os.environ.get("GITHUB_TOKEN"):
-        for start in range(0, len(logins), 50):
-            chunk = logins[start:start + 50]
-            fields = " ".join(f'u{i}: user(login: "{login}") {{ {PROFILE_FIELDS} }}' for i, login in enumerate(chunk))
-            response = requests.post(
-                f"{GITHUB_API_URL}/graphql", json={"query": f"{{ {fields} }}"}, headers=github_headers()
-            )
-            if response.status_code != 200:
-                print(f"GraphQL sponsors check: status {response.status_code}")
-                continue
-            for user in ((response.json() or {}).get("data") or {}).values():
-                if user and user.get("hasSponsorsListing"):
-                    found[user["login"]] = profile_from_graphql(user)
-        return found
-    for login in logins:
-        response = requests.get(f"https://github.com/sponsors/{login}", allow_redirects=False)
-        if response.status_code == 200:
-            found[login] = {"login": login, "name": "", "sponsors": None, "goal": None, "monthly": None, "repos": []}
+    for start in range(0, len(logins), 50):
+        chunk = logins[start:start + 50]
+        users = None
+        if os.environ.get("GITHUB_TOKEN"):
+            users = graphql_users(chunk, PROFILE_FIELDS)
+            if users is None:
+                users = graphql_users(chunk, "login hasSponsorsListing")
+        if users is None:
+            for login in chunk:
+                profile = page_profile(login)
+                if profile:
+                    found[login] = profile
+            continue
+        for user in users:
+            if user.get("hasSponsorsListing"):
+                found[user["login"]] = profile_from_graphql(user)
+    print(f"GitHub Sponsors: {len(found)} of {len(logins)} developers")
     return found
 
 

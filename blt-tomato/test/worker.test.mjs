@@ -45,7 +45,7 @@ test("refresh-kv.sh writes both files only when the list is not much shorter", (
     writeFileSync(fakepy, `#!/bin/bash
 jq -n --argjson n "$N" '[range($n)]' > "$OUTPUT_DIR/project_repos_links.json"
 echo "<html>" > "$OUTPUT_DIR/index.html"
-echo "{}" > "$OUTPUT_DIR/tomato1000.json"
+echo '{"developers": [1]}' > "$OUTPUT_DIR/tomato1000.json"
 `);
     chmodSync(fakepy, 0o755);
     const opts = (n) => ({
