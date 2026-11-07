@@ -628,5 +628,84 @@
         "contributions": 8
       }
     ]
+  },
+  {
+    "project_name": "BLT",
+    "repo_url": "https://git.owaspblt.org/BLT",
+    "raw_url": "https://git.owaspblt.org/api/repo/owasp-blt/BLT/raw?ref=main&path={}",
+    "funding_url": "https://git.owaspblt.org/api/repo/owasp-blt/BLT/raw?ref=main&path=.github%2FFUNDING.yml",
+    "funding_details": "Nachiket-Roy, mdkaifansari04, Pritz395, S3DFX-CYBER",
+    "funding_links": [
+      {
+        "platform": "github",
+        "label": "GitHub Sponsors",
+        "handle": "Nachiket-Roy",
+        "url": "https://github.com/sponsors/Nachiket-Roy",
+        "owasp": false
+      },
+      {
+        "platform": "github",
+        "label": "GitHub Sponsors",
+        "handle": "mdkaifansari04",
+        "url": "https://github.com/sponsors/mdkaifansari04",
+        "owasp": false
+      },
+      {
+        "platform": "github",
+        "label": "GitHub Sponsors",
+        "handle": "Pritz395",
+        "url": "https://github.com/sponsors/Pritz395",
+        "owasp": false
+      },
+      {
+        "platform": "github",
+        "label": "GitHub Sponsors",
+        "handle": "S3DFX-CYBER",
+        "url": "https://github.com/sponsors/S3DFX-CYBER",
+        "owasp": false
+      }
+    ],
+    "contributor_sponsors": [
+      {
+        "login": "sidd190",
+        "url": "https://github.com/sponsors/sidd190",
+        "contributions": 131
+      },
+      {
+        "login": "ojaswa072",
+        "url": "https://github.com/sponsors/ojaswa072",
+        "contributions": 119
+      },
+      {
+        "login": "ananya-in-tech",
+        "url": "https://github.com/sponsors/ananya-in-tech",
+        "contributions": 89
+      },
+      {
+        "login": "rinkitadhana",
+        "url": "https://github.com/sponsors/rinkitadhana",
+        "contributions": 86
+      },
+      {
+        "login": "krrish-sehgal",
+        "url": "https://github.com/sponsors/krrish-sehgal",
+        "contributions": 82
+      },
+      {
+        "login": "Rudra-rps",
+        "url": "https://github.com/sponsors/Rudra-rps",
+        "contributions": 68
+      },
+      {
+        "login": "aryanghai12",
+        "url": "https://github.com/sponsors/aryanghai12",
+        "contributions": 61
+      },
+      {
+        "login": "igennova",
+        "url": "https://github.com/sponsors/igennova",
+        "contributions": 53
+      }
+    ]
   }
 ]

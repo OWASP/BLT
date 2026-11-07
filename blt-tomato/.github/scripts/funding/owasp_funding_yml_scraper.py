@@ -12,7 +12,13 @@ GITHUB_API_URL = "https://api.github.com"
 ORG_NAME = "OWASP"
 ADDITIONAL_PROJECTS = [
     {"name": "ASVS", "repo_url": "https://github.com/OWASP/ASVS"},
-    {"name": "BLT", "repo_url": "https://git.owaspblt.org/BLT/BLT-Core"},
+    {
+        # The BLT monorepo is on git.owaspblt.org, not GitHub: its FUNDING.yml comes from the
+        # forge's raw API and its contributors from the list the README generator keeps.
+        "name": "BLT",
+        "repo_url": "https://git.owaspblt.org/BLT",
+        "raw_url": "https://git.owaspblt.org/api/repo/owasp-blt/BLT/raw?ref=main&path={}",
+    },
     {"name": "CycloneDX", "repo_url": "https://github.com/CycloneDX/cyclonedx-cli"},
     {
         "name": "Dependency-Track",
@@ -77,13 +83,21 @@ def github_repo(repo_url):
     return f"{path[0]}/{path[1]}"
 
 
-def check_funding_file(repo_url):
-    repo_name = github_repo(repo_url)
+def raw_file_url(project, path):
+    """Where to read a file of the project's repository, or None."""
+    if project.get("raw_url"):
+        return project["raw_url"].format(quote(path, safe=""))
+    repo_name = github_repo(project["repo_url"])
     if repo_name:
         # HEAD is the default branch, whatever it is called.
-        funding_url = f"https://raw.githubusercontent.com/{repo_name}/HEAD/.github/FUNDING.yml"
-    else:
-        funding_url = f"{repo_url.rstrip('/')}/raw/branch/main/.github/FUNDING.yml"
+        return f"https://raw.githubusercontent.com/{repo_name}/HEAD/{path}"
+    return None
+
+
+def check_funding_file(project):
+    funding_url = raw_file_url(project, ".github/FUNDING.yml")
+    if not funding_url:
+        return None
     response = requests.get(funding_url)
     print(f"Checking funding URL: {funding_url} - Status Code: {response.status_code}")
     if response.status_code == 200:
@@ -150,9 +164,29 @@ def parse_funding_file(funding_url):
     return details, funding_links_from_yaml(content)
 
 
-def get_contributors(repo_url):
-    """Top human contributors of a github.com repository, most commits first."""
-    repo_name = github_repo(repo_url)
+def get_forge_contributors(project):
+    """Top contributors with a GitHub account, from the .forkmesh/contributors/contributors.json
+    that the BLT monorepo's README generator keeps."""
+    response = requests.get(raw_file_url(project, ".forkmesh/contributors/contributors.json"))
+    if response.status_code != 200:
+        print(f"Contributors of {project['name']}: status {response.status_code}")
+        return []
+    people = sorted(
+        (p for p in (response.json() or {}).get("contributors") or [] if isinstance(p, dict)),
+        key=lambda p: -(p.get("commits") or 0),
+    )
+    return [
+        {"login": p["github"], "contributions": p.get("commits") or 0}
+        for p in people
+        if isinstance(p.get("github"), str) and GITHUB_LOGIN.match(p["github"])
+    ][:CONTRIBUTORS_CHECKED * 4]  # one request for the whole list, and a monorepo has many people
+
+
+def get_contributors(project):
+    """Top human contributors of the project's repository, most commits first."""
+    if project.get("raw_url"):
+        return get_forge_contributors(project)
+    repo_name = github_repo(project["repo_url"])
     if not repo_name:
         return []
     response = requests.get(
@@ -204,7 +238,7 @@ def sponsorable_logins(logins):
 def add_contributor_sponsors(project_links):
     """Give every project a contributor_sponsors list: its top contributors who take GitHub
     Sponsors, leaving out anyone its FUNDING.yml already lists."""
-    contributors = {p["repo_url"]: get_contributors(p["repo_url"]) for p in project_links}
+    contributors = {p["repo_url"]: get_contributors(p) for p in project_links}
     sponsorable = sponsorable_logins(c["login"] for people in contributors.values() for c in people)
     for project in project_links:
         listed = {
@@ -483,13 +517,14 @@ def main():
             continue
 
         print("project name", project_name)
-        funding_url = check_funding_file(repo_url)
+        funding_url = check_funding_file(project)
         if funding_url:
             funding_details, funding_links = parse_funding_file(funding_url)
             project_links.append(
                 {
                     "project_name": project_name,
                     "repo_url": repo_url,
+                    **({"raw_url": project["raw_url"]} if project.get("raw_url") else {}),
                     "funding_url": funding_url,
                     "funding_details": funding_details,
                     "funding_links": funding_links,
