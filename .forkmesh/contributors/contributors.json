@@ -82,9 +82,9 @@
    "source": "github",
    "github": "Nachiket-Roy",
    "gitlab": "Nachiket_R",
-   "commits": 729,
+   "commits": 730,
    "first": "2025-10-14",
-   "last": "2026-10-25",
+   "last": "2026-10-27",
    "projects": [
     "BLT",
     "BLT-MCP",
@@ -1979,6 +1979,27 @@
    "avatar_checked": "2026-10-18"
   },
   {
+   "slug": "nishat30",
+   "name": "nishat30",
+   "login": "Nishat30",
+   "profile": "https://github.com/Nishat30",
+   "source": "github",
+   "github": "Nishat30",
+   "gitlab": null,
+   "commits": 6,
+   "first": "2026-10-20",
+   "last": "2026-10-31",
+   "projects": [
+    "BLT-Jobs",
+    "BLT-Design",
+    "BLT-Hackathons",
+    "BLT-Pages"
+   ],
+   "avatar": ".forkmesh/contributors/nishat30.png",
+   "avatar_kind": "downloaded",
+   "avatar_checked": "2026-10-20"
+  },
+  {
    "slug": "rahulnegi20",
    "name": "Rahul Negi",
    "login": "rahulnegi20",
@@ -2087,26 +2108,6 @@
    "avatar": ".forkmesh/contributors/mattsilverio.png",
    "avatar_kind": "downloaded",
    "avatar_checked": "2026-10-18"
-  },
-  {
-   "slug": "nishat30",
-   "name": "nishat30",
-   "login": "Nishat30",
-   "profile": "https://github.com/Nishat30",
-   "source": "github",
-   "github": "Nishat30",
-   "gitlab": null,
-   "commits": 5,
-   "first": "2026-10-20",
-   "last": "2026-10-20",
-   "projects": [
-    "BLT-Jobs",
-    "BLT-Design",
-    "BLT-Hackathons"
-   ],
-   "avatar": ".forkmesh/contributors/nishat30.png",
-   "avatar_kind": "downloaded",
-   "avatar_checked": "2026-10-20"
   },
   {
    "slug": "samyak003",
@@ -2502,6 +2503,24 @@
    "avatar": ".forkmesh/contributors/aimaanayaz.png",
    "avatar_kind": "downloaded",
    "avatar_checked": "2026-10-18"
+  },
+  {
+   "slug": "arnavghai07",
+   "name": "Arnav",
+   "login": "arnavghai07",
+   "profile": "https://github.com/arnavghai07",
+   "source": "github",
+   "github": "arnavghai07",
+   "gitlab": null,
+   "commits": 3,
+   "first": "2026-10-25",
+   "last": "2026-10-29",
+   "projects": [
+    "BLT-Leaf"
+   ],
+   "avatar": ".forkmesh/contributors/arnavghai07.png",
+   "avatar_kind": "downloaded",
+   "avatar_checked": "2026-10-25"
   },
   {
    "slug": "chaimaekit",
@@ -3140,6 +3159,26 @@
    "avatar_checked": "2026-10-18"
   },
   {
+   "slug": "navodit-sahai",
+   "name": "Navodit-Sahai",
+   "login": "Navodit-Sahai",
+   "profile": "https://github.com/Navodit-Sahai",
+   "source": "github",
+   "github": "Navodit-Sahai",
+   "gitlab": null,
+   "commits": 2,
+   "first": "2026-10-25",
+   "last": "2026-10-28",
+   "projects": [
+    "BLT",
+    "BLT-Cron",
+    "BLT-Rewards"
+   ],
+   "avatar": ".forkmesh/contributors/navodit-sahai.png",
+   "avatar_kind": "downloaded",
+   "avatar_checked": "2026-10-25"
+  },
+  {
    "slug": "nileshpahari",
    "name": "Nilesh Pahari",
    "login": "nileshpahari",
@@ -3680,24 +3719,6 @@
    "avatar": ".forkmesh/contributors/ai-chan-0411.png",
    "avatar_kind": "downloaded",
    "avatar_checked": "2026-10-18"
-  },
-  {
-   "slug": "arnavghai07",
-   "name": "Arnav",
-   "login": "arnavghai07",
-   "profile": "https://github.com/arnavghai07",
-   "source": "github",
-   "github": "arnavghai07",
-   "gitlab": null,
-   "commits": 1,
-   "first": "2026-10-25",
-   "last": "2026-10-25",
-   "projects": [
-    "BLT-Leaf"
-   ],
-   "avatar": ".forkmesh/contributors/arnavghai07.png",
-   "avatar_kind": "downloaded",
-   "avatar_checked": "2026-10-25"
   },
   {
    "slug": "gitsofaryan",
@@ -4334,25 +4355,6 @@
    "avatar": ".forkmesh/contributors/mrunalrajredij.png",
    "avatar_kind": "downloaded",
    "avatar_checked": "2026-10-18"
-  },
-  {
-   "slug": "navodit-sahai",
-   "name": "Navodit-Sahai",
-   "login": "Navodit-Sahai",
-   "profile": "https://github.com/Navodit-Sahai",
-   "source": "github",
-   "github": "Navodit-Sahai",
-   "gitlab": null,
-   "commits": 1,
-   "first": "2026-10-25",
-   "last": "2026-10-25",
-   "projects": [
-    "BLT",
-    "BLT-Rewards"
-   ],
-   "avatar": ".forkmesh/contributors/navodit-sahai.png",
-   "avatar_kind": "downloaded",
-   "avatar_checked": "2026-10-25"
   },
   {
    "slug": "officialarmannqureshi",
