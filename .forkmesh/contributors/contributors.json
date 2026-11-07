@@ -2333,6 +2333,25 @@
    "avatar_checked": "2026-10-18"
   },
   {
+   "slug": "namk-hub",
+   "name": "Namrata",
+   "login": "Namk-hub",
+   "profile": "https://github.com/Namk-hub",
+   "source": "github",
+   "github": "Namk-hub",
+   "gitlab": null,
+   "commits": 4,
+   "first": "2026-10-26",
+   "last": "2026-11-02",
+   "projects": [
+    "BLT-Monitor",
+    "BLT-Legacy"
+   ],
+   "avatar": ".forkmesh/contributors/namk-hub.png",
+   "avatar_kind": "downloaded",
+   "avatar_checked": "2026-11-01"
+  },
+  {
    "slug": "nikhil25803",
    "name": "Nikhil Raj",
    "login": "nikhil25803",
@@ -4315,24 +4334,6 @@
    "avatar": ".forkmesh/contributors/mrunalrajredij.png",
    "avatar_kind": "downloaded",
    "avatar_checked": "2026-10-18"
-  },
-  {
-   "slug": "namk-hub",
-   "name": "Namrata",
-   "login": "Namk-hub",
-   "profile": "https://github.com/Namk-hub",
-   "source": "github",
-   "github": "Namk-hub",
-   "gitlab": null,
-   "commits": 1,
-   "first": "2026-10-26",
-   "last": "2026-10-26",
-   "projects": [
-    "BLT-Legacy"
-   ],
-   "avatar": ".forkmesh/contributors/namk-hub.png",
-   "avatar_kind": "downloaded",
-   "avatar_checked": "2026-11-01"
   },
   {
    "slug": "navodit-sahai",
