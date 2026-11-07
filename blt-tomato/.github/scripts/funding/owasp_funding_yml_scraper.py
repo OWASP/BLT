@@ -279,23 +279,28 @@ def sponsor_profiles(logins):
     profile; without a token, or when GraphQL gives nothing, the public Sponsors page."""
     logins = sorted({login for login in logins if GITHUB_LOGIN.match(login)}, key=str.lower)
     found = {}
+    sources = {"full profile": 0, "Sponsors flag only": 0, "public page": 0}
     for start in range(0, len(logins), 50):
         chunk = logins[start:start + 50]
-        users = None
+        users, source = None, "full profile"
         if os.environ.get("GITHUB_TOKEN"):
             users = graphql_users(chunk, PROFILE_FIELDS)
             if users is None:
-                users = graphql_users(chunk, "login hasSponsorsListing")
+                users, source = graphql_users(chunk, "login hasSponsorsListing"), "Sponsors flag only"
         if users is None:
+            sources["public page"] += len(chunk)
             for login in chunk:
                 profile = page_profile(login)
                 if profile:
                     found[login] = profile
             continue
+        sources[source] += len(chunk)
         for user in users:
             if user.get("hasSponsorsListing"):
                 found[user["login"]] = profile_from_graphql(user)
-    print(f"GitHub Sponsors: {len(found)} of {len(logins)} developers")
+    # Goals, sponsor counts and repositories come only with the full profile (a token GitHub accepts).
+    how = ", ".join(f"{n} by {k}" for k, n in sources.items() if n)
+    print(f"GitHub Sponsors: {len(found)} of {len(logins)} developers ({how or 'none checked'})")
     return found
 
 
