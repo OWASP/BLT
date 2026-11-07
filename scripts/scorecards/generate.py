@@ -26,6 +26,12 @@ A card is rewritten only when its inputs changed or it is older than REFRESH_DAY
 run costs a handful of AI calls. Usage:
 
   python3 scripts/scorecards/generate.py [--force] [--only NAME ...] [--offline] [--dry-run]
+  python3 scripts/scorecards/generate.py --export due.json [--only NAME ...] [--force]
+  python3 scripts/scorecards/generate.py --import words.json      # words written by Claude Code
+
+--export/--import let an AI agent (the /scorecards skill in Claude Code or the desktop app) write the
+words itself: export the data of the cards due, write {login: {headline, strengths, grow, next_step}},
+import it. The scores are still computed here.
 """
 
 import argparse
@@ -498,7 +504,7 @@ def facts_json(f):
     return out
 
 
-def card_for(name, f, ask, force):
+def card_for(name, f, ask, force, plan=False):
     path = os.path.join(OUT_DIR, f"{name.lower()}.json")
     overall, level, areas, projects = score_areas(f)
     stats = facts_json(f)
@@ -518,9 +524,11 @@ def card_for(name, f, ask, force):
     upgrade = ask is not None and old.get("model") == "builtin"
     if not force and not upgrade and old.get("inputs") == digest and age < REFRESH_DAYS:
         return path, None
+    prompt = prompt_for(name, f, overall, level, areas, projects)
+    if plan:
+        return path, {"login": name, "score": overall, "level": level, "data": prompt}
     words, model = None, "builtin"
     if ask:
-        prompt = prompt_for(name, f, overall, level, areas, projects)
         for _ in range(2):
             try:
                 text, used = ask(prompt)
@@ -531,6 +539,8 @@ def card_for(name, f, ask, force):
             if words:
                 model = used
                 break
+    if ask and not words:
+        print(f"scorecards: {name}: no usable words from the writer, built-in text used", file=sys.stderr)
     words = words or builtin_words(name, f, areas, projects)
     card = {
         "schema": SCHEMA,
@@ -560,22 +570,53 @@ def main(argv=None):
     parser.add_argument("--offline", action="store_true", help="no network: skip accounts and the AI")
     parser.add_argument("--dry-run", action="store_true", help="print cards instead of writing them")
     parser.add_argument("--limit", type=int, default=0, help="write at most this many cards")
+    parser.add_argument("--export", metavar="FILE",
+                        help="write the instructions and data of the cards due for a rewrite to FILE "
+                             "(for an AI agent such as Claude Code to write the words), and nothing else")
+    parser.add_argument("--import", dest="import_file", metavar="FILE",
+                        help="write cards with the words in FILE: {\"<login>\": {\"headline\", \"strengths\", "
+                             "\"grow\", \"next_step\"}}; only those logins are rewritten")
+    parser.add_argument("--writer", default=os.environ.get("SCORECARD_WRITER", "Claude Code"),
+                        help="the model name an --import card credits (default: Claude Code)")
     args = parser.parse_args(argv)
 
     people = gather(args.offline)
+    supplied = {}
+    if args.import_file:
+        with open(args.import_file, encoding="utf-8") as fh:
+            supplied = {str(k).lower(): v for k, v in json.load(fh).items() if isinstance(v, dict)}
+        args.only = list(args.only) + list(supplied)
     only = {n.lower() for n in args.only}
     if only:
         people = {n: f for n, f in people.items() if n.lower() in only}
     ask = None if args.offline else provider()
-    print(f"scorecards: {len(people)} people, writer: {ask.__name__ if ask else 'builtin'}", file=sys.stderr)
-    os.makedirs(OUT_DIR, exist_ok=True)
-
     names = sorted(people, key=str.lower)
     if args.limit:
         names = names[:args.limit]
+
+    if args.export:
+        # Plan as if an AI were available, so built-in cards are offered for an upgrade too.
+        due = [card for _, card in (card_for(n, people[n], provider() or ask_workers_ai,
+                                             args.force or bool(only), plan=True) for n in names) if card]
+        with open(args.export, "w", encoding="utf-8") as fh:
+            json.dump({"instructions": SYSTEM, "answer_format": {"<login>": {
+                "headline": "str", "strengths": ["str"], "grow": ["str"], "next_step": "str"}},
+                "people": due}, fh, indent=1, ensure_ascii=False)
+        print(f"scorecards: {len(due)} cards due, written to {args.export}", file=sys.stderr)
+        return
+
+    def writer(name):
+        if not supplied:
+            return ask
+        words = supplied.get(name.lower())
+        return (lambda prompt: (json.dumps(words), args.writer)) if words else None
+
+    print(f"scorecards: {len(people)} people, writer: "
+          f"{args.writer if supplied else ask.__name__ if ask else 'builtin'}", file=sys.stderr)
+    os.makedirs(OUT_DIR, exist_ok=True)
     written = 0
     with ThreadPoolExecutor(max(1, AI_WORKERS)) as pool:
-        for path, card in pool.map(lambda n: card_for(n, people[n], ask, args.force or bool(only)), names):
+        for path, card in pool.map(lambda n: card_for(n, people[n], writer(n), args.force or bool(only)), names):
             if card is None:
                 continue
             written += 1
@@ -591,6 +632,9 @@ def main(argv=None):
         for name in os.listdir(OUT_DIR):
             if name.endswith(".json") and name[:-5] not in keep:
                 os.remove(os.path.join(OUT_DIR, name))
+    missing = sorted(set(supplied) - {n.lower() for n in people})
+    if missing:
+        print(f"scorecards: no forge activity found for {', '.join(missing)}; not written", file=sys.stderr)
     print(f"scorecards: {written} written", file=sys.stderr)
 
 
