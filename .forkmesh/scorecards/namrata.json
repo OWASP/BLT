@@ -2,9 +2,9 @@
  "schema": "blt-scorecard-v1",
  "login": "namrata",
  "generated": "2026-11-07",
- "model": "llama-3.3-70b-instruct-fp8-fast",
- "inputs": "f4bb6c61cff5fe2c",
- "score": 23,
+ "model": "Claude Code",
+ "inputs": "f735a5d5987c2b9f",
+ "score": 25,
  "level": "Getting started",
  "areas": [
   {
@@ -15,12 +15,12 @@
   {
    "key": "collaboration",
    "label": "Collaboration",
-   "score": 24
+   "score": 28
   },
   {
    "key": "community",
    "label": "Community",
-   "score": 0
+   "score": 5
   },
   {
    "key": "breadth",
@@ -33,23 +33,23 @@
    "score": 100
   }
  ],
- "headline": "You're making great progress with pull requests.",
+ "headline": "22 comments and a merged pull request: you are a great collaborator.",
  "strengths": [
   "1 merged pull request",
-  "4 opened pull requests",
-  "13 thoughtful comments"
+  "4 pull requests opened",
+  "22 comments on issues and pull requests"
  ],
  "grow": [
-  "Review a teammate's pull request to learn from their work",
-  "Add a bio to your profile to connect with others"
+  "Your thoughtful comments would make great reviews on others' pull requests",
+  "Putting the project name in your titles helps the right reviewers find them"
  ],
- "next_step": "Explore open issues on the forge and consider opening one or commenting on an existing issue to get more involved",
+ "next_step": "Turn your next comment into a full review on an open pull request",
  "stats": {
   "commits": 0,
   "pulls_merged": 1,
   "reviews": 0,
   "issues": 0,
-  "comments": 13,
+  "comments": 22,
   "projects": 0,
   "last_active": "2026-11-07"
  },

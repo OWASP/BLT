@@ -2,9 +2,9 @@
  "schema": "blt-scorecard-v1",
  "login": "hiralmodi",
  "generated": "2026-11-07",
- "model": "llama-3.3-70b-instruct-fp8-fast",
- "inputs": "87af623ff25b753c",
- "score": 25,
+ "model": "Claude Code",
+ "inputs": "7aeef8e9c3d5128c",
+ "score": 26,
  "level": "Getting started",
  "areas": [
   {
@@ -15,7 +15,7 @@
   {
    "key": "collaboration",
    "label": "Collaboration",
-   "score": 6
+   "score": 10
   },
   {
    "key": "community",
@@ -33,23 +33,23 @@
    "score": 100
   }
  ],
- "headline": "You made a great start with 2 merged pull requests.",
+ "headline": "2 pull requests opened, 2 merged. A perfect start!",
  "strengths": [
-  "2 merged pull requests on the forge",
-  "1 comment on a pull request",
-  "Worked on 2 projects: blt-pages and coderabbit"
+  "2 for 2 merged pull requests",
+  "Work in blt-pages and coderabbit",
+  "Active today"
  ],
  "grow": [
-  "Try reviewing a teammate's pull request to learn more about the codebase",
-  "Adding a bio to your profile can help others get to know you"
+  "Opening an issue for a bug or idea you spot helps the whole team plan",
+  "Your clean pull requests make you a natural reviewer for others"
  ],
- "next_step": "Open an issue or leave a comment on an issue in blt-pages or coderabbit to get more involved in the community on…",
+ "next_step": "Leave a review on one open blt-pages pull request on git.owaspblt.org",
  "stats": {
   "commits": 0,
   "pulls_merged": 2,
   "reviews": 0,
   "issues": 0,
-  "comments": 1,
+  "comments": 2,
   "projects": 2,
   "last_active": "2026-11-07"
  },

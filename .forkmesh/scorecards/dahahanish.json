@@ -2,9 +2,9 @@
  "schema": "blt-scorecard-v1",
  "login": "dahahanish",
  "generated": "2026-11-07",
- "model": "llama-3.3-70b-instruct-fp8-fast",
- "inputs": "972079f632457eea",
- "score": 25,
+ "model": "Claude Code",
+ "inputs": "d5846835975462ae",
+ "score": 27,
  "level": "Getting started",
  "areas": [
   {
@@ -15,12 +15,12 @@
   {
    "key": "collaboration",
    "label": "Collaboration",
-   "score": 18
+   "score": 19
   },
   {
    "key": "community",
    "label": "Community",
-   "score": 0
+   "score": 12
   },
   {
    "key": "breadth",
@@ -33,22 +33,23 @@
    "score": 100
   }
  ],
- "headline": "You made a great start with blt-toasty this month.",
+ "headline": "Your first blt-toasty pull request is merged. Great first contribution!",
  "strengths": [
   "1 merged pull request in blt-toasty",
-  "5 thoughtful comments on pull requests"
+  "7 comments working through feedback with reviewers",
+  "Opened an issue to plan the work"
  ],
  "grow": [
-  "Try reviewing a teammate's pull request to learn more about BLT",
-  "Add a bio to your profile to connect with others"
+  "Reviewing a teammate's pull request is a great way to share what you learned",
+  "Another BLT project could use your Workers know-how"
  ],
- "next_step": "Browse open issues in blt-toasty and consider opening a new issue or commenting on an existing one this week",
+ "next_step": "Pick a second blt-toasty issue, or leave a review on an open pull request this week",
  "stats": {
   "commits": 0,
   "pulls_merged": 1,
   "reviews": 0,
-  "issues": 0,
-  "comments": 6,
+  "issues": 1,
+  "comments": 7,
   "projects": 1,
   "last_active": "2026-11-02"
  },

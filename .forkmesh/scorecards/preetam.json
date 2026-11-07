@@ -2,9 +2,9 @@
  "schema": "blt-scorecard-v1",
  "login": "preetam",
  "generated": "2026-11-07",
- "model": "llama-3.3-70b-instruct-fp8-fast",
- "inputs": "e826e1a440bfbbe7",
- "score": 22,
+ "model": "Claude Code",
+ "inputs": "5791c2ecb6398208",
+ "score": 26,
  "level": "Getting started",
  "areas": [
   {
@@ -15,12 +15,12 @@
   {
    "key": "collaboration",
    "label": "Collaboration",
-   "score": 10
+   "score": 16
   },
   {
    "key": "community",
    "label": "Community",
-   "score": 0
+   "score": 12
   },
   {
    "key": "breadth",
@@ -33,23 +33,23 @@
    "score": 100
   }
  ],
- "headline": "You opened 6 pull requests this month.",
+ "headline": "6 pull requests and 2 merged. You keep the ideas coming!",
  "strengths": [
   "2 merged pull requests",
-  "6 opened pull requests",
-  "1 comment on a pull request"
+  "6 pull requests opened",
+  "Opened an issue and joined 5 discussions"
  ],
  "grow": [
-  "Review a teammate's pull request to learn from their code",
-  "Add a bio to your profile to connect with others"
+  "Following up on review comments will help your 4 open pull requests land",
+  "Putting the project name in your titles helps the right reviewers find them"
  ],
- "next_step": "Pick an open issue and leave a comment or open a new pull request on the forge this week",
+ "next_step": "Pick your oldest open pull request, answer its review comments and push an update",
  "stats": {
   "commits": 0,
   "pulls_merged": 2,
   "reviews": 0,
-  "issues": 0,
-  "comments": 2,
+  "issues": 1,
+  "comments": 5,
   "projects": 0,
   "last_active": "2026-11-07"
  },

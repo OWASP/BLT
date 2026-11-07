@@ -2,9 +2,9 @@
  "schema": "blt-scorecard-v1",
  "login": "navodit",
  "generated": "2026-11-07",
- "model": "llama-3.3-70b-instruct-fp8-fast",
- "inputs": "3d42a3fceba5545d",
- "score": 24,
+ "model": "Claude Code",
+ "inputs": "97eee7c04e310103",
+ "score": 25,
  "level": "Getting started",
  "areas": [
   {
@@ -20,7 +20,7 @@
   {
    "key": "community",
    "label": "Community",
-   "score": 0
+   "score": 5
   },
   {
    "key": "breadth",
@@ -33,17 +33,17 @@
    "score": 100
   }
  ],
- "headline": "You made a great start with 4 pull requests this month.",
+ "headline": "4 pull requests and 17 comments. You are part of the conversation!",
  "strengths": [
   "1 merged pull request",
-  "11 comments on pull requests",
-  "6 comments on issues"
+  "4 pull requests opened",
+  "17 comments on issues and pull requests"
  ],
  "grow": [
-  "Review a teammate's pull request to learn from their work",
-  "Add a bio to your profile to connect with others"
+  "Answering review comments will help your 3 open pull requests land",
+  "Reviewing someone else's pull request is a great way to learn the codebase"
  ],
- "next_step": "Pick an open issue and leave a thoughtful comment or open a new pull request on git.owaspblt.org this week",
+ "next_step": "Pick one of your open pull requests and push an update for its review comments",
  "stats": {
   "commits": 0,
   "pulls_merged": 1,

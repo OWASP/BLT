@@ -2,7 +2,7 @@
  "schema": "blt-scorecard-v1",
  "login": "s3dfx-cyber",
  "generated": "2026-11-07",
- "model": "llama-3.3-70b-instruct-fp8-fast",
+ "model": "Claude Code",
  "inputs": "6c92f40b91a15a23",
  "score": 59,
  "level": "Strong contributor",
@@ -33,18 +33,17 @@
    "score": 100
   }
  ],
- "headline": "You're making a strong impact on OWASP BLT.",
+ "headline": "45 reviews and 164 commits: you help others ship across BLT.",
  "strengths": [
-  "164 commits to BLT projects",
-  "45 reviews given on pull requests",
-  "Touched 9 different projects"
+  "45 reviews given, 15 approvals",
+  "164 commits since December",
+  "Work across 9 projects, from blt-leaf to blt-pool"
  ],
  "grow": [
-  "Sharing your expertise by opening a pull request can enhance BLT",
-  "Completing your profile helps the community get to know you",
-  "Engaging with issues can expand your influence"
+  "Opening issues for the things you spot in review gives newcomers great tasks",
+  "A short bio on your profile helps contributors know who to ask"
  ],
- "next_step": "Consider opening your first pull request on a project like blt-leaf to share your code and start a conversation with…",
+ "next_step": "Turn one thing you noticed in a review into a good-first-issue on git.owaspblt.org",
  "stats": {
   "commits": 164,
   "pulls_merged": 0,

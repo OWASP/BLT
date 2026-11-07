@@ -2,7 +2,7 @@
  "schema": "blt-scorecard-v1",
  "login": "c0d3h01",
  "generated": "2026-11-07",
- "model": "llama-3.3-70b-instruct-fp8-fast",
+ "model": "Claude Code",
  "inputs": "d9bc379cddca646a",
  "score": 27,
  "level": "Getting started",
@@ -33,16 +33,17 @@
    "score": 98
   }
  ],
- "headline": "You started contributing to OWASP BLT with 5 commits.",
+ "headline": "Your 5 commits to blt and blt-jobs are part of BLT's history now.",
  "strengths": [
-  "5 commits to BLT projects",
-  "Touched 2 projects: blt, blt-jobs"
+  "5 commits across blt and blt-jobs",
+  "Contributing since May",
+  "2 links on your profile so people can find your work"
  ],
  "grow": [
-  "Opening a pull request helps share your code changes with others",
-  "Adding a bio to your profile can help others get to know you"
+  "Sending your next change as a pull request gets it reviewed and merged quickly",
+  "Saying hello on an open issue is an easy way back into the project"
  ],
- "next_step": "Consider opening a pull request for one of your commits in the blt or blt-jobs project on git.owaspblt.org",
+ "next_step": "Browse open blt-jobs issues on git.owaspblt.org and pick one that sparks your interest",
  "stats": {
   "commits": 5,
   "pulls_merged": 0,

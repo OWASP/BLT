@@ -2,7 +2,7 @@
  "schema": "blt-scorecard-v1",
  "login": "fable98",
  "generated": "2026-11-07",
- "model": "llama-3.3-70b-instruct-fp8-fast",
+ "model": "Claude Code",
  "inputs": "5aac368d7b270da4",
  "score": 20,
  "level": "Getting started",
@@ -33,16 +33,17 @@
    "score": 100
   }
  ],
- "headline": "You started strong with blt-pages this week.",
+ "headline": "Welcome aboard! Your first pull request for blt-pages is in.",
  "strengths": [
-  "1 opened pull request in blt-pages",
-  "2 thoughtful comments on pull requests"
+  "1 pull request opened for blt-pages",
+  "2 comments on pull requests",
+  "Jumped in during your first week"
  ],
  "grow": [
-  "Reviewing a teammate's pull request is a great way to learn new corners of BLT",
-  "Adding a bio to your profile helps others find you for help"
+  "Small follow-up fixes are a great way to get your first merge",
+  "Commenting on an open issue helps you find the next thing to build"
  ],
- "next_step": "Explore open issues in blt-pages and consider opening a new pull request or commenting on an existing one on…",
+ "next_step": "Find an open blt-pages issue on git.owaspblt.org and open a pull request for it",
  "stats": {
   "commits": 0,
   "pulls_merged": 0,

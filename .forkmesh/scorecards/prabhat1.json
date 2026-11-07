@@ -2,9 +2,9 @@
  "schema": "blt-scorecard-v1",
  "login": "prabhat1",
  "generated": "2026-11-07",
- "model": "llama-3.3-70b-instruct-fp8-fast",
- "inputs": "954114a0961cb7c5",
- "score": 25,
+ "model": "Claude Code",
+ "inputs": "14751fe1157bc1d0",
+ "score": 27,
  "level": "Getting started",
  "areas": [
   {
@@ -15,7 +15,7 @@
   {
    "key": "collaboration",
    "label": "Collaboration",
-   "score": 15
+   "score": 20
   },
   {
    "key": "community",
@@ -33,23 +33,23 @@
    "score": 100
   }
  ],
- "headline": "You made a strong start with 5 pull requests in BLT projects.",
+ "headline": "5 pull requests across blt-gsoc and blt-start. Great energy!",
  "strengths": [
-  "5 opened pull requests across projects",
-  "1 merged pull request",
-  "4 comments on pull requests"
+  "5 pull requests opened, 1 merged",
+  "Work in blt-gsoc and blt-start",
+  "8 comments on issues and pull requests"
  ],
  "grow": [
-  "Try reviewing a teammate's pull request to share your expertise",
-  "Add a bio to your profile to connect with others"
+  "Answering review comments will help your 3 open pull requests land",
+  "Reviewing someone else's pull request is a great way to learn"
  ],
- "next_step": "Explore open issues in blt-gsoc and blt-start, and consider leaving a review on a pull request this week on…",
+ "next_step": "Push an update to one of your open pull requests, then review a teammate's",
  "stats": {
   "commits": 0,
   "pulls_merged": 1,
   "reviews": 0,
   "issues": 0,
-  "comments": 4,
+  "comments": 8,
   "projects": 2,
   "last_active": "2026-11-02"
  },

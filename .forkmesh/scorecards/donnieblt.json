@@ -2,8 +2,8 @@
  "schema": "blt-scorecard-v1",
  "login": "DonnieBLT",
  "generated": "2026-11-07",
- "model": "llama-3.3-70b-instruct-fp8-fast",
- "inputs": "58f365862412c605",
+ "model": "Claude Code",
+ "inputs": "995553d56d1ab7b1",
  "score": 68,
  "level": "Strong contributor",
  "areas": [
@@ -33,21 +33,21 @@
    "score": 100
   }
  ],
- "headline": "You made a strong impact on OWASP BLT this month.",
+ "headline": "3,732 commits and 59 reviews: you keep the whole BLT family moving.",
  "strengths": [
-  "3732 commits to BLT projects",
-  "1 merged pull request",
-  "61 reviews given on pull requests"
+  "3,732 commits since 2023",
+  "59 reviews given, 35 of them approvals",
+  "Work across all 55 BLT projects"
  ],
  "grow": [
-  "Adding a bio to your profile can help others get to know you",
-  "Exploring the issue tracker for projects you've touched can lead to new contributions"
+  "A short bio and a few links on your profile would help newcomers know who to ask",
+  "Opening issues for ideas gives new contributors great places to start"
  ],
- "next_step": "Browse the open issues in blt-leaf and consider opening a pull request to address one of them this week on…",
+ "next_step": "Turn one idea on your list into a good-first-issue on git.owaspblt.org for a newcomer",
  "stats": {
   "commits": 3732,
   "pulls_merged": 1,
-  "reviews": 61,
+  "reviews": 59,
   "issues": 1,
   "comments": 8,
   "projects": 55,
