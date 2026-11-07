@@ -7,8 +7,9 @@
 Scripts related to projects mainly for high level OWASP project management
 1) Funding site served from `public/`: every OWASP project with a `.github/FUNDING.yml`, its own
    funding links (GitHub Sponsors, Open Collective, Patreon, custom pages, ...) and its top
-   contributors who take GitHub Sponsors. owasp.org/donate links are shown apart: OWASP no longer
-   collects donations earmarked for individual projects.
+   contributors who take GitHub Sponsors. owasp.org/donate links are shown apart: since OWASP's new
+   website they fund the Foundation in general; to give to a project through OWASP, donors contact
+   the Foundation.
 
 ## Cloudflare and the weekly refresh (Workers KV)
 

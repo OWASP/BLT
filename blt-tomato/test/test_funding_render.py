@@ -71,7 +71,7 @@ class RenderTest(unittest.TestCase):
     def test_page_wraps_items(self):
         page = scraper.render_index_html([{"project_name": PAYLOAD, "repo_url": "", "funding_details": ""}], built="2026-11-06")
         self.assertTrue(page.lstrip().startswith("<!DOCTYPE html>"))
-        self.assertIn("OWASP no longer collects donations for individual projects", page)
+        self.assertIn("owasp.org/donate links no longer reach the project they name", page)
         self.assertIn("&quot;&#x27;&gt;&lt;script&gt;", page)
         self.assertIn("Last built 2026-11-06.", page)
         self.assertNotIn("<script>alert", page)

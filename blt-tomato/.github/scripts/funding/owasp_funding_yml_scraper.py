@@ -383,9 +383,10 @@ PAGE_HEAD = """<!DOCTYPE html>
         <aside class="notice" role="note">
             <span class="icon" aria-hidden="true">&#9888;</span>
             <div>
-                <h2>OWASP no longer collects donations for individual projects</h2>
-                <p>Many projects still list an owasp.org/donate link in their FUNDING.yml. Those links support the OWASP Foundation as a whole, not the project named in them. To fund a particular project, use the project's own links below or sponsor the people who build it on GitHub Sponsors.</p>
-                <p>Maintainers: point your <a href="https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/displaying-a-sponsor-button-in-your-repository">FUNDING.yml</a> at your own GitHub Sponsors, Open Collective or other page, and this list picks it up within a week.</p>
+                <h2>owasp.org/donate links no longer reach the project they name</h2>
+                <p>OWASP's new website dropped the project from its donation form, so the owasp.org/donate links many projects still list in their FUNDING.yml now support the OWASP Foundation in general. OWASP is working on a standard way to support projects, chapters and working groups. Until then, to give to a specific project through OWASP, <a href="https://owasp.org/contact/">contact the Foundation</a>: it invoices sponsors and donors and credits the gift to the project.</p>
+                <p>The other links below go to each project's own funding pages and to its contributors. Sponsoring someone on GitHub Sponsors pays that person directly, not the project or the Foundation. See OWASP's <a href="https://owasp.org/policy/donations">donations policy</a>.</p>
+                <p>Maintainers: replace an owasp.org/donate link in your <a href="https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/displaying-a-sponsor-button-in-your-repository">FUNDING.yml</a> with the project's own funding page or <a href="https://owasp.org/contact/">owasp.org/contact</a>, and this list picks it up within a week.</p>
             </div>
         </aside>
 """
@@ -467,7 +468,8 @@ def render_project_item(project):
             f'<a href="{esc(link["url"])}" rel="noopener">{"GitHub Sponsors" if link["platform"] == "github" else "owasp.org/donate"}</a>'
             for link in foundation
         )
-        out.append(f'<p class="foundation">Also lists the OWASP Foundation ({parts}), which no longer earmarks gifts for this project.</p>\n')
+        out.append(f'<p class="foundation">Also lists the OWASP Foundation ({parts}); gifts there are no longer credited to this project.'
+                   ' To give to it through OWASP, <a href="https://owasp.org/contact/" rel="noopener">contact the Foundation</a>.</p>\n')
     out.append("</li>\n")
     return "".join(out)
 

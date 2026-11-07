@@ -1,5 +1,6 @@
 # Ways to fund OWASP BLT, listed on https://tomato.owaspblt.org/ (BLT Tomato).
-# OWASP no longer collects donations earmarked for individual projects, so this lists the people
-# who build BLT instead: its top contributors by commits who have GitHub Sponsors turned on
-# (GitHub allows up to four). BLT Tomato also shows further contributors with Sponsors on.
+# owasp.org/donate can no longer credit a gift to a project (to give to BLT through OWASP, contact
+# the Foundation: https://owasp.org/contact/), so this lists the people who build BLT: its top
+# contributors by commits who have GitHub Sponsors turned on (GitHub allows up to four). Sponsoring
+# them pays them directly. BLT Tomato also shows further contributors with Sponsors on.
 github: [Nachiket-Roy, mdkaifansari04, Pritz395, S3DFX-CYBER]
