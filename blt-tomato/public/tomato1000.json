@@ -1,10 +1,11 @@
 {
- "built": "2026-11-07T04:20:22Z",
+ "built": "2026-11-07T04:43:07Z",
  "goal": {
   "developers": 1000,
   "monthly_dollars": 1000
  },
  "contributors_checked": 956,
+ "joined": 0,
  "developers": [
   {
    "login": "D4Vinci",
@@ -16,9 +17,27 @@
     "percent": 80
    },
    "monthly": null,
+   "repos": [
+    {
+     "name": "Scrapling",
+     "url": "https://github.com/D4Vinci/Scrapling",
+     "stars": 98914
+    },
+    {
+     "name": "Cr3dOv3r",
+     "url": "https://github.com/D4Vinci/Cr3dOv3r",
+     "stars": 2161
+    },
+    {
+     "name": "One-Lin3r",
+     "url": "https://github.com/D4Vinci/One-Lin3r",
+     "stars": 1798
+    }
+   ],
    "url": "https://github.com/sponsors/D4Vinci",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 50,
    "projects": [
     {
@@ -38,9 +57,27 @@
     "percent": 46
    },
    "monthly": null,
+   "repos": [
+    {
+     "name": "javascript-inspirate",
+     "url": "https://github.com/UlisesGascon/javascript-inspirate",
+     "stars": 157
+    },
+    {
+     "name": "sample-terraform-localstack",
+     "url": "https://github.com/UlisesGascon/sample-terraform-localstack",
+     "stars": 60
+    },
+    {
+     "name": "check-my-headers",
+     "url": "https://github.com/UlisesGascon/check-my-headers",
+     "stars": 47
+    }
+   ],
    "url": "https://github.com/sponsors/UlisesGascon",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 65,
    "projects": [
     {
@@ -56,9 +93,27 @@
    "sponsors": 6,
    "goal": null,
    "monthly": null,
+   "repos": [
+    {
+     "name": "DOMPurify",
+     "url": "https://github.com/cure53/DOMPurify",
+     "stars": 17509
+    },
+    {
+     "name": "H5SC",
+     "url": "https://github.com/cure53/H5SC",
+     "stars": 2936
+    },
+    {
+     "name": "HTTPLeaks",
+     "url": "https://github.com/cure53/HTTPLeaks",
+     "stars": 2127
+    }
+   ],
    "url": "https://github.com/sponsors/cure53",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 25,
    "projects": [
     {
@@ -79,9 +134,27 @@
    "sponsors": 4,
    "goal": null,
    "monthly": null,
+   "repos": [
+    {
+     "name": "open-vulnerability-cli",
+     "url": "https://github.com/jeremylong/open-vulnerability-cli",
+     "stars": 180
+    },
+    {
+     "name": "DependencyCheck",
+     "url": "https://github.com/jeremylong/DependencyCheck",
+     "stars": 56
+    },
+    {
+     "name": "malicious-dependencies",
+     "url": "https://github.com/jeremylong/malicious-dependencies",
+     "stars": 28
+    }
+   ],
    "url": "https://github.com/sponsors/jeremylong",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 78,
    "projects": [
     {
@@ -97,9 +170,27 @@
    "sponsors": 3,
    "goal": null,
    "monthly": null,
+   "repos": [
+    {
+     "name": "jintellitype",
+     "url": "https://github.com/melloware/jintellitype",
+     "stars": 181
+    },
+    {
+     "name": "react-logviewer",
+     "url": "https://github.com/melloware/react-logviewer",
+     "stars": 170
+    },
+    {
+     "name": "quarkus-faces",
+     "url": "https://github.com/melloware/quarkus-faces",
+     "stars": 99
+    }
+   ],
    "url": "https://github.com/sponsors/melloware",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 5,
    "projects": [
     {
@@ -115,9 +206,27 @@
    "sponsors": 1,
    "goal": null,
    "monthly": null,
+   "repos": [
+    {
+     "name": "warpdom",
+     "url": "https://github.com/sonukapoor/warpdom",
+     "stars": 4
+    },
+    {
+     "name": "rxjs-distinct-deep",
+     "url": "https://github.com/sonukapoor/rxjs-distinct-deep",
+     "stars": 4
+    },
+    {
+     "name": "branch-gen",
+     "url": "https://github.com/sonukapoor/branch-gen",
+     "stars": 4
+    }
+   ],
    "url": "https://github.com/sponsors/sonukapoor",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 617,
    "projects": [
     {
@@ -133,9 +242,27 @@
    "sponsors": 1,
    "goal": null,
    "monthly": null,
+   "repos": [
+    {
+     "name": "switchfolio",
+     "url": "https://github.com/rinkitadhana/switchfolio",
+     "stars": 68
+    },
+    {
+     "name": "The-Daily-Crimes",
+     "url": "https://github.com/rinkitadhana/The-Daily-Crimes",
+     "stars": 45
+    },
+    {
+     "name": "openside",
+     "url": "https://github.com/rinkitadhana/openside",
+     "stars": 39
+    }
+   ],
    "url": "https://github.com/sponsors/rinkitadhana",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 86,
    "projects": [
     {
@@ -151,9 +278,27 @@
    "sponsors": 1,
    "goal": null,
    "monthly": null,
+   "repos": [
+    {
+     "name": "hugo-theme-introduction",
+     "url": "https://github.com/victoriadrake/hugo-theme-introduction",
+     "stars": 722
+    },
+    {
+     "name": "hugo-theme-sam",
+     "url": "https://github.com/victoriadrake/hugo-theme-sam",
+     "stars": 423
+    },
+    {
+     "name": "dotfiles",
+     "url": "https://github.com/victoriadrake/dotfiles",
+     "stars": 249
+    }
+   ],
    "url": "https://github.com/sponsors/victoriadrake",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 58,
    "projects": [
     {
@@ -178,9 +323,27 @@
     "percent": 0
    },
    "monthly": 0,
+   "repos": [
+    {
+     "name": "Rust-HTTP-Server",
+     "url": "https://github.com/Mr-Rahul-Paul/Rust-HTTP-Server",
+     "stars": 3
+    },
+    {
+     "name": "profile-website",
+     "url": "https://github.com/Mr-Rahul-Paul/profile-website",
+     "stars": 1
+    },
+    {
+     "name": "quantum-sim-HackIIITV",
+     "url": "https://github.com/Mr-Rahul-Paul/quantum-sim-HackIIITV",
+     "stars": 1
+    }
+   ],
    "url": "https://github.com/sponsors/Mr-Rahul-Paul",
    "progress": 0.0,
    "reached": false,
+   "joined": false,
    "contributions": 25,
    "projects": [
     {
@@ -196,9 +359,27 @@
    "sponsors": 1,
    "goal": null,
    "monthly": null,
+   "repos": [
+    {
+     "name": "java-champions",
+     "url": "https://github.com/aalmiray/java-champions",
+     "stars": 379
+    },
+    {
+     "name": "javatrove",
+     "url": "https://github.com/aalmiray/javatrove",
+     "stars": 73
+    },
+    {
+     "name": "awesome-gradle-plugins",
+     "url": "https://github.com/aalmiray/awesome-gradle-plugins",
+     "stars": 52
+    }
+   ],
    "url": "https://github.com/sponsors/aalmiray",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 13,
    "projects": [
     {
@@ -214,9 +395,27 @@
    "sponsors": 1,
    "goal": null,
    "monthly": null,
+   "repos": [
+    {
+     "name": "OSCP-Exam-Report-Template-Markdown",
+     "url": "https://github.com/noraj/OSCP-Exam-Report-Template-Markdown",
+     "stars": 4220
+    },
+    {
+     "name": "haiti",
+     "url": "https://github.com/noraj/haiti",
+     "stars": 1012
+    },
+    {
+     "name": "flask-session-cookie-manager",
+     "url": "https://github.com/noraj/flask-session-cookie-manager",
+     "stars": 771
+    }
+   ],
    "url": "https://github.com/sponsors/noraj",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 3,
    "projects": [
     {
@@ -232,9 +431,27 @@
    "sponsors": 1,
    "goal": null,
    "monthly": null,
+   "repos": [
+    {
+     "name": "awesome-earth",
+     "url": "https://github.com/philsturgeon/awesome-earth",
+     "stars": 1424
+    },
+    {
+     "name": "codeigniter-restclient",
+     "url": "https://github.com/philsturgeon/codeigniter-restclient",
+     "stars": 675
+    },
+    {
+     "name": "dbad",
+     "url": "https://github.com/philsturgeon/dbad",
+     "stars": 574
+    }
+   ],
    "url": "https://github.com/sponsors/philsturgeon",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 1,
    "projects": [
     {
@@ -254,9 +471,27 @@
     "percent": 0
    },
    "monthly": null,
+   "repos": [
+    {
+     "name": "leaf3",
+     "url": "https://github.com/arkid15r/leaf3",
+     "stars": 2
+    },
+    {
+     "name": "check-pr-issue-action",
+     "url": "https://github.com/arkid15r/check-pr-issue-action",
+     "stars": 1
+    },
+    {
+     "name": "cosplay-coding",
+     "url": "https://github.com/arkid15r/cosplay-coding",
+     "stars": 1
+    }
+   ],
    "url": "https://github.com/sponsors/arkid15r",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 1774,
    "projects": [
     {
@@ -287,9 +522,27 @@
    "sponsors": 0,
    "goal": null,
    "monthly": null,
+   "repos": [
+    {
+     "name": "KnowledgeDump",
+     "url": "https://github.com/Nachiket-Roy/KnowledgeDump",
+     "stars": 1
+    },
+    {
+     "name": "BLT",
+     "url": "https://github.com/Nachiket-Roy/BLT",
+     "stars": 0
+    },
+    {
+     "name": "Hiverr",
+     "url": "https://github.com/Nachiket-Roy/Hiverr",
+     "stars": 0
+    }
+   ],
    "url": "https://github.com/sponsors/Nachiket-Roy",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 737,
    "projects": [
     {
@@ -310,9 +563,27 @@
    "sponsors": 0,
    "goal": null,
    "monthly": null,
+   "repos": [
+    {
+     "name": "writings",
+     "url": "https://github.com/eoftedal/writings",
+     "stars": 175
+    },
+    {
+     "name": "deserialize",
+     "url": "https://github.com/eoftedal/deserialize",
+     "stars": 30
+    },
+    {
+     "name": "MalaRIA-Proxy",
+     "url": "https://github.com/eoftedal/MalaRIA-Proxy",
+     "stars": 23
+    }
+   ],
    "url": "https://github.com/sponsors/eoftedal",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 638,
    "projects": [
     {
@@ -347,9 +618,27 @@
     "percent": 0
    },
    "monthly": null,
+   "repos": [
+    {
+     "name": "pygoat",
+     "url": "https://github.com/adeyosemanputra/pygoat",
+     "stars": 353
+    },
+    {
+     "name": "WannaPy",
+     "url": "https://github.com/adeyosemanputra/WannaPy",
+     "stars": 3
+    },
+    {
+     "name": "owasp101",
+     "url": "https://github.com/adeyosemanputra/owasp101",
+     "stars": 1
+    }
+   ],
    "url": "https://github.com/sponsors/adeyosemanputra",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 510,
    "projects": [
     {
@@ -380,9 +669,27 @@
    "sponsors": 0,
    "goal": null,
    "monthly": null,
+   "repos": [
+    {
+     "name": "Zapher",
+     "url": "https://github.com/mdkaifansari04/Zapher",
+     "stars": 7
+    },
+    {
+     "name": "NODE_BACKEND_TEMPLATE",
+     "url": "https://github.com/mdkaifansari04/NODE_BACKEND_TEMPLATE",
+     "stars": 6
+    },
+    {
+     "name": "nirvana-ai",
+     "url": "https://github.com/mdkaifansari04/nirvana-ai",
+     "stars": 5
+    }
+   ],
    "url": "https://github.com/sponsors/mdkaifansari04",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 434,
    "projects": [
     {
@@ -402,9 +709,27 @@
     "percent": 0
    },
    "monthly": 0,
+   "repos": [
+    {
+     "name": "pyhtools",
+     "url": "https://github.com/dmdhrumilmistry/pyhtools",
+     "stars": 661
+    },
+    {
+     "name": "GooglePhish",
+     "url": "https://github.com/dmdhrumilmistry/GooglePhish",
+     "stars": 114
+    },
+    {
+     "name": "Termux-SSH",
+     "url": "https://github.com/dmdhrumilmistry/Termux-SSH",
+     "stars": 88
+    }
+   ],
    "url": "https://github.com/sponsors/dmdhrumilmistry",
    "progress": 0.0,
    "reached": false,
+   "joined": false,
    "contributions": 421,
    "projects": [
     {
@@ -420,9 +745,27 @@
    "sponsors": 0,
    "goal": null,
    "monthly": null,
+   "repos": [
+    {
+     "name": "BLT-SafeCloak",
+     "url": "https://github.com/Pritz395/BLT-SafeCloak",
+     "stars": 1
+    },
+    {
+     "name": "Business-Churn-Analysis",
+     "url": "https://github.com/Pritz395/Business-Churn-Analysis",
+     "stars": 1
+    },
+    {
+     "name": "l1mbo",
+     "url": "https://github.com/Pritz395/l1mbo",
+     "stars": 1
+    }
+   ],
    "url": "https://github.com/sponsors/Pritz395",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 276,
    "projects": [
     {
@@ -442,9 +785,27 @@
     "percent": 0
    },
    "monthly": 0,
+   "repos": [
+    {
+     "name": "dockerscan",
+     "url": "https://github.com/cr0hn/dockerscan",
+     "stars": 1728
+    },
+    {
+     "name": "vulnerable-node",
+     "url": "https://github.com/cr0hn/vulnerable-node",
+     "stars": 493
+    },
+    {
+     "name": "aiotasks",
+     "url": "https://github.com/cr0hn/aiotasks",
+     "stars": 455
+    }
+   ],
    "url": "https://github.com/sponsors/cr0hn",
    "progress": 0.0,
    "reached": false,
+   "joined": false,
    "contributions": 270,
    "projects": [
     {
@@ -469,9 +830,27 @@
     "percent": 0
    },
    "monthly": 0,
+   "repos": [
+    {
+     "name": "Food-delivery",
+     "url": "https://github.com/Adarshkumar0509/Food-delivery",
+     "stars": 23
+    },
+    {
+     "name": "DSA",
+     "url": "https://github.com/Adarshkumar0509/DSA",
+     "stars": 22
+    },
+    {
+     "name": "Weather-app",
+     "url": "https://github.com/Adarshkumar0509/Weather-app",
+     "stars": 22
+    }
+   ],
    "url": "https://github.com/sponsors/Adarshkumar0509",
    "progress": 0.0,
    "reached": false,
+   "joined": false,
    "contributions": 251,
    "projects": [
     {
@@ -487,9 +866,27 @@
    "sponsors": 0,
    "goal": null,
    "monthly": null,
+   "repos": [
+    {
+     "name": "bank-account",
+     "url": "https://github.com/infosecdad/bank-account",
+     "stars": 1
+    },
+    {
+     "name": "Mary-CountDown",
+     "url": "https://github.com/infosecdad/Mary-CountDown",
+     "stars": 0
+    },
+    {
+     "name": "gradingcalc-c",
+     "url": "https://github.com/infosecdad/gradingcalc-c",
+     "stars": 0
+    }
+   ],
    "url": "https://github.com/sponsors/infosecdad",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 191,
    "projects": [
     {
@@ -519,9 +916,27 @@
     "percent": 0
    },
    "monthly": null,
+   "repos": [
+    {
+     "name": "Windows-Hotspot",
+     "url": "https://github.com/JamesCullum/Windows-Hotspot",
+     "stars": 48
+    },
+    {
+     "name": "PGP-Anywhere",
+     "url": "https://github.com/JamesCullum/PGP-Anywhere",
+     "stars": 37
+    },
+    {
+     "name": "CloudflaredRAT",
+     "url": "https://github.com/JamesCullum/CloudflaredRAT",
+     "stars": 19
+    }
+   ],
    "url": "https://github.com/sponsors/JamesCullum",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 167,
    "projects": [
     {
@@ -537,9 +952,27 @@
    "sponsors": 0,
    "goal": null,
    "monthly": null,
+   "repos": [
+    {
+     "name": "FindMyGSoC",
+     "url": "https://github.com/S3DFX-CYBER/FindMyGSoC",
+     "stars": 178
+    },
+    {
+     "name": "Claude-Skills-Security",
+     "url": "https://github.com/S3DFX-CYBER/Claude-Skills-Security",
+     "stars": 8
+    },
+    {
+     "name": "cybersecurity-ai-reporting-agent-clean-professional-and-SEO-friendly",
+     "url": "https://github.com/S3DFX-CYBER/cybersecurity-ai-reporting-agent-clean-professional-and-SEO-friendly",
+     "stars": 2
+    }
+   ],
    "url": "https://github.com/sponsors/S3DFX-CYBER",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 164,
    "projects": [
     {
@@ -555,9 +988,27 @@
    "sponsors": 0,
    "goal": null,
    "monthly": null,
+   "repos": [
+    {
+     "name": "lwierzbicki.github.io",
+     "url": "https://github.com/lwierzbicki/lwierzbicki.github.io",
+     "stars": 1
+    },
+    {
+     "name": "burp2api",
+     "url": "https://github.com/lwierzbicki/burp2api",
+     "stars": 0
+    },
+    {
+     "name": "burp2har",
+     "url": "https://github.com/lwierzbicki/burp2har",
+     "stars": 0
+    }
+   ],
    "url": "https://github.com/sponsors/lwierzbicki",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 156,
    "projects": [
     {
@@ -577,9 +1028,27 @@
     "percent": 0
    },
    "monthly": null,
+   "repos": [
+    {
+     "name": "CODESOURCERER",
+     "url": "https://github.com/puneeth072003/CODESOURCERER",
+     "stars": 6
+    },
+    {
+     "name": "aws-cloud-resume",
+     "url": "https://github.com/puneeth072003/aws-cloud-resume",
+     "stars": 2
+    },
+    {
+     "name": "Moodie",
+     "url": "https://github.com/puneeth072003/Moodie",
+     "stars": 2
+    }
+   ],
    "url": "https://github.com/sponsors/puneeth072003",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 143,
    "projects": [
     {
@@ -600,9 +1069,27 @@
    "sponsors": 0,
    "goal": null,
    "monthly": null,
+   "repos": [
+    {
+     "name": "Dimsee",
+     "url": "https://github.com/sidd190/Dimsee",
+     "stars": 9
+    },
+    {
+     "name": "Quad",
+     "url": "https://github.com/sidd190/Quad",
+     "stars": 1
+    },
+    {
+     "name": "Badgura",
+     "url": "https://github.com/sidd190/Badgura",
+     "stars": 0
+    }
+   ],
    "url": "https://github.com/sponsors/sidd190",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 131,
    "projects": [
     {
@@ -618,9 +1105,27 @@
    "sponsors": 0,
    "goal": null,
    "monthly": null,
+   "repos": [
+    {
+     "name": "Antiphishing",
+     "url": "https://github.com/julioliraup/Antiphishing",
+     "stars": 44
+    },
+    {
+     "name": "linkedin-post",
+     "url": "https://github.com/julioliraup/linkedin-post",
+     "stars": 2
+    },
+    {
+     "name": "otx-pulse",
+     "url": "https://github.com/julioliraup/otx-pulse",
+     "stars": 0
+    }
+   ],
    "url": "https://github.com/sponsors/julioliraup",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 120,
    "projects": [
     {
@@ -636,9 +1141,27 @@
    "sponsors": 0,
    "goal": null,
    "monthly": null,
+   "repos": [
+    {
+     "name": "AgentGuard",
+     "url": "https://github.com/ojaswa072/AgentGuard",
+     "stars": 0
+    },
+    {
+     "name": "Ojaswa",
+     "url": "https://github.com/ojaswa072/Ojaswa",
+     "stars": 0
+    },
+    {
+     "name": "ojaswa072",
+     "url": "https://github.com/ojaswa072/ojaswa072",
+     "stars": 0
+    }
+   ],
    "url": "https://github.com/sponsors/ojaswa072",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 119,
    "projects": [
     {
@@ -658,9 +1181,27 @@
     "percent": 0
    },
    "monthly": null,
+   "repos": [
+    {
+     "name": "tech-archives",
+     "url": "https://github.com/ananya-in-tech/tech-archives",
+     "stars": 6
+    },
+    {
+     "name": "MY-GSOC-TOOL",
+     "url": "https://github.com/ananya-in-tech/MY-GSOC-TOOL",
+     "stars": 1
+    },
+    {
+     "name": "SAE_website",
+     "url": "https://github.com/ananya-in-tech/SAE_website",
+     "stars": 1
+    }
+   ],
    "url": "https://github.com/sponsors/ananya-in-tech",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 89,
    "projects": [
     {
@@ -676,9 +1217,27 @@
    "sponsors": 0,
    "goal": null,
    "monthly": null,
+   "repos": [
+    {
+     "name": "hubmcp",
+     "url": "https://github.com/krrish-sehgal/hubmcp",
+     "stars": 1
+    },
+    {
+     "name": "5-sem-Minor",
+     "url": "https://github.com/krrish-sehgal/5-sem-Minor",
+     "stars": 1
+    },
+    {
+     "name": "ios-app",
+     "url": "https://github.com/krrish-sehgal/ios-app",
+     "stars": 1
+    }
+   ],
    "url": "https://github.com/sponsors/krrish-sehgal",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 82,
    "projects": [
     {
@@ -694,9 +1253,27 @@
    "sponsors": 0,
    "goal": null,
    "monthly": null,
+   "repos": [
+    {
+     "name": "trenches",
+     "url": "https://github.com/Rudra-rps/trenches",
+     "stars": 2
+    },
+    {
+     "name": "Corvus",
+     "url": "https://github.com/Rudra-rps/Corvus",
+     "stars": 1
+    },
+    {
+     "name": "SnackSavvy",
+     "url": "https://github.com/Rudra-rps/SnackSavvy",
+     "stars": 1
+    }
+   ],
    "url": "https://github.com/sponsors/Rudra-rps",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 68,
    "projects": [
     {
@@ -712,9 +1289,27 @@
    "sponsors": 0,
    "goal": null,
    "monthly": null,
+   "repos": [
+    {
+     "name": "typing-speed-test",
+     "url": "https://github.com/ahmedxgouda/typing-speed-test",
+     "stars": 2
+    },
+    {
+     "name": "anki-automation",
+     "url": "https://github.com/ahmedxgouda/anki-automation",
+     "stars": 1
+    },
+    {
+     "name": "countries-details",
+     "url": "https://github.com/ahmedxgouda/countries-details",
+     "stars": 1
+    }
+   ],
    "url": "https://github.com/sponsors/ahmedxgouda",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 67,
    "projects": [
     {
@@ -730,9 +1325,27 @@
    "sponsors": 0,
    "goal": null,
    "monthly": null,
+   "repos": [
+    {
+     "name": "peer-it",
+     "url": "https://github.com/rudransh-shrivastava/peer-it",
+     "stars": 14
+    },
+    {
+     "name": "flappy-bird-game",
+     "url": "https://github.com/rudransh-shrivastava/flappy-bird-game",
+     "stars": 6
+    },
+    {
+     "name": "share-wallet-old",
+     "url": "https://github.com/rudransh-shrivastava/share-wallet-old",
+     "stars": 5
+    }
+   ],
    "url": "https://github.com/sponsors/rudransh-shrivastava",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 66,
    "projects": [
     {
@@ -753,9 +1366,27 @@
    "sponsors": 0,
    "goal": null,
    "monthly": null,
+   "repos": [
+    {
+     "name": "awesome-web3",
+     "url": "https://github.com/zbraiterman/awesome-web3",
+     "stars": 17
+    },
+    {
+     "name": "security-community",
+     "url": "https://github.com/zbraiterman/security-community",
+     "stars": 3
+    },
+    {
+     "name": "blog",
+     "url": "https://github.com/zbraiterman/blog",
+     "stars": 2
+    }
+   ],
    "url": "https://github.com/sponsors/zbraiterman",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 65,
    "projects": [
     {
@@ -781,9 +1412,27 @@
    "sponsors": 0,
    "goal": null,
    "monthly": null,
+   "repos": [
+    {
+     "name": "InChi-Pilot-Gateway",
+     "url": "https://github.com/aryanghai12/InChi-Pilot-Gateway",
+     "stars": 4
+    },
+    {
+     "name": "aryanghai12",
+     "url": "https://github.com/aryanghai12/aryanghai12",
+     "stars": 1
+    },
+    {
+     "name": "Velra",
+     "url": "https://github.com/aryanghai12/Velra",
+     "stars": 0
+    }
+   ],
    "url": "https://github.com/sponsors/aryanghai12",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 61,
    "projects": [
     {
@@ -799,9 +1448,27 @@
    "sponsors": 0,
    "goal": null,
    "monthly": null,
+   "repos": [
+    {
+     "name": "Safka",
+     "url": "https://github.com/Rajgupta36/Safka",
+     "stars": 5
+    },
+    {
+     "name": "Meetify",
+     "url": "https://github.com/Rajgupta36/Meetify",
+     "stars": 3
+    },
+    {
+     "name": "Not-your-simple-notion",
+     "url": "https://github.com/Rajgupta36/Not-your-simple-notion",
+     "stars": 1
+    }
+   ],
    "url": "https://github.com/sponsors/Rajgupta36",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 59,
    "projects": [
     {
@@ -817,9 +1484,27 @@
    "sponsors": 0,
    "goal": null,
    "monthly": null,
+   "repos": [
+    {
+     "name": "pingme-tui",
+     "url": "https://github.com/abhayymishraa/pingme-tui",
+     "stars": 24
+    },
+    {
+     "name": "manim-2d-3d-generation-project",
+     "url": "https://github.com/abhayymishraa/manim-2d-3d-generation-project",
+     "stars": 15
+    },
+    {
+     "name": "accretion",
+     "url": "https://github.com/abhayymishraa/accretion",
+     "stars": 14
+    }
+   ],
    "url": "https://github.com/sponsors/abhayymishraa",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 57,
    "projects": [
     {
@@ -845,9 +1530,27 @@
    "sponsors": 0,
    "goal": null,
    "monthly": null,
+   "repos": [
+    {
+     "name": "DateNow",
+     "url": "https://github.com/anurag2787/DateNow",
+     "stars": 9
+    },
+    {
+     "name": "OSS-Markdown",
+     "url": "https://github.com/anurag2787/OSS-Markdown",
+     "stars": 2
+    },
+    {
+     "name": "Nivaran",
+     "url": "https://github.com/anurag2787/Nivaran",
+     "stars": 0
+    }
+   ],
    "url": "https://github.com/sponsors/anurag2787",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 57,
    "projects": [
     {
@@ -868,9 +1571,27 @@
    "sponsors": 0,
    "goal": null,
    "monthly": null,
+   "repos": [
+    {
+     "name": "ZeroCost-Shorts",
+     "url": "https://github.com/igennova/ZeroCost-Shorts",
+     "stars": 78
+    },
+    {
+     "name": "Auto-Caption",
+     "url": "https://github.com/igennova/Auto-Caption",
+     "stars": 3
+    },
+    {
+     "name": "Seedhe-Maut",
+     "url": "https://github.com/igennova/Seedhe-Maut",
+     "stars": 2
+    }
+   ],
    "url": "https://github.com/sponsors/igennova",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 53,
    "projects": [
     {
@@ -886,9 +1607,27 @@
    "sponsors": 0,
    "goal": null,
    "monthly": null,
+   "repos": [
+    {
+     "name": "Toasty",
+     "url": "https://github.com/SahilDhillon21/Toasty",
+     "stars": 0
+    },
+    {
+     "name": "IOT-NEW_ADV",
+     "url": "https://github.com/SahilDhillon21/IOT-NEW_ADV",
+     "stars": 0
+    },
+    {
+     "name": "ai-agent-prototype-oldd",
+     "url": "https://github.com/SahilDhillon21/ai-agent-prototype-oldd",
+     "stars": 0
+    }
+   ],
    "url": "https://github.com/sponsors/SahilDhillon21",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 51,
    "projects": [
     {
@@ -904,9 +1643,17 @@
    "sponsors": 0,
    "goal": null,
    "monthly": null,
+   "repos": [
+    {
+     "name": "Shhazzz",
+     "url": "https://github.com/Shhazzz/Shhazzz",
+     "stars": 0
+    }
+   ],
    "url": "https://github.com/sponsors/Shhazzz",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 48,
    "projects": [
     {
@@ -926,9 +1673,27 @@
     "percent": 0
    },
    "monthly": 0,
+   "repos": [
+    {
+     "name": "Daily-Coding-DS-ALGO-Practice",
+     "url": "https://github.com/Ayush7614/Daily-Coding-DS-ALGO-Practice",
+     "stars": 323
+    },
+    {
+     "name": "Bundli-Frontend",
+     "url": "https://github.com/Ayush7614/Bundli-Frontend",
+     "stars": 137
+    },
+    {
+     "name": "Soomvaar",
+     "url": "https://github.com/Ayush7614/Soomvaar",
+     "stars": 46
+    }
+   ],
    "url": "https://github.com/sponsors/Ayush7614",
    "progress": 0.0,
    "reached": false,
+   "joined": false,
    "contributions": 45,
    "projects": [
     {
@@ -944,9 +1709,27 @@
    "sponsors": 0,
    "goal": null,
    "monthly": null,
+   "repos": [
+    {
+     "name": "safe-npm",
+     "url": "https://github.com/swaparup36/safe-npm",
+     "stars": 3
+    },
+    {
+     "name": "openscad-to-manifold-prototype",
+     "url": "https://github.com/swaparup36/openscad-to-manifold-prototype",
+     "stars": 1
+    },
+    {
+     "name": "NITASPACE",
+     "url": "https://github.com/swaparup36/NITASPACE",
+     "stars": 1
+    }
+   ],
    "url": "https://github.com/sponsors/swaparup36",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 45,
    "projects": [
     {
@@ -962,9 +1745,27 @@
    "sponsors": 0,
    "goal": null,
    "monthly": null,
+   "repos": [
+    {
+     "name": "portfolio-V2",
+     "url": "https://github.com/Dishant1804/portfolio-V2",
+     "stars": 6
+    },
+    {
+     "name": "socket-chat",
+     "url": "https://github.com/Dishant1804/socket-chat",
+     "stars": 6
+    },
+    {
+     "name": "Type-Trek",
+     "url": "https://github.com/Dishant1804/Type-Trek",
+     "stars": 6
+    }
+   ],
    "url": "https://github.com/sponsors/Dishant1804",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 43,
    "projects": [
     {
@@ -984,9 +1785,27 @@
     "percent": 0
    },
    "monthly": null,
+   "repos": [
+    {
+     "name": "HolisticInfoSec-For-WebDevelopers-Fascicle0",
+     "url": "https://github.com/binarymist/HolisticInfoSec-For-WebDevelopers-Fascicle0",
+     "stars": 50
+    },
+    {
+     "name": "awesome-infosecnz",
+     "url": "https://github.com/binarymist/awesome-infosecnz",
+     "stars": 37
+    },
+    {
+     "name": "HolisticInfoSec-For-WebDevelopers-Fascicle1",
+     "url": "https://github.com/binarymist/HolisticInfoSec-For-WebDevelopers-Fascicle1",
+     "stars": 27
+    }
+   ],
    "url": "https://github.com/sponsors/binarymist",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 42,
    "projects": [
     {
@@ -1002,9 +1821,27 @@
    "sponsors": 0,
    "goal": null,
    "monthly": null,
+   "repos": [
+    {
+     "name": "bang-exploitable",
+     "url": "https://github.com/gojo-satorou-v7/bang-exploitable",
+     "stars": 1
+    },
+    {
+     "name": "fee4v0n6n",
+     "url": "https://github.com/gojo-satorou-v7/fee4v0n6n",
+     "stars": 1
+    },
+    {
+     "name": "dark-pattern-extension",
+     "url": "https://github.com/gojo-satorou-v7/dark-pattern-extension",
+     "stars": 0
+    }
+   ],
    "url": "https://github.com/sponsors/gojo-satorou-v7",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 42,
    "projects": [
     {
@@ -1020,9 +1857,27 @@
    "sponsors": 0,
    "goal": null,
    "monthly": null,
+   "repos": [
+    {
+     "name": "msgroup.com",
+     "url": "https://github.com/thundel/msgroup.com",
+     "stars": 0
+    },
+    {
+     "name": "ModernSysGroup.com",
+     "url": "https://github.com/thundel/ModernSysGroup.com",
+     "stars": 0
+    },
+    {
+     "name": "Masai-AIMLT_2603330-CProj",
+     "url": "https://github.com/thundel/Masai-AIMLT_2603330-CProj",
+     "stars": 0
+    }
+   ],
    "url": "https://github.com/sponsors/thundel",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 41,
    "projects": [
     {
@@ -1038,9 +1893,27 @@
    "sponsors": 0,
    "goal": null,
    "monthly": null,
+   "repos": [
+    {
+     "name": "cv",
+     "url": "https://github.com/yashgoyal0110/cv",
+     "stars": 0
+    },
+    {
+     "name": "assignment",
+     "url": "https://github.com/yashgoyal0110/assignment",
+     "stars": 0
+    },
+    {
+     "name": "forkwise",
+     "url": "https://github.com/yashgoyal0110/forkwise",
+     "stars": 0
+    }
+   ],
    "url": "https://github.com/sponsors/yashgoyal0110",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 39,
    "projects": [
     {
@@ -1056,9 +1929,27 @@
    "sponsors": 0,
    "goal": null,
    "monthly": null,
+   "repos": [
+    {
+     "name": "cpe",
+     "url": "https://github.com/nilp0inter/cpe",
+     "stars": 94
+    },
+    {
+     "name": "MiSTer_WebMenu",
+     "url": "https://github.com/nilp0inter/MiSTer_WebMenu",
+     "stars": 63
+    },
+    {
+     "name": "Vim-for-Muggles",
+     "url": "https://github.com/nilp0inter/Vim-for-Muggles",
+     "stars": 18
+    }
+   ],
    "url": "https://github.com/sponsors/nilp0inter",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 37,
    "projects": [
     {
@@ -1079,9 +1970,27 @@
    "sponsors": 0,
    "goal": null,
    "monthly": null,
+   "repos": [
+    {
+     "name": "CrawlWise",
+     "url": "https://github.com/haroon0x/CrawlWise",
+     "stars": 4
+    },
+    {
+     "name": "RedLoop",
+     "url": "https://github.com/haroon0x/RedLoop",
+     "stars": 3
+    },
+    {
+     "name": "Wake-ai",
+     "url": "https://github.com/haroon0x/Wake-ai",
+     "stars": 2
+    }
+   ],
    "url": "https://github.com/sponsors/haroon0x",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 33,
    "projects": [
     {
@@ -1097,9 +2006,27 @@
    "sponsors": 0,
    "goal": null,
    "monthly": null,
+   "repos": [
+    {
+     "name": "LinkedIn-Automation",
+     "url": "https://github.com/tsu-ki/LinkedIn-Automation",
+     "stars": 1
+    },
+    {
+     "name": "PrepPal.AI",
+     "url": "https://github.com/tsu-ki/PrepPal.AI",
+     "stars": 1
+    },
+    {
+     "name": "Human-Resource-Management",
+     "url": "https://github.com/tsu-ki/Human-Resource-Management",
+     "stars": 0
+    }
+   ],
    "url": "https://github.com/sponsors/tsu-ki",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 32,
    "projects": [
     {
@@ -1115,9 +2042,27 @@
    "sponsors": 0,
    "goal": null,
    "monthly": null,
+   "repos": [
+    {
+     "name": "Screened-Movie-Blog",
+     "url": "https://github.com/Jozz77/Screened-Movie-Blog",
+     "stars": 3
+    },
+    {
+     "name": "Jozz77",
+     "url": "https://github.com/Jozz77/Jozz77",
+     "stars": 1
+    },
+    {
+     "name": "Food-Store",
+     "url": "https://github.com/Jozz77/Food-Store",
+     "stars": 1
+    }
+   ],
    "url": "https://github.com/sponsors/Jozz77",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 29,
    "projects": [
     {
@@ -1133,9 +2078,27 @@
    "sponsors": 0,
    "goal": null,
    "monthly": null,
+   "repos": [
+    {
+     "name": "timetable",
+     "url": "https://github.com/Naveen-Pal/timetable",
+     "stars": 2
+    },
+    {
+     "name": "web",
+     "url": "https://github.com/Naveen-Pal/web",
+     "stars": 1
+    },
+    {
+     "name": "timetable_2sem",
+     "url": "https://github.com/Naveen-Pal/timetable_2sem",
+     "stars": 1
+    }
+   ],
    "url": "https://github.com/sponsors/Naveen-Pal",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 25,
    "projects": [
     {
@@ -1155,9 +2118,27 @@
     "percent": 0
    },
    "monthly": 0,
+   "repos": [
+    {
+     "name": "html5-qrcode",
+     "url": "https://github.com/mebjas/html5-qrcode",
+     "stars": 6246
+    },
+    {
+     "name": "CSRF-Protector-PHP",
+     "url": "https://github.com/mebjas/CSRF-Protector-PHP",
+     "stars": 213
+    },
+    {
+     "name": "jquery-digitalwrite",
+     "url": "https://github.com/mebjas/jquery-digitalwrite",
+     "stars": 26
+    }
+   ],
    "url": "https://github.com/sponsors/mebjas",
    "progress": 0.0,
    "reached": false,
+   "joined": false,
    "contributions": 23,
    "projects": [
     {
@@ -1173,9 +2154,27 @@
    "sponsors": 0,
    "goal": null,
    "monthly": null,
+   "repos": [
+    {
+     "name": "Tetris-From-NAND",
+     "url": "https://github.com/Aarush289/Tetris-From-NAND",
+     "stars": 1
+    },
+    {
+     "name": "2026-GSoC-proposal-owasp",
+     "url": "https://github.com/Aarush289/2026-GSoC-proposal-owasp",
+     "stars": 0
+    },
+    {
+     "name": "My_STL_project",
+     "url": "https://github.com/Aarush289/My_STL_project",
+     "stars": 0
+    }
+   ],
    "url": "https://github.com/sponsors/Aarush289",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 19,
    "projects": [
     {
@@ -1191,9 +2190,27 @@
    "sponsors": 0,
    "goal": null,
    "monthly": null,
+   "repos": [
+    {
+     "name": "SYSIG",
+     "url": "https://github.com/diamant3/SYSIG",
+     "stars": 18
+    },
+    {
+     "name": "awesome-open-organizations",
+     "url": "https://github.com/diamant3/awesome-open-organizations",
+     "stars": 15
+    },
+    {
+     "name": "psp-controller",
+     "url": "https://github.com/diamant3/psp-controller",
+     "stars": 14
+    }
+   ],
    "url": "https://github.com/sponsors/diamant3",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 14,
    "projects": [
     {
@@ -1209,9 +2226,27 @@
    "sponsors": 0,
    "goal": null,
    "monthly": null,
+   "repos": [
+    {
+     "name": "reverse-engineering-and-malware-analysis",
+     "url": "https://github.com/abhisek/reverse-engineering-and-malware-analysis",
+     "stars": 167
+    },
+    {
+     "name": "Pe-Loader-Sample",
+     "url": "https://github.com/abhisek/Pe-Loader-Sample",
+     "stars": 160
+    },
+    {
+     "name": "pwnworks",
+     "url": "https://github.com/abhisek/pwnworks",
+     "stars": 64
+    }
+   ],
    "url": "https://github.com/sponsors/abhisek",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 11,
    "projects": [
     {
@@ -1231,9 +2266,27 @@
     "percent": 0
    },
    "monthly": 0,
+   "repos": [
+    {
+     "name": "CVE-2026-31431-Copy-Fail---Vulnerability-Detection-Script",
+     "url": "https://github.com/liamromanis101/CVE-2026-31431-Copy-Fail---Vulnerability-Detection-Script",
+     "stars": 26
+    },
+    {
+     "name": "DirtyFrag-Detector",
+     "url": "https://github.com/liamromanis101/DirtyFrag-Detector",
+     "stars": 16
+    },
+    {
+     "name": "K8s-container_escape_audit",
+     "url": "https://github.com/liamromanis101/K8s-container_escape_audit",
+     "stars": 9
+    }
+   ],
    "url": "https://github.com/sponsors/liamromanis101",
    "progress": 0.0,
    "reached": false,
+   "joined": false,
    "contributions": 9,
    "projects": [
     {
@@ -1253,9 +2306,27 @@
     "percent": 0
    },
    "monthly": null,
+   "repos": [
+    {
+     "name": "kubernetes-goat",
+     "url": "https://github.com/madhuakula/kubernetes-goat",
+     "stars": 5938
+    },
+    {
+     "name": "hacker-container",
+     "url": "https://github.com/madhuakula/hacker-container",
+     "stars": 298
+    },
+    {
+     "name": "wincmdfu",
+     "url": "https://github.com/madhuakula/wincmdfu",
+     "stars": 190
+    }
+   ],
    "url": "https://github.com/sponsors/madhuakula",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 9,
    "projects": [
     {
@@ -1271,9 +2342,27 @@
    "sponsors": 0,
    "goal": null,
    "monthly": null,
+   "repos": [
+    {
+     "name": "Truva",
+     "url": "https://github.com/rajanpanth/Truva",
+     "stars": 8
+    },
+    {
+     "name": "InstinctFi",
+     "url": "https://github.com/rajanpanth/InstinctFi",
+     "stars": 4
+    },
+    {
+     "name": "Assignment-5",
+     "url": "https://github.com/rajanpanth/Assignment-5",
+     "stars": 4
+    }
+   ],
    "url": "https://github.com/sponsors/rajanpanth",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 6,
    "projects": [
     {
@@ -1293,9 +2382,27 @@
     "percent": 0
    },
    "monthly": null,
+   "repos": [
+    {
+     "name": "fadblock",
+     "url": "https://github.com/0x48piraj/fadblock",
+     "stars": 2386
+    },
+    {
+     "name": "jiraffe",
+     "url": "https://github.com/0x48piraj/jiraffe",
+     "stars": 205
+    },
+    {
+     "name": "incarcero",
+     "url": "https://github.com/0x48piraj/incarcero",
+     "stars": 94
+    }
+   ],
    "url": "https://github.com/sponsors/0x48piraj",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 4,
    "projects": [
     {
@@ -1311,9 +2418,22 @@
    "sponsors": 0,
    "goal": null,
    "monthly": null,
+   "repos": [
+    {
+     "name": "react-native-keychain-test-059",
+     "url": "https://github.com/Jason-Cooke/react-native-keychain-test-059",
+     "stars": 2
+    },
+    {
+     "name": "mean-angularjs",
+     "url": "https://github.com/Jason-Cooke/mean-angularjs",
+     "stars": 2
+    }
+   ],
    "url": "https://github.com/sponsors/Jason-Cooke",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 4,
    "projects": [
     {
@@ -1348,9 +2468,27 @@
     "percent": 0
    },
    "monthly": 0,
+   "repos": [
+    {
+     "name": "windowsActivator",
+     "url": "https://github.com/iamkunal9/windowsActivator",
+     "stars": 10
+    },
+    {
+     "name": "Aarohan-2022-website",
+     "url": "https://github.com/iamkunal9/Aarohan-2022-website",
+     "stars": 5
+    },
+    {
+     "name": "iamkunal9",
+     "url": "https://github.com/iamkunal9/iamkunal9",
+     "stars": 5
+    }
+   ],
    "url": "https://github.com/sponsors/iamkunal9",
    "progress": 0.0,
    "reached": false,
+   "joined": false,
    "contributions": 3,
    "projects": [
     {
@@ -1370,9 +2508,27 @@
     "percent": 0
    },
    "monthly": null,
+   "repos": [
+    {
+     "name": "learn-to-program",
+     "url": "https://github.com/karlhorky/learn-to-program",
+     "stars": 5004
+    },
+    {
+     "name": "awesome-speakers",
+     "url": "https://github.com/karlhorky/awesome-speakers",
+     "stars": 776
+    },
+    {
+     "name": "gray",
+     "url": "https://github.com/karlhorky/gray",
+     "stars": 552
+    }
+   ],
    "url": "https://github.com/sponsors/karlhorky",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 3,
    "projects": [
     {
@@ -1392,9 +2548,27 @@
     "percent": 0
    },
    "monthly": null,
+   "repos": [
+    {
+     "name": "Learning_New",
+     "url": "https://github.com/preetkaran20/Learning_New",
+     "stars": 2
+    },
+    {
+     "name": "preetkaran20",
+     "url": "https://github.com/preetkaran20/preetkaran20",
+     "stars": 0
+    },
+    {
+     "name": "LR-And-TSA-Starter",
+     "url": "https://github.com/preetkaran20/LR-And-TSA-Starter",
+     "stars": 0
+    }
+   ],
    "url": "https://github.com/sponsors/preetkaran20",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 3,
    "projects": [
     {
@@ -1410,9 +2584,27 @@
    "sponsors": 0,
    "goal": null,
    "monthly": null,
+   "repos": [
+    {
+     "name": "tt-rss_plugin_instaread",
+     "url": "https://github.com/ebell451/tt-rss_plugin_instaread",
+     "stars": 8
+    },
+    {
+     "name": "tt-rss_plugin_readabillity",
+     "url": "https://github.com/ebell451/tt-rss_plugin_readabillity",
+     "stars": 6
+    },
+    {
+     "name": "tt-rss_plugin_readabillity_mobile",
+     "url": "https://github.com/ebell451/tt-rss_plugin_readabillity_mobile",
+     "stars": 4
+    }
+   ],
    "url": "https://github.com/sponsors/ebell451",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 2,
    "projects": [
     {
@@ -1428,9 +2620,27 @@
    "sponsors": 0,
    "goal": null,
    "monthly": null,
+   "repos": [
+    {
+     "name": "displaytag",
+     "url": "https://github.com/hazendaz/displaytag",
+     "stars": 33
+    },
+    {
+     "name": "xml-format-maven-plugin",
+     "url": "https://github.com/hazendaz/xml-format-maven-plugin",
+     "stars": 23
+    },
+    {
+     "name": "makeself-maven-plugin",
+     "url": "https://github.com/hazendaz/makeself-maven-plugin",
+     "stars": 21
+    }
+   ],
    "url": "https://github.com/sponsors/hazendaz",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 2,
    "projects": [
     {
@@ -1450,9 +2660,27 @@
     "percent": 0
    },
    "monthly": 0,
+   "repos": [
+    {
+     "name": "Realtek-rtl8811AU_8812AU_8821AU_linux-source-code",
+     "url": "https://github.com/rajpratik71/Realtek-rtl8811AU_8812AU_8821AU_linux-source-code",
+     "stars": 10
+    },
+    {
+     "name": "Ubuntu-Universal-PPAs-Collection",
+     "url": "https://github.com/rajpratik71/Ubuntu-Universal-PPAs-Collection",
+     "stars": 8
+    },
+    {
+     "name": "Realtek-rtl8811AU_8812AU_8821AU_linux-final-install-compiled",
+     "url": "https://github.com/rajpratik71/Realtek-rtl8811AU_8812AU_8821AU_linux-final-install-compiled",
+     "stars": 4
+    }
+   ],
    "url": "https://github.com/sponsors/rajpratik71",
    "progress": 0.0,
    "reached": false,
+   "joined": false,
    "contributions": 2,
    "projects": [
     {
@@ -1472,9 +2700,27 @@
     "percent": 0
    },
    "monthly": 0,
+   "repos": [
+    {
+     "name": "awesome-osquery",
+     "url": "https://github.com/sttor/awesome-osquery",
+     "stars": 64
+    },
+    {
+     "name": "osquery-wazuh-response",
+     "url": "https://github.com/sttor/osquery-wazuh-response",
+     "stars": 14
+    },
+    {
+     "name": "warroom-splunk",
+     "url": "https://github.com/sttor/warroom-splunk",
+     "stars": 5
+    }
+   ],
    "url": "https://github.com/sponsors/sttor",
    "progress": 0.0,
    "reached": false,
+   "joined": false,
    "contributions": 2,
    "projects": [
     {
@@ -1490,9 +2736,27 @@
    "sponsors": 0,
    "goal": null,
    "monthly": null,
+   "repos": [
+    {
+     "name": "Dojo-101",
+     "url": "https://github.com/Aif4thah/Dojo-101",
+     "stars": 229
+    },
+    {
+     "name": "VulnerableLightApp",
+     "url": "https://github.com/Aif4thah/VulnerableLightApp",
+     "stars": 62
+    },
+    {
+     "name": "SecCW",
+     "url": "https://github.com/Aif4thah/SecCW",
+     "stars": 6
+    }
+   ],
    "url": "https://github.com/sponsors/Aif4thah",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 1,
    "projects": [
     {
@@ -1512,9 +2776,27 @@
     "percent": 1
    },
    "monthly": null,
+   "repos": [
+    {
+     "name": "nodejsscan",
+     "url": "https://github.com/ajinabraham/nodejsscan",
+     "stars": 2578
+    },
+    {
+     "name": "CMSScan",
+     "url": "https://github.com/ajinabraham/CMSScan",
+     "stars": 1085
+    },
+    {
+     "name": "OWASP-Xenotix-XSS-Exploit-Framework",
+     "url": "https://github.com/ajinabraham/OWASP-Xenotix-XSS-Exploit-Framework",
+     "stars": 548
+    }
+   ],
    "url": "https://github.com/sponsors/ajinabraham",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 1,
    "projects": [
     {
@@ -1530,9 +2812,27 @@
    "sponsors": 0,
    "goal": null,
    "monthly": null,
+   "repos": [
+    {
+     "name": "SFV-Check",
+     "url": "https://github.com/Bilge/SFV-Check",
+     "stars": 7
+    },
+    {
+     "name": "Quickstart-Symfony",
+     "url": "https://github.com/Bilge/Quickstart-Symfony",
+     "stars": 0
+    },
+    {
+     "name": "Rust-concurrency-test",
+     "url": "https://github.com/Bilge/Rust-concurrency-test",
+     "stars": 0
+    }
+   ],
    "url": "https://github.com/sponsors/Bilge",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 1,
    "projects": [
     {
@@ -1548,9 +2848,27 @@
    "sponsors": 0,
    "goal": null,
    "monthly": null,
+   "repos": [
+    {
+     "name": "DeadSimplePython",
+     "url": "https://github.com/CodeMouse92/DeadSimplePython",
+     "stars": 140
+    },
+    {
+     "name": "Timecard",
+     "url": "https://github.com/CodeMouse92/Timecard",
+     "stars": 30
+    },
+    {
+     "name": "no-monster-minecraft",
+     "url": "https://github.com/CodeMouse92/no-monster-minecraft",
+     "stars": 16
+    }
+   ],
    "url": "https://github.com/sponsors/CodeMouse92",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 1,
    "projects": [
     {
@@ -1566,9 +2884,27 @@
    "sponsors": 0,
    "goal": null,
    "monthly": null,
+   "repos": [
+    {
+     "name": "superman_returns_recomp",
+     "url": "https://github.com/MrPowerUp82/superman_returns_recomp",
+     "stars": 25
+    },
+    {
+     "name": "filament-sql-field",
+     "url": "https://github.com/MrPowerUp82/filament-sql-field",
+     "stars": 18
+    },
+    {
+     "name": "ESP32-BlueJammer",
+     "url": "https://github.com/MrPowerUp82/ESP32-BlueJammer",
+     "stars": 10
+    }
+   ],
    "url": "https://github.com/sponsors/MrPowerUp82",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 1,
    "projects": [
     {
@@ -1584,9 +2920,27 @@
    "sponsors": 0,
    "goal": null,
    "monthly": null,
+   "repos": [
+    {
+     "name": "banbuilder",
+     "url": "https://github.com/snipe/banbuilder",
+     "stars": 329
+    },
+    {
+     "name": "awesome-emoji",
+     "url": "https://github.com/snipe/awesome-emoji",
+     "stars": 247
+    },
+    {
+     "name": "downworthy",
+     "url": "https://github.com/snipe/downworthy",
+     "stars": 207
+    }
+   ],
    "url": "https://github.com/sponsors/snipe",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 1,
    "projects": [
     {
@@ -1602,9 +2956,27 @@
    "sponsors": 0,
    "goal": null,
    "monthly": null,
+   "repos": [
+    {
+     "name": "nx-bookexample",
+     "url": "https://github.com/spotlesscoder/nx-bookexample",
+     "stars": 2
+    },
+    {
+     "name": "ReaperDAWHub",
+     "url": "https://github.com/spotlesscoder/ReaperDAWHub",
+     "stars": 2
+    },
+    {
+     "name": "rust-template",
+     "url": "https://github.com/spotlesscoder/rust-template",
+     "stars": 1
+    }
+   ],
    "url": "https://github.com/sponsors/spotlesscoder",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 1,
    "projects": [
     {
@@ -1620,9 +2992,27 @@
    "sponsors": 0,
    "goal": null,
    "monthly": null,
+   "repos": [
+    {
+     "name": "r2dec-js",
+     "url": "https://github.com/wargio/r2dec-js",
+     "stars": 613
+    },
+    {
+     "name": "naxsi",
+     "url": "https://github.com/wargio/naxsi",
+     "stars": 531
+    },
+    {
+     "name": "Twitch-Streamer-Linux",
+     "url": "https://github.com/wargio/Twitch-Streamer-Linux",
+     "stars": 214
+    }
+   ],
    "url": "https://github.com/sponsors/wargio",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 1,
    "projects": [
     {
@@ -1642,9 +3032,27 @@
     "percent": 0
    },
    "monthly": null,
+   "repos": [
+    {
+     "name": "nestjs-serverless",
+     "url": "https://github.com/yashmurty/nestjs-serverless",
+     "stars": 5
+    },
+    {
+     "name": "obsidian-people-graph",
+     "url": "https://github.com/yashmurty/obsidian-people-graph",
+     "stars": 2
+    },
+    {
+     "name": "go-web-crawler",
+     "url": "https://github.com/yashmurty/go-web-crawler",
+     "stars": 2
+    }
+   ],
    "url": "https://github.com/sponsors/yashmurty",
    "progress": null,
    "reached": false,
+   "joined": false,
    "contributions": 1,
    "projects": [
     {

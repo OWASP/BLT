@@ -10,11 +10,13 @@ Scripts related to projects mainly for high level OWASP project management
    contributors who take GitHub Sponsors. owasp.org/donate links are shown apart: since OWASP's new
    website they fund the Foundation in general; to give to a project through OWASP, donors contact
    the Foundation.
-2) Tomato 1000 at `/1000` (`public/1000.html`): a drive to get 1,000 OWASP developers to $1,000 a
-   month in GitHub Sponsors. The scraper also collects the top contributors of every OWASP repository
-   it scans, keeps those with GitHub Sponsors turned on, and writes `tomato1000.json` with each
-   one's public sponsor count and Sponsors goal (amounts are private; a monthly-dollar goal is the
-   only public progress). The page reads that file.
+2) Tomato 1000 at `/1000` (`public/1000.html`): a drive to get 1,000 developers, from any project,
+   to $1,000 a month in GitHub Sponsors. Any developer joins by adding their GitHub username to
+   [`tomato1000.txt`](tomato1000.txt); the top contributors of every OWASP repository the scraper
+   scans (and of BLT) are in from the start. The scraper keeps those with GitHub Sponsors turned on
+   and writes `tomato1000.json` with each one's public sponsor count, Sponsors goal and top
+   repositories (amounts are private; a monthly-dollar goal is the only public progress). The page
+   reads that file.
 
 ## Cloudflare and the weekly refresh (Workers KV)
 

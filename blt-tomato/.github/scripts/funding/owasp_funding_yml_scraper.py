@@ -211,7 +211,9 @@ def get_contributors(project):
 
 PROFILE_FIELDS = (
     "login name hasSponsorsListing sponsors { totalCount } "
-    "sponsorsListing { activeGoal { kind targetValue percentComplete } }"
+    "sponsorsListing { activeGoal { kind targetValue percentComplete } } "
+    "repositories(first: 3, privacy: PUBLIC, isFork: false, ownerAffiliations: OWNER, "
+    "orderBy: {field: STARGAZERS, direction: DESC}) { nodes { name url stargazerCount } }"
 )
 
 
@@ -235,6 +237,11 @@ def profile_from_graphql(user):
         "sponsors": (user.get("sponsors") or {}).get("totalCount"),
         "goal": goal,
         "monthly": monthly,
+        "repos": [
+            {"name": r["name"], "url": r["url"], "stars": r.get("stargazerCount") or 0}
+            for r in ((user.get("repositories") or {}).get("nodes") or [])
+            if r and r.get("name") and r.get("url")
+        ],
     }
 
 
@@ -261,7 +268,7 @@ def sponsor_profiles(logins):
     for login in logins:
         response = requests.get(f"https://github.com/sponsors/{login}", allow_redirects=False)
         if response.status_code == 200:
-            found[login] = {"login": login, "name": "", "sponsors": None, "goal": None, "monthly": None}
+            found[login] = {"login": login, "name": "", "sponsors": None, "goal": None, "monthly": None, "repos": []}
     return found
 
 
@@ -296,6 +303,24 @@ def add_contributor_sponsors(project_links, contributors=None, sponsorable=None)
 
 
 TOMATO_1000 = {"developers": 1000, "monthly_dollars": 1000}
+# Tomato 1000 is open to every developer: anyone on GitHub Sponsors joins by adding their GitHub
+# username to this file. Contributors to the scanned OWASP projects (and BLT) are in from the start.
+JOIN_LIST = os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "..", "..", "tomato1000.txt")
+
+
+def read_join_list(path=JOIN_LIST):
+    """GitHub usernames from the join list: one per line, '#' starts a comment, '@' is optional."""
+    try:
+        with open(path, encoding="utf-8") as f:
+            lines = f.read().splitlines()
+    except FileNotFoundError:
+        return []
+    logins = []
+    for line in lines:
+        login = line.split("#", 1)[0].strip().lstrip("@")
+        if GITHUB_LOGIN.match(login) and login.lower() not in {l.lower() for l in logins}:
+            logins.append(login)
+    return logins
 
 
 def goal_progress(profile):
@@ -305,10 +330,14 @@ def goal_progress(profile):
     return min(1.0, profile["monthly"] / TOMATO_1000["monthly_dollars"])
 
 
-def build_tomato_1000(projects, contributors, profiles, built=None):
-    """The Tomato 1000 data: every contributor to a scanned project who has GitHub Sponsors on,
-    with the projects they work on and their public progress toward $1,000 a month."""
+def build_tomato_1000(projects, contributors, profiles, joined=(), built=None):
+    """The Tomato 1000 data: every developer on the join list and every contributor to a scanned
+    project who has GitHub Sponsors on, with the OWASP projects they work on, their own top
+    repositories and their public progress toward $1,000 a month."""
     people = {}
+    joined_keys = {login.lower() for login in joined}
+    for login in joined:
+        people.setdefault(login, {"contributions": 0, "projects": []})
     for project in projects:
         for c in contributors.get(project["repo_url"]) or []:
             person = people.setdefault(c["login"], {"contributions": 0, "projects": []})
@@ -327,8 +356,10 @@ def build_tomato_1000(projects, contributors, profiles, built=None):
             "url": f"https://github.com/sponsors/{login}",
             "progress": progress,
             "reached": progress is not None and progress >= 1,
+            "joined": login.lower() in joined_keys,
             "contributions": person["contributions"],
             "projects": sorted(person["projects"], key=lambda p: -p["contributions"])[:4],
+            "repos": profile.get("repos") or [],
         })
     developers.sort(key=lambda d: (
         -(d["progress"] or 0), -(d["sponsors"] or 0), -d["contributions"], d["login"].lower()
@@ -336,7 +367,8 @@ def build_tomato_1000(projects, contributors, profiles, built=None):
     return {
         "built": built or datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
         "goal": TOMATO_1000,
-        "contributors_checked": len(people),
+        "contributors_checked": len({c["login"] for p in projects for c in contributors.get(p["repo_url"]) or []}),
+        "joined": len(joined_keys),
         "developers": developers,
     }
 
@@ -490,7 +522,7 @@ PAGE_HEAD = """<!DOCTYPE html>
         </aside>
         <a class="t1k" href="/1000">
             <span class="t1k-num">1000</span>
-            <span class="t1k-text"><b>Tomato 1000</b><span>Help 1,000 OWASP developers reach $1,000 a month in GitHub Sponsors. See who is on the way and sponsor someone.</span></span>
+            <span class="t1k-text"><b>Tomato 1000</b><span>Help 1,000 open-source developers, from anywhere, reach $1,000 a month in GitHub Sponsors. Sponsor someone, or join.</span></span>
             <span class="t1k-go" aria-hidden="true">&rarr;</span>
         </a>
 """
@@ -642,9 +674,10 @@ def main():
             )
             print(f"Added project: {project_name} with funding details: {funding_details}")
 
-    profiles = sponsor_profiles(c["login"] for people in contributors.values() for c in people)
+    joined = read_join_list()
+    profiles = sponsor_profiles([c["login"] for people in contributors.values() for c in people] + joined)
     add_contributor_sponsors(project_links, contributors, set(profiles))
-    tomato_1000 = build_tomato_1000(scanned, contributors, profiles)
+    tomato_1000 = build_tomato_1000(scanned, contributors, profiles, joined)
 
     # Write the JSON output file
     OUTPUT_DIR = os.environ.get("OUTPUT_DIR", ".")

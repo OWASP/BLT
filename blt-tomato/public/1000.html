@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tomato 1000 - BLT Tomato</title>
-    <meta name="description" content="Tomato 1000: help 1,000 OWASP developers reach $1,000 a month in GitHub Sponsors.">
+    <meta name="description" content="Tomato 1000: help 1,000 open-source developers, from anywhere, reach $1,000 a month in GitHub Sponsors.">
     <link rel="icon" type="image/svg+xml" href="/logo.svg">
     <script src="/theme-init.js"></script>
     <script src="https://owaspblt.org/_shared/blt-nav.js" defer></script>
@@ -210,7 +210,7 @@
                 <div>
                     <span class="eyebrow"><img src="/logo.svg" alt="">BLT Tomato</span>
                     <h1>Tomato 1000 <span>1,000 developers. $1,000 a month each.</span></h1>
-                    <p>The people who build OWASP's tools keep half the internet safer, mostly for free. Tomato 1000 aims to get 1,000 of them to $1,000 a month in GitHub Sponsors, paid by the people and companies who run their code.</p>
+                    <p>Open-source developers build the software the world runs on, mostly for free. Tomato 1000 aims to get 1,000 of them, from any project and anywhere, to $1,000 a month in GitHub Sponsors, paid by the people and companies who use their code.</p>
                     <div class="cta">
                         <a class="btn btn-light" href="#developers">&#10084; Sponsor a developer</a>
                         <a class="btn btn-ghost" href="#join">Join the 1000</a>
@@ -231,7 +231,7 @@
 
         <section class="wrap" aria-labelledby="board-h">
             <h2 id="board-h">The 1000</h2>
-            <p class="sub">One square per seat. Every OWASP contributor with GitHub Sponsors turned on takes a seat; it fills up as their public monthly goal fills, and lights up at $1,000 a month. Click a square to meet them.</p>
+            <p class="sub">One square per seat. Any developer on GitHub Sponsors can take one by joining; contributors to OWASP projects and OWASP BLT started us off. A seat fills up as the developer's public monthly goal fills, and lights up at $1,000 a month. Click a square to meet them.</p>
             <div class="board">
                 <div class="grid" id="grid" role="list" aria-label="1,000 seats"></div>
                 <div class="legend">
@@ -262,12 +262,12 @@
 
         <section class="wrap" aria-labelledby="dev-h" id="developers">
             <h2 id="dev-h">Sponsor a developer</h2>
-            <p class="sub">Contributors to OWASP projects who take GitHub Sponsors. Any amount helps; a monthly sponsorship helps most.</p>
+            <p class="sub">Open-source developers who take GitHub Sponsors. Any amount helps; a monthly sponsorship helps most.</p>
             <div class="toolbar">
                 <label class="search">
                     <span aria-hidden="true">&#128269;</span>
                     <span class="sr-only">Search developers or projects</span>
-                    <input id="q" type="search" placeholder="Search a name or a project, e.g. Juice Shop" autocomplete="off">
+                    <input id="q" type="search" placeholder="Search a name or a project" autocomplete="off">
                 </label>
                 <div class="seg" role="group" aria-label="Sort">
                     <button type="button" data-sort="progress" aria-pressed="true">Closest to $1k</button>
@@ -288,10 +288,10 @@
                     <div class="ico" aria-hidden="true">&#128187;</div>
                     <h3>Developers: join the 1000</h3>
                     <ol>
-                        <li>Contribute to an OWASP project.</li>
                         <li>Turn on <a href="https://github.com/sponsors">GitHub Sponsors</a>.</li>
                         <li><a href="https://docs.github.com/en/sponsors/receiving-sponsorships-through-github-sponsors/managing-your-sponsorship-goal">Set a goal</a> of $1,000 a month, so your progress shows here.</li>
-                        <li>You get a seat at the next weekly refresh.</li>
+                        <li>Add your GitHub username to <a href="https://git.owaspblt.org/BLT/edit/main/blt-tomato/tomato1000.txt">tomato1000.txt</a> in a pull request.</li>
+                        <li>You get a seat at the next weekly refresh. Any developer, any project.</li>
                     </ol>
                 </article>
                 <article>
@@ -302,15 +302,15 @@
                 <article>
                     <div class="ico" aria-hidden="true">&#127970;</div>
                     <h3>Companies: back your stack</h3>
-                    <p>If you ship on OWASP tools, sponsor the people who maintain them. GitHub Sponsors <a href="https://docs.github.com/en/sponsors/sponsoring-open-source-contributors/paying-for-github-sponsors-by-invoice">bills organizations by invoice</a>. One $1,000 sponsorship fills a seat on its own.</p>
+                    <p>If you ship on open source, sponsor the people who maintain it. GitHub Sponsors <a href="https://docs.github.com/en/sponsors/sponsoring-open-source-contributors/paying-for-github-sponsors-by-invoice">bills organizations by invoice</a>. One $1,000 sponsorship fills a seat on its own.</p>
                 </article>
             </div>
-            <p class="fine">GitHub keeps sponsorship amounts private. Progress here comes from what each developer publishes: a monthly-dollar goal on their Sponsors profile, and their public sponsor count otherwise. Sponsoring someone pays that person directly; it is not a donation to the OWASP Foundation or to an OWASP project (see the <a href="/">funding page</a> for those). Tomato 1000 is an OWASP BLT community effort.</p>
+            <p class="fine">GitHub keeps sponsorship amounts private. Progress here comes from what each developer publishes: a monthly-dollar goal on their Sponsors profile, and their public sponsor count otherwise. Sponsoring someone pays that person directly; it is not a donation to the OWASP Foundation or to an OWASP project (see the <a href="/">funding page</a> for those). Tomato 1000 is an OWASP BLT community effort, open to every developer.</p>
         </section>
     </main>
     <footer class="foot">
         <div class="wrap">
-            <span id="built">Built from OWASP repositories' contributors on GitHub, refreshed weekly.</span>
+            <span id="built">Built from GitHub Sponsors profiles, refreshed weekly.</span>
             <span><a href="/tomato1000.json">JSON</a> &middot; <a href="https://git.owaspblt.org/BLT/BLT-Tomato">View this script</a></span>
         </div>
     </footer>
@@ -352,9 +352,14 @@
         }
         function projectsNode(d) {
             var wrap = el("div", { "class": "projects" });
-            (d.projects || []).slice(0, 3).forEach(function (p) {
-                var a = el("a", { href: safeUrl(p.url) || "#", title: p.name + ": " + fmt(p.contributions) + " commits", rel: "noopener" }, p.name);
-                wrap.appendChild(a);
+            // OWASP projects they contribute to, else their own most-starred repositories.
+            var items = (d.projects || []).length ? d.projects.map(function (p) {
+                return { name: p.name, url: p.url, title: p.name + ": " + fmt(p.contributions) + " commits" };
+            }) : (d.repos || []).map(function (r) {
+                return { name: r.name + (r.stars ? " \u2605 " + fmt(r.stars) : ""), url: r.url, title: r.name + ": " + fmt(r.stars) + " stars" };
+            });
+            items.slice(0, 3).forEach(function (p) {
+                wrap.appendChild(el("a", { href: safeUrl(p.url) || "#", title: p.title, rel: "noopener" }, p.name));
             });
             return wrap;
         }
@@ -407,7 +412,7 @@
         }
         function matches(d) {
             if (!query) return true;
-            var hay = [d.login, d.name].concat((d.projects || []).map(function (p) { return p.name; })).join(" ").toLowerCase();
+            var hay = [d.login, d.name].concat((d.projects || []).concat(d.repos || []).map(function (p) { return p.name; })).join(" ").toLowerCase();
             return query.split(/\s+/).every(function (w) { return hay.indexOf(w) !== -1; });
         }
         function card(d) {
@@ -484,7 +489,7 @@
             $("meter").setAttribute("aria-valuenow", reached);
             setTimeout(function () { $("meter").firstChild.style.width = Math.max(1, reached / GOAL * 100) + "%"; }, 50);
             if (data.built) {
-                $("built").textContent = "Built " + String(data.built).slice(0, 10) + " from " + fmt(data.contributors_checked) + " OWASP contributors on GitHub, refreshed weekly.";
+                $("built").textContent = "Built " + String(data.built).slice(0, 10) + " from GitHub Sponsors profiles: " + fmt(data.joined || 0) + " joined, " + fmt(data.contributors_checked) + " OWASP and BLT contributors checked. Refreshed weekly.";
             }
             renderGrid();
             renderCards();

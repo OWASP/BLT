@@ -1,0 +1,10 @@
+# Tomato 1000: help 1,000 developers reach $1,000 a month in GitHub Sponsors.
+# https://tomato.owaspblt.org/1000
+#
+# Open to every developer, anywhere, on any project. To join:
+#   1. Turn on GitHub Sponsors: https://github.com/sponsors
+#   2. Set a sponsorship goal of $1,000 a month, so your progress shows on the board.
+#   3. Add your GitHub username on its own line below, in a pull request.
+# You get a seat at the next weekly refresh. Contributors to OWASP projects and to OWASP BLT are in
+# already. Remove your line to leave.
+

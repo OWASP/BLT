@@ -99,11 +99,16 @@ class Tomato1000Test(unittest.TestCase):
         }
         profiles = {"a": self.profile("a", "TOTAL_SPONSORS_COUNT", 10, 50, 5),
                     "b": self.profile("b", "MONTHLY_SPONSORSHIP_AMOUNT", 1000, 100, 9)}
-        data = scraper.build_tomato_1000(projects, contributors, profiles, built="2026-11-06T00:00:00Z")
+        profiles["j"] = self.profile("j", sponsors=2)
+        data = scraper.build_tomato_1000(projects, contributors, profiles, joined=["j", "nobody"],
+                                         built="2026-11-06T00:00:00Z")
         self.assertEqual(data["goal"], {"developers": 1000, "monthly_dollars": 1000})
         self.assertEqual(data["contributors_checked"], 3)
-        self.assertEqual([d["login"] for d in data["developers"]], ["b", "a"])
-        b, a = data["developers"]
+        self.assertEqual(data["joined"], 2)
+        self.assertEqual([d["login"] for d in data["developers"]], ["b", "a", "j"])
+        self.assertTrue(data["developers"][2]["joined"])
+        self.assertEqual(data["developers"][2]["projects"], [])
+        b, a, _ = data["developers"]
         self.assertTrue(b["reached"])
         self.assertEqual(b["progress"], 1.0)
         self.assertFalse(a["reached"])
@@ -111,6 +116,20 @@ class Tomato1000Test(unittest.TestCase):
         self.assertEqual(a["contributions"], 12)
         self.assertEqual([p["name"] for p in a["projects"]], ["two", "one"])
         self.assertEqual(a["url"], "https://github.com/sponsors/a")
+        self.assertFalse(a["joined"])
+
+    def test_join_list_reads_usernames(self):
+        import tempfile
+        with tempfile.NamedTemporaryFile("w", suffix=".txt", delete=False) as f:
+            f.write("# comment\n@octocat\n  Someone-Else  # me\nOCTOCAT\nnot a login\n\n")
+        self.assertEqual(scraper.read_join_list(f.name), ["octocat", "Someone-Else"])
+        self.assertEqual(scraper.read_join_list(f.name + ".missing"), [])
+        self.assertEqual(scraper.read_join_list(), [])  # the committed list starts empty
+
+    def test_profile_keeps_top_repositories(self):
+        user = {"login": "a", "hasSponsorsListing": True, "sponsors": {"totalCount": 0},
+                "repositories": {"nodes": [{"name": "r", "url": "https://github.com/a/r", "stargazerCount": 7}, None]}}
+        self.assertEqual(scraper.profile_from_graphql(user)["repos"], [{"name": "r", "url": "https://github.com/a/r", "stars": 7}])
 
 
 if __name__ == "__main__":
