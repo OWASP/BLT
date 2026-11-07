@@ -4,7 +4,8 @@
 // the changed files into KV (scripts/refresh-kv.sh). This Worker serves them from KV, falling back
 // to the copies committed under public/ while KV has none. blt-cron calls POST /__scheduled with
 // {task: "new-projects"} hourly to post new OWASP repositories to Slack (new-projects.js), and
-// {task: "new-issues"} hourly for new OWASP issues (new-issues.js).
+// {task: "new-issues"} hourly for new issues in every OWASP project, inside the OWASP organization or
+// not (new-issues.js).
 import { handleCronDispatch, kvSiteWorker } from "../../scripts/worker-data/kv-data.js";
 import { checkNewIssues } from "./new-issues.js";
 import { checkNewProjects } from "./new-projects.js";
