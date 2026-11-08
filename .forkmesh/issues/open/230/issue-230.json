@@ -1,0 +1,35 @@
+{
+    "assignees": [],
+    "author": "8HN7YjuxtFh9GGbCoFYgPCLpHD_i8QIup1rL2yINASw",
+    "authorName": "bksncknpphmcgy8",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1794142801271,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "8HN7YjuxtFh9GGbCoFYgPCLpHD_i8QIup1rL2yINASw",
+            "authorName": "bksncknpphmcgy8",
+            "authorVerified": true,
+            "body": "**File:** `blt-owasp-projects/scripts/fetch_open_work.py` (line 128, in `fetch()`)\n**Introduced:** commit 122d1612fe\n\n`fetch()` reports an unreadable repository with:\n\n```python\nprint(f'{repo} {kind}: {data.get(\"errors\") or resp.status_code}')\n```\n\nbut `resp` is a local of `query()` (assigned only at lines 107/109/110) and is not in scope in `fetch()`. Because `query()` returns `resp.json()` for any HTTP status \u003c 500, a **401 (bad/expired token)** or **403 (rate limit)** response — whose JSON body has neither `data` nor `errors` — reaches this branch, `data.get(\"errors\")` is falsy, and `resp.status_code` is evaluated → `NameError: name 'resp' is not defined`.\n\n**Impact:** instead of logging the problem repo and continuing, the crawl crashes. Triggered by an expired `GITHUB_TOKEN` or secondary rate limiting (both common in CI).\n\n**Proof:** `pyflakes` → `128:59: undefined name 'resp'`. Runtime: stubbing `query()` to return `{\"message\":\"Bad credentials\"}` (or `{\"data\":{\"repository\":null}}`) and calling `fetch(\"owasp/BLT\",\"issues\")` → `NameError`. The ordinary `NOT_FOUND` case (which carries an `errors` array) correctly does not crash.\n\n**Fix (one line):** drop the out-of-scope reference, e.g.\n```python\nprint(f'{repo} {kind}: {data.get(\"errors\") or \"no repository in response\"}')\n```\n(`data` is non-`None` here; the `None` case breaks earlier.)",
+            "id": "open-web-1794142801271",
+            "sig": "t18fp4pq3T-CUav-BKVwmsl3LICppYH3zmsjty09ozkHy7BobKb2HxLSTFnF9NeeATSw0RGUUr9i-DwK9DLQCA",
+            "title": "blt-owasp-projects: fetch_open_work.py crashes (NameError: resp not defined) when a repo can't be read",
+            "ts": 1794142801271,
+            "type": "open"
+        }
+    ],
+    "labels": [],
+    "milestone": "",
+    "number": 230,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-owasp-projects: fetch_open_work.py crashes (NameError: resp not defined) when a repo can't be read",
+    "updatedAt": 1794142801271,
+    "votes": 0
+}
