@@ -66,6 +66,17 @@
             "sig": "CdodlWDZf7DMVt-jtg0QOnlvrD-UoziRjwo1gFxYw9TtELVvhQrY98YW5ZLVq8Lc0UjuB1TwAa0BptSV7KULBQ",
             "ts": 1793714929908,
             "type": "comment"
+        },
+        {
+            "attachments": [],
+            "author": "g4zKzd5qI2ZOHVQpfCK_wlazIkZ8L6fuW1YkXn09xsE",
+            "authorName": "hrinkar01",
+            "authorVerified": true,
+            "body": "Issue fixed!",
+            "id": "comment-web-1794116200470",
+            "sig": "Jyd8i8ak7oaBVEGkjPPeqPNkaX1DM_bvJ3eK698brrcsuV4UO6nx-aj1f0666Hk-pwZrBCU7nIKsabDpihaeAw",
+            "ts": 1794116200470,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -81,6 +92,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-dash: make /dash serve the dashboard instead of the \"Please configure assets\" placeholder",
-    "updatedAt": 1793714929908,
+    "updatedAt": 1794116200470,
     "votes": 0
 }
