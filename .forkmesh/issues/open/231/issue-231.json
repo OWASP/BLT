@@ -1,0 +1,35 @@
+{
+    "assignees": [],
+    "author": "8HN7YjuxtFh9GGbCoFYgPCLpHD_i8QIup1rL2yINASw",
+    "authorName": "bksncknpphmcgy8",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1794142840201,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "8HN7YjuxtFh9GGbCoFYgPCLpHD_i8QIup1rL2yINASw",
+            "authorName": "bksncknpphmcgy8",
+            "authorVerified": true,
+            "body": "**File:** `blt-pages/scripts/generate_leaderboard.py` (lines 321 and 390)\n\nThe script builds favicon URLs with `...favicons?domain={quote(entry['domain'])}...` in `render_domains_rows` (321) and `render_recent_bugs` (390), but the only `urllib.parse` import is `from urllib.parse import urlparse` (line 28). `quote` is never imported or defined.\n\n**Impact:** `render_domains_rows(payload[\"top_domains\"])` is called from `main()` whenever the leaderboard has any reported domain — the normal case — so SSR of the leaderboard / `index.html` raises `NameError` and the KV-update job produces nothing for any non-empty dataset.\n\n**Proof:** calling `render_domains_rows([{\"rank\":1,\"domain\":\"example.com\",\"count\":3}])` → `NameError: name 'quote' is not defined`; `quote` confirmed absent from module globals.\n\n**Fix (one line):** `from urllib.parse import quote, urlparse`. A test that renders a row with a domain would guard this path.",
+            "id": "open-web-1794142840201",
+            "sig": "Wn8SVuDmQjgP8u-bFAwxX1Iu3lAEHxYDmPzRHuFgZDRmRKllCQSCUWS1ILLyLsm-xrjLvyrjP2VPD8Yijc6KDQ",
+            "title": "blt-pages: generate_leaderboard.py crashes (NameError: quote not imported) whenever a domain is present",
+            "ts": 1794142840201,
+            "type": "open"
+        }
+    ],
+    "labels": [],
+    "milestone": "",
+    "number": 231,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-pages: generate_leaderboard.py crashes (NameError: quote not imported) whenever a domain is present",
+    "updatedAt": 1794142840201,
+    "votes": 0
+}
