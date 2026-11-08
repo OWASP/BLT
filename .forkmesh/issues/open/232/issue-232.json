@@ -1,0 +1,35 @@
+{
+    "assignees": [],
+    "author": "8HN7YjuxtFh9GGbCoFYgPCLpHD_i8QIup1rL2yINASw",
+    "authorName": "bksncknpphmcgy8",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1794142871669,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "8HN7YjuxtFh9GGbCoFYgPCLpHD_i8QIup1rL2yINASw",
+            "authorName": "bksncknpphmcgy8",
+            "authorVerified": true,
+            "body": "**File:** `blt-sizzle/workers/main.py` (lines 189 and 230)\n\nThe request router calls:\n- `POST /api/orgs/\u003corg\u003e/settings` → `await handle_update_org_settings(request, env, org_name)` (189)\n- `DELETE /api/orgs/\u003corg\u003e` → `await handle_remove_org(request, env, org_name)` (230)\n\nNeither function is defined in `main.py` (34 other `handle_*` functions are) and neither is imported. There is no `import *`, no `globals()/setattr/exec` injection, and a whole-repo grep for the `def` finds only these two call sites — no definition anywhere.\n\n**Impact:** both routes raise `NameError` at runtime → 500 for every caller. Updating an org's settings and removing an org are completely non-functional.\n\n**Proof:** `pyflakes` → `undefined name 'handle_update_org_settings'` (189), `undefined name 'handle_remove_org'` (230); repo-wide grep for the `def` returns nothing.\n\n**Fix:** implement the two missing handlers (siblings `handle_update_org_member_role` / `handle_get_org_checkins` show the shape), or route to the real implementations if they live under another name.",
+            "id": "open-web-1794142871669",
+            "sig": "Fc22kbhBfz0Vd2mIfNi7NXYMXet5PNLOpvaTT2gshnIIsKzGUgqAMlz9K7JPBOyl8bJac8G4ymoP75GbpvKWDA",
+            "title": "blt-sizzle: /api/orgs/\u003corg\u003e/settings (POST) and /api/orgs/\u003corg\u003e (DELETE) crash — handlers never defined",
+            "ts": 1794142871669,
+            "type": "open"
+        }
+    ],
+    "labels": [],
+    "milestone": "",
+    "number": 232,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-sizzle: /api/orgs/\u003corg\u003e/settings (POST) and /api/orgs/\u003corg\u003e (DELETE) crash — handlers never defined",
+    "updatedAt": 1794142871669,
+    "votes": 0
+}
