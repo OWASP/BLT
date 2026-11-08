@@ -77,6 +77,17 @@
             "sig": "DcIqE4D6pu92NWdakSacy-75OQl5k0yst-rbGlKp6Kbt6pH1beqq5iaKOiKdDuVjHcWrMM4zZMTyabf1oDJiBA",
             "ts": 1793702954104,
             "type": "claim"
+        },
+        {
+            "attachments": [],
+            "author": "RstIDDJG6C6U1Pai9khxpJmAfEPyL4aIsmU-ctc0kJM",
+            "authorName": "hrinkar01",
+            "authorVerified": true,
+            "body": "PR Merged, Issue Fixed!",
+            "id": "comment-web-1794129872661",
+            "sig": "nFHaIs3AfKCQeood4Y2x_Iq6gUXX3KKBa47O-f6oZfJ4kTzX7REmdq0fsjvH9CbXhgGpmGzdy98L7-GURvqNDw",
+            "ts": 1794129872661,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -92,6 +103,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-core: drop the unused `cffi\u003c2` pin and upgrade cryptography, aiohttp and pillow",
-    "updatedAt": 1793702954104,
+    "updatedAt": 1794129872661,
     "votes": 0
 }
