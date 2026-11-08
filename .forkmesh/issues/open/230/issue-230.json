@@ -1,5 +1,7 @@
 {
-    "assignees": [],
+    "assignees": [
+        "bksncknpphmcgy8"
+    ],
     "author": "8HN7YjuxtFh9GGbCoFYgPCLpHD_i8QIup1rL2yINASw",
     "authorName": "bksncknpphmcgy8",
     "bountyAddress": "",
@@ -19,6 +21,17 @@
             "title": "blt-owasp-projects: fetch_open_work.py crashes (NameError: resp not defined) when a repo can't be read",
             "ts": 1794142801271,
             "type": "open"
+        },
+        {
+            "assignee": "bksncknpphmcgy8",
+            "author": "8HN7YjuxtFh9GGbCoFYgPCLpHD_i8QIup1rL2yINASw",
+            "authorName": "bksncknpphmcgy8",
+            "authorVerified": true,
+            "claimState": "assigned",
+            "id": "claim-web-1794143452242-mpgfie",
+            "sig": "mwLdjFNqqID8RC_ixiYJD5M-zvqsLaEYdXvNX280nLem9cQcO1n3GsObWRDRI5pBM2tdcqA9WyIzrUpLDYWTAA",
+            "ts": 1794143452242,
+            "type": "claim"
         }
     ],
     "labels": [],
@@ -30,6 +43,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-owasp-projects: fetch_open_work.py crashes (NameError: resp not defined) when a repo can't be read",
-    "updatedAt": 1794142801271,
+    "updatedAt": 1794143452242,
     "votes": 0
 }
