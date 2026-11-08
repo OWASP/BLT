@@ -1,7 +1,5 @@
 {
-    "assignees": [
-        "hrinkar01"
-    ],
+    "assignees": [],
     "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
     "authorName": "blt-tasks[bot]",
     "bountyAddress": "",
@@ -77,6 +75,17 @@
             "sig": "Jyd8i8ak7oaBVEGkjPPeqPNkaX1DM_bvJ3eK698brrcsuV4UO6nx-aj1f0666Hk-pwZrBCU7nIKsabDpihaeAw",
             "ts": 1794116200470,
             "type": "comment"
+        },
+        {
+            "assignee": "hrinkar01",
+            "author": "g4zKzd5qI2ZOHVQpfCK_wlazIkZ8L6fuW1YkXn09xsE",
+            "authorName": "hrinkar01",
+            "authorVerified": true,
+            "claimState": "released",
+            "id": "claim-web-1794116214072-1pqeequ",
+            "sig": "dlPLqlJWStXtsoDUj65oV35r8wZEJH5C9OvbRfKIZx93ChPY7i_iBhATt6R_hrPrRBSY_pigSdqWUaU5oMlSCg",
+            "ts": 1794116214072,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -92,6 +101,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-dash: make /dash serve the dashboard instead of the \"Please configure assets\" placeholder",
-    "updatedAt": 1794116200470,
+    "updatedAt": 1794116214072,
     "votes": 0
 }
