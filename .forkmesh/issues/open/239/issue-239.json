@@ -1,0 +1,35 @@
+{
+    "assignees": [],
+    "author": "8HN7YjuxtFh9GGbCoFYgPCLpHD_i8QIup1rL2yINASw",
+    "authorName": "bksncknpphmcgy8",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1794233250093,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "8HN7YjuxtFh9GGbCoFYgPCLpHD_i8QIup1rL2yINASw",
+            "authorName": "bksncknpphmcgy8",
+            "authorVerified": true,
+            "body": "## Bug\n\n`website/views/issue.py` references `SocialToken` at lines 2694, 2712 and 2713 (e.g. `SocialToken.objects.filter(account__user=request.user, account__provider=\"github\")` in `dispatch()` of the GitHub-issue view), but `SocialToken` is never imported in the module. Any request to that view raises `NameError: name 'SocialToken' is not defined` on dispatch.\n\n## Repro\n\nOpen the GitHub-issue view (the `github_issue.html` view) as a logged-in user → NameError at line 2694.\n\n## Suggested fix\n\n    from allauth.socialaccount.models import SocialToken\n\nFound by static analysis (ruff F821); no star-import masks the name. AI model used in analysis: Claude Opus 4.8 (Claude Code).",
+            "id": "open-web-1794233250093",
+            "sig": "Xp5X8n4MZXlsimjCG940oJE4Yte0a2vy4QSiXcriZ1ZX-OkTN0Y_d9wjCkxgJ1OtyoOZW_s5UMr57m5aZ_CFDQ",
+            "title": "blt-legacy: GitHub issue view dispatch crashes — SocialToken not imported",
+            "ts": 1794233250093,
+            "type": "open"
+        }
+    ],
+    "labels": [],
+    "milestone": "",
+    "number": 239,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-legacy: GitHub issue view dispatch crashes — SocialToken not imported",
+    "updatedAt": 1794233250093,
+    "votes": 0
+}
