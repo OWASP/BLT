@@ -1,0 +1,35 @@
+{
+    "assignees": [],
+    "author": "8HN7YjuxtFh9GGbCoFYgPCLpHD_i8QIup1rL2yINASw",
+    "authorName": "bksncknpphmcgy8",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1794233218360,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "8HN7YjuxtFh9GGbCoFYgPCLpHD_i8QIup1rL2yINASw",
+            "authorName": "bksncknpphmcgy8",
+            "authorVerified": true,
+            "body": "## Bug\n\n`website/views/project.py` calls `sentry_sdk.capture_exception(e)` inside an `except requests.RequestException` handler (lines 1893 and 1903), but `sentry_sdk` is never imported in the module. When the outer request fails — the case this handler exists to report — `sentry_sdk.capture_exception` raises `NameError: name 'sentry_sdk' is not defined`, masking the original RequestException with a NameError (500).\n\n## Repro\n\nMake the outer `requests` call in that view fail (network error / handled RequestException) so the except handler runs → NameError.\n\n## Suggested fix\n\n    import sentry_sdk\n\nIf Sentry is not actually configured for blt-legacy, replace the capture calls with `logger.exception(...)` instead, so the handler logs rather than crashes.\n\nFound by static analysis (ruff F821); no star-import masks the name. AI model used in analysis: Claude Opus 4.8 (Claude Code).",
+            "id": "open-web-1794233218360",
+            "sig": "LYCdsBrHsYBSHufWJY5XUGIKOWfsTGisK9FcPBtKIiZUdJZ_o1FF-B-MQFW_hvzMga53yJkOtDn_S1VeioelAA",
+            "title": "blt-legacy: project view except handler crashes — sentry_sdk undefined",
+            "ts": 1794233218360,
+            "type": "open"
+        }
+    ],
+    "labels": [],
+    "milestone": "",
+    "number": 238,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-legacy: project view except handler crashes — sentry_sdk undefined",
+    "updatedAt": 1794233218360,
+    "votes": 0
+}
