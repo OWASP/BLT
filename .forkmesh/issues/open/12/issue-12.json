@@ -40,6 +40,17 @@
             "target": "gitlab-issue-82715116-2",
             "ts": 1792463360602,
             "type": "edit"
+        },
+        {
+            "attachments": [],
+            "author": "ioTtytvfyjL_PlKVm4I-MtviL0hMsy1_bEMSUJUGXbA",
+            "authorName": "vanshika2720",
+            "authorVerified": true,
+            "body": "I am working on it.",
+            "id": "comment-web-1794267383937",
+            "sig": "jWizvCv8nzaR-lVKjXSw-5OvnOJ-IJ2JIq8J6qOCIrMad_ds17GKqHm3duv9BfkVgQFksEkdEKBJ3fdtCVRoCg",
+            "ts": 1794267383937,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -53,6 +64,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-jobs: GSoC 2026 BLT-Jobs Git-native job platform",
-    "updatedAt": 1792463360602,
+    "updatedAt": 1794267383937,
     "votes": 0
 }
