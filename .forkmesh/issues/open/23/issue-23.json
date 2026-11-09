@@ -1,7 +1,5 @@
 {
-    "assignees": [
-        "preetam"
-    ],
+    "assignees": [],
     "author": "s_63h0z_rn9tGX5c93aI9sgKHb1iJO4JwP9NvPMuXsE",
     "authorName": "gitlab-import[bot]",
     "bountyAddress": "",
@@ -53,6 +51,17 @@
             "sig": "EKJgxB_Jx4K1BHWN_19vkIK7HEnDALLINyZAWTOMPlKyjlczsi40v-eNWVHbtS_-Ikz2Zc1X5ubkJN169kNHCA",
             "ts": 1794251663816,
             "type": "claim"
+        },
+        {
+            "assignee": "preetam",
+            "author": "rrnBQwtV95mqysLXxmpZgHEsWNSAfyX_05SRH0Dbymg",
+            "authorName": "preetam",
+            "authorVerified": true,
+            "claimState": "released",
+            "id": "claim-web-1794251674155-xzjgh1",
+            "sig": "ABPrbpm4qtyOxZBHQ192Vn2NTvRRsVM4_-FsIb62A9vQzyhcA3jqFRmXrLLrTWYx6N5zk6ZLHpTqgBlPCDs4Bg",
+            "ts": 1794251674155,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -66,6 +75,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-mcp: Update home page",
-    "updatedAt": 1794251663816,
+    "updatedAt": 1794251674155,
     "votes": 0
 }
