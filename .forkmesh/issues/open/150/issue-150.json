@@ -66,6 +66,17 @@
             "sig": "3ClaqGUq7MFMuv_PeECTScNbctvwaTJYyQ7DYud7jbcfqAAUxKc6HdCqTIHNq86V--MTMJUkBFcP0gw0yyn8BA",
             "ts": 1794103576930,
             "type": "comment"
+        },
+        {
+            "attachments": [],
+            "author": "lJIMl3X9dy_EhiCbSdL9jZqcxWjH-P4q6v3bQQr2J_4",
+            "authorName": "emmanuelmj",
+            "authorVerified": true,
+            "body": "PR raised: https://git.owaspblt.org/BLT/pull/87",
+            "id": "comment-web-1794187071667",
+            "sig": "locCGgNsfKi3rEB5kP0yKUAK6ZM4NnafaRf1PF9Q74RRnrhTSxSrQ0jhnyWgpxkyCXo1NeTmTchfgdfDHiIRCQ",
+            "ts": 1794187071667,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -81,6 +92,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-owasp-wich: add a Python test suite and CI row; reset the score between checks",
-    "updatedAt": 1794103576930,
+    "updatedAt": 1794187071667,
     "votes": 0
 }
