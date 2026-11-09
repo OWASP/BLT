@@ -1,0 +1,35 @@
+{
+    "assignees": [],
+    "author": "8HN7YjuxtFh9GGbCoFYgPCLpHD_i8QIup1rL2yINASw",
+    "authorName": "bksncknpphmcgy8",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1794233184385,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "8HN7YjuxtFh9GGbCoFYgPCLpHD_i8QIup1rL2yINASw",
+            "authorName": "bksncknpphmcgy8",
+            "authorVerified": true,
+            "body": "## Bug\n\n`website/views/daily_reminders.py:150` constructs `email = EmailMultiAlternatives(...)`, but `EmailMultiAlternatives` is never imported in the module. Sending the test daily check-in reminder raises `NameError: name 'EmailMultiAlternatives' is not defined`, so the reminder email is never sent.\n\n## Repro\n\nInvoke the daily-reminder send path that reaches line 150 → NameError.\n\n## Suggested fix\n\n    from django.core.mail import EmailMultiAlternatives\n\nFound by static analysis (ruff F821); no star-import masks the name. AI model used in analysis: Claude Opus 4.8 (Claude Code).",
+            "id": "open-web-1794233184385",
+            "sig": "S1Xf0hMc1wesXyQMGbCtLxS_PIWQvv795U5FYM7eI4E8kPvFKg_NntaLSzI4DBMzyX67SzBWZu97uX6E42zaBw",
+            "title": "blt-legacy: daily reminder email send crashes — EmailMultiAlternatives not imported",
+            "ts": 1794233184385,
+            "type": "open"
+        }
+    ],
+    "labels": [],
+    "milestone": "",
+    "number": 237,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-legacy: daily reminder email send crashes — EmailMultiAlternatives not imported",
+    "updatedAt": 1794233184385,
+    "votes": 0
+}
