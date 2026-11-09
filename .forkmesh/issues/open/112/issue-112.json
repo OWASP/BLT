@@ -1,5 +1,7 @@
 {
-    "assignees": [],
+    "assignees": [
+        "hiralmodi"
+    ],
     "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
     "authorName": "blt-tasks[bot]",
     "bountyAddress": "",
@@ -12,7 +14,7 @@
             "attachments": [],
             "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
             "authorName": "blt-tasks[bot]",
-            "body": "## Context\n\n`test-sorting-security.js` checks the SQL sort-column allowlist and passes (21/21), and README and CONTRIBUTING tell people to run it, but the `test` script in `package.json` doesn't include it, so CI never does.\n\n## What to do\n\n1. Append `&& node test-sorting-security.js` to the `test` script; make sure it exits non-zero on failure.\n\n## Acceptance criteria\n\n- [ ] `npm test` runs it\n- [ ] A deliberately broken allowlist makes `npm test` fail\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-leaf\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "body": "## Context\n\n`test-sorting-security.js` checks the SQL sort-column allowlist and passes (21/21), and README and CONTRIBUTING tell people to run it, but the `test` script in `package.json` doesn't include it, so CI never does.\n\n## What to do\n\n1. Append `\u0026\u0026 node test-sorting-security.js` to the `test` script; make sure it exits non-zero on failure.\n\n## Acceptance criteria\n\n- [ ] `npm test` runs it\n- [ ] A deliberately broken allowlist makes `npm test` fail\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh blt-leaf\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
             "id": "blt-tasks-issue-112",
             "sig": "FsiSdbiflXYLzCXeKc3oaQhobtRd18HzAHt1aosf6e8wzvOZJ6-tnOab6KePWR5bwdHLUQlYYbHcr6S8dvDaDA",
             "title": "blt-leaf: run test-sorting-security.js as part of npm test",
@@ -32,6 +34,17 @@
             "sig": "cQ3qmhfgeiddz21YtGfn-T3ExA9Lw8XWFoFRj66_DPkp8UJBkTTUKd8MYKUGocDckKzpJrI8gz56Yuz_3PvaDw",
             "ts": 1792547523980,
             "type": "labels"
+        },
+        {
+            "assignee": "hiralmodi",
+            "author": "5rbjKeqz6VJadn6tLgiWtFiW6cfOIsDQP7ydghv5f5g",
+            "authorName": "hiralmodi",
+            "authorVerified": true,
+            "claimState": "assigned",
+            "id": "claim-web-1794225631537-6t8o2a",
+            "sig": "1SYoCXZIpVH3jJgGX2A2eqXW0YQ6LqNV5zIEgWb1ETwzo6LenO0lyQBrT02q8OSd9cC4dEE20EFjviz06fcJBg",
+            "ts": 1794225631537,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -48,6 +61,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-leaf: run test-sorting-security.js as part of npm test",
-    "updatedAt": 1792547523980,
+    "updatedAt": 1794225631537,
     "votes": 0
 }
