@@ -120,13 +120,14 @@ BLT is a pro-AI project: coding agents and AI assistants are welcome for issues,
 <!-- CONTRIBUTORS-END -->
 
 <!-- WAITING-PRS-START -->
-## ⏳ Pull Requests Waiting for Review (27 open, 3 new contributors)
+## ⏳ Pull Requests Waiting for Review (30 open, 4 new contributors)
 
-*Last updated: 2026-11-08 06:17 UTC — open pull requests on [git.owaspblt.org](https://git.owaspblt.org/BLT/pulls), people making their first BLT contribution first. Reviews help them most.*
+*Last updated: 2026-11-09 06:17 UTC — open pull requests on [git.owaspblt.org](https://git.owaspblt.org/BLT/pulls), people making their first BLT contribution first. Reviews help them most.*
 
 | Contributor | Waiting | Pull requests |
 |---|---|---|
 | [unknown](https://git.owaspblt.org/@unknown) 🌱 **new contributor** | 5 | [#82](https://git.owaspblt.org/BLT/pull/82) deps: update npm non-major dependencies<br>[#83](https://git.owaspblt.org/BLT/pull/83) deps: update Python non-major dependencies<br>[#84](https://git.owaspblt.org/BLT/pull/84) deps: update wrangler<br>[#85](https://git.owaspblt.org/BLT/pull/85) deps: update wrangler (major)<br>[#86](https://git.owaspblt.org/BLT/pull/86) deps: update @actions/core to 3.0.1 |
+| [bksncknpphmcgy8](https://git.owaspblt.org/@bksncknpphmcgy8) 🌱 **new contributor** | 3 | [#88](https://git.owaspblt.org/BLT/pull/88) blt-pages: import quote in generate_leaderboard.py (fixes #231)<br>[#89](https://git.owaspblt.org/BLT/pull/89) blt-owasp-projects: fix NameError (resp) in fetch_open_work.py (fixes #230)<br>[#90](https://git.owaspblt.org/BLT/pull/90) blt-sizzle: implement the org settings/remove handlers (fixes #232) |
 | [emmanuelmj](https://git.owaspblt.org/@emmanuelmj) 🌱 **new contributor** | 3 | [#60](https://git.owaspblt.org/BLT/pull/60) blt-next: clean up README and fix setup steps<br>[#71](https://git.owaspblt.org/BLT/pull/71) blt-dash, blt-rewards, blt-gitcaster: fix cd paths in READMEs<br>[#87](https://git.owaspblt.org/BLT/pull/87) blt-owasp-wich: add offline tests; reset score between checks |
 | [lahama-blt](https://git.owaspblt.org/@lahama-blt) 🌱 **new contributor** | 1 | [#70](https://git.owaspblt.org/BLT/pull/70) docs(blt-vanish): fix setup and test commands |
 | [preetam](https://git.owaspblt.org/@preetam) | 4 | [#75](https://git.owaspblt.org/BLT/pull/75) fix(my-gsoc-tool): use anonymous profile defaults<br>[#76](https://git.owaspblt.org/BLT/pull/76) chore(blt-timer): remove unused dashboard script<br>[#78](https://git.owaspblt.org/BLT/pull/78) test(blt-extension): replace tautological tests with real behavior coverage<br>[#81](https://git.owaspblt.org/BLT/pull/81) fix(blog): update Write a post button URL to correct tree path |
