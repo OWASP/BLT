@@ -1,0 +1,35 @@
+{
+    "assignees": [],
+    "author": "8HN7YjuxtFh9GGbCoFYgPCLpHD_i8QIup1rL2yINASw",
+    "authorName": "bksncknpphmcgy8",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1794233154909,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "8HN7YjuxtFh9GGbCoFYgPCLpHD_i8QIup1rL2yINASw",
+            "authorName": "bksncknpphmcgy8",
+            "authorVerified": true,
+            "body": "## Bug\n\n`website/views/queue.py:105` builds `tweet_url = f\"{base_url}?{urlencode(params)}\"`, but `urlencode` is never imported in the module. As soon as this line runs (during queue launch / tweet-link construction) it raises `NameError: name 'urlencode' is not defined`.\n\n## Repro\n\nTrigger the queue path that reaches line 105 (launching a queue item that builds the tweet share URL) → NameError.\n\n## Suggested fix\n\n    from urllib.parse import urlencode\n\nFound by static analysis (ruff F821); no star-import masks the name. AI model used in analysis: Claude Opus 4.8 (Claude Code).",
+            "id": "open-web-1794233154909",
+            "sig": "iE1KOPjgsTZbg20UD4yf7g_3UnAV5PgKB-OavFzSWAPUE9PhfxPE2mG6zTglwSxxl170Muc7cip231rsfYxMAg",
+            "title": "blt-legacy: queue launch crashes building the tweet URL — urlencode not imported",
+            "ts": 1794233154909,
+            "type": "open"
+        }
+    ],
+    "labels": [],
+    "milestone": "",
+    "number": 236,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-legacy: queue launch crashes building the tweet URL — urlencode not imported",
+    "updatedAt": 1794233154909,
+    "votes": 0
+}
