@@ -1,0 +1,35 @@
+{
+    "assignees": [],
+    "author": "8HN7YjuxtFh9GGbCoFYgPCLpHD_i8QIup1rL2yINASw",
+    "authorName": "bksncknpphmcgy8",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1794233091952,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "8HN7YjuxtFh9GGbCoFYgPCLpHD_i8QIup1rL2yINASw",
+            "authorName": "bksncknpphmcgy8",
+            "authorVerified": true,
+            "body": "## Bug\n\n`website/views/social.py` imports only `Paginator` from `django.core.paginator` (line 1), but `queue_social_view` catches `except (PageNotAnInteger, EmptyPage):` at line 16. Neither name is imported, so when `paginator.page(page_number)` raises one of them, evaluating the except tuple itself raises `NameError: name 'PageNotAnInteger' is not defined`. The fallback that is supposed to recover from a bad page number crashes the view (500) instead.\n\n## Repro\n\nRequest the social queue view with `?page=abc` (non-integer → PageNotAnInteger) or `?page=99999` (out of range → EmptyPage). Instead of falling back to page 1, the request 500s.\n\n## Suggested fix\n\n    from django.core.paginator import EmptyPage, PageNotAnInteger, Paginator\n\nFound by static analysis (ruff F821); no star-import masks the names. AI model used in analysis: Claude Opus 4.8 (Claude Code).",
+            "id": "open-web-1794233091952",
+            "sig": "Vabhe1xWv9JeJEu1VaGVch1DVEeXrNl8aIZmh5EAmagsk0tOxdIS4GbEg2O_1TUL_xR0qFy3e_FfgOJsdPElCg",
+            "title": "blt-legacy: social queue view crashes on ?page=abc — PageNotAnInteger/EmptyPage not imported",
+            "ts": 1794233091952,
+            "type": "open"
+        }
+    ],
+    "labels": [],
+    "milestone": "",
+    "number": 234,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-legacy: social queue view crashes on ?page=abc — PageNotAnInteger/EmptyPage not imported",
+    "updatedAt": 1794233091952,
+    "votes": 0
+}
