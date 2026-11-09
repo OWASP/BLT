@@ -1,5 +1,7 @@
 {
-    "assignees": [],
+    "assignees": [
+        "hrinkar01"
+    ],
     "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
     "authorName": "blt-tasks[bot]",
     "bountyAddress": "",
@@ -12,7 +14,7 @@
             "attachments": [],
             "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
             "authorName": "blt-tasks[bot]",
-            "body": "## Context\n\n`public/trademark-check.html` searches a hardcoded 5-row `mockDB` behind a fake 900 ms \"Searching trademark databases...\" delay and gives conflict-risk advice from it. `#tmJurisdiction` is never read. `public/index.html` advertises \"USPTO & international database search\".\n\n## What to do\n\n1. Add a visible \"Demo data, not a real trademark search\" notice.\n2. Apply the jurisdiction filter case-insensitively with an \"All\" option.\n3. Add search links to USPTO/WIPO/EUIPO with the term filled in; soften the index.html claim.\n4. Optional: test `similarity()` in `test/trademark-check.test.mjs` using the `pick()` pattern from `test/repo-compare.test.mjs`.\n\n## Acceptance criteria\n\n- [ ] Demo notice visible\n- [ ] Choosing EU shows only EU rows\n- [ ] index.html no longer claims a real database search\n- [ ] Tests pass\n\n## How to test locally\n\n```bash\npython3 -m http.server -d blt-enforcement/public 8000   # then open http://localhost:8000   # /trademark-check.html?q=owasp\nscripts/ci/test.sh blt-enforcement\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "body": "## Context\n\n`public/trademark-check.html` searches a hardcoded 5-row `mockDB` behind a fake 900 ms \"Searching trademark databases...\" delay and gives conflict-risk advice from it. `#tmJurisdiction` is never read. `public/index.html` advertises \"USPTO \u0026 international database search\".\n\n## What to do\n\n1. Add a visible \"Demo data, not a real trademark search\" notice.\n2. Apply the jurisdiction filter case-insensitively with an \"All\" option.\n3. Add search links to USPTO/WIPO/EUIPO with the term filled in; soften the index.html claim.\n4. Optional: test `similarity()` in `test/trademark-check.test.mjs` using the `pick()` pattern from `test/repo-compare.test.mjs`.\n\n## Acceptance criteria\n\n- [ ] Demo notice visible\n- [ ] Choosing EU shows only EU rows\n- [ ] index.html no longer claims a real database search\n- [ ] Tests pass\n\n## How to test locally\n\n```bash\npython3 -m http.server -d blt-enforcement/public 8000   # then open http://localhost:8000   # /trademark-check.html?q=owasp\nscripts/ci/test.sh blt-enforcement\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
             "id": "blt-tasks-issue-173",
             "sig": "rKmRar0bMrVTW9-07-AKrfHso62lcEPiQ-OPfLGVQ1mfgRKQaV3TmYczsy6mKw56-1w6le2N7SvR3HU-R9N9Dw",
             "title": "blt-enforcement: label the trademark check as demo data and apply the jurisdiction filter",
@@ -31,6 +33,17 @@
             "sig": "Lpw26Cg0LTM4wSRgsqXYcoJ_MXj0BqLe-eyppcWt9O4JnLxdSEc8y5I2zB8hpyzsD-zYr6I0370_GzYP9i_FAQ",
             "ts": 1792547524590,
             "type": "labels"
+        },
+        {
+            "assignee": "hrinkar01",
+            "author": "RstIDDJG6C6U1Pai9khxpJmAfEPyL4aIsmU-ctc0kJM",
+            "authorName": "hrinkar01",
+            "authorVerified": true,
+            "claimState": "assigned",
+            "id": "claim-web-1794242573999-1hrq1ww",
+            "sig": "P2uzU6Kyy1XCoqc-5si7HmbTDa3ze0zm3HPzd28mOedv7ZqfP-i0HBvDl5Z8ig7DIWUdpXZInvM7BzteG-UcDA",
+            "ts": 1794242573999,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -46,6 +59,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-enforcement: label the trademark check as demo data and apply the jurisdiction filter",
-    "updatedAt": 1792547524590,
+    "updatedAt": 1794242573999,
     "votes": 0
 }
