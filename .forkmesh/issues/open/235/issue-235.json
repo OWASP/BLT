@@ -1,0 +1,35 @@
+{
+    "assignees": [],
+    "author": "8HN7YjuxtFh9GGbCoFYgPCLpHD_i8QIup1rL2yINASw",
+    "authorName": "bksncknpphmcgy8",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1794233123939,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "8HN7YjuxtFh9GGbCoFYgPCLpHD_i8QIup1rL2yINASw",
+            "authorName": "bksncknpphmcgy8",
+            "authorVerified": true,
+            "body": "## Bug\n\n`website/views/company.py:889` has `except (AttributeError, UserProfile.DoesNotExist):`, but `UserProfile` is never imported in the module. When a member has no related userprofile — the exact case this handler is meant to recover from — evaluating `UserProfile.DoesNotExist` raises `NameError: name 'UserProfile' is not defined` instead, crashing the team-members view (500).\n\n## Repro\n\nLoad the company/organization team view where at least one member lacks a UserProfile → NameError.\n\n## Suggested fix\n\n`UserProfile` is defined in `website/models.py:949`; import it:\n\n    from website.models import UserProfile\n\nFound by static analysis (ruff F821); no star-import masks the name. AI model used in analysis: Claude Opus 4.8 (Claude Code).",
+            "id": "open-web-1794233123939",
+            "sig": "m8X9z02zRy5MpUd9ADran1eXe1ChshBQFqRhjgopLuSKQrksrwOHwTZlx-VNuz0GQZSwUxwnxaRLq5cN21RlDA",
+            "title": "blt-legacy: company team view crashes — UserProfile undefined in the except clause",
+            "ts": 1794233123939,
+            "type": "open"
+        }
+    ],
+    "labels": [],
+    "milestone": "",
+    "number": 235,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-legacy: company team view crashes — UserProfile undefined in the except clause",
+    "updatedAt": 1794233123939,
+    "votes": 0
+}
