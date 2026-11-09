@@ -1,5 +1,7 @@
 {
-    "assignees": [],
+    "assignees": [
+        "preetam"
+    ],
     "author": "rrnBQwtV95mqysLXxmpZgHEsWNSAfyX_05SRH0Dbymg",
     "authorName": "preetam",
     "bountyAddress": "",
@@ -19,6 +21,17 @@
             "title": "Fix broken Forgot Password page returning 404",
             "ts": 1794251660709,
             "type": "open"
+        },
+        {
+            "assignee": "preetam",
+            "author": "rrnBQwtV95mqysLXxmpZgHEsWNSAfyX_05SRH0Dbymg",
+            "authorName": "preetam",
+            "authorVerified": true,
+            "claimState": "assigned",
+            "id": "claim-web-1794251890997-12fgzzn",
+            "sig": "LVe7hqZhqsjPMcuHElFqCXAH1blTBJFvgRvSq3IpmAw5Rfh894JyDKk74b6CUikmu5-cGcc7AIHq0lISG64ADQ",
+            "ts": 1794251890997,
+            "type": "claim"
         }
     ],
     "labels": [],
@@ -30,6 +43,6 @@
     "startDate": 0,
     "status": "open",
     "title": "Fix broken Forgot Password page returning 404",
-    "updatedAt": 1794251660709,
+    "updatedAt": 1794251890997,
     "votes": 0
 }
