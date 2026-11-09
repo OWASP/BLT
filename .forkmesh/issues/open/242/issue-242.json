@@ -31,6 +31,16 @@
             "target": "open-web-1794251780238",
             "ts": 1794251941902,
             "type": "edit"
+        },
+        {
+            "author": "rrnBQwtV95mqysLXxmpZgHEsWNSAfyX_05SRH0Dbymg",
+            "authorName": "preetam",
+            "authorVerified": true,
+            "id": "title-web-1794252112922-1emrmpt",
+            "sig": "AyFxJse9jR4ubdwn8BizmmL9lQlFw7S8-PLrhdeTjHgU0QjpT9ZWtLq-aYm1V9cbfioRhMsXaoj8TxGS5zZ9DQ",
+            "title": "nothing",
+            "ts": 1794252112922,
+            "type": "title"
         }
     ],
     "labels": [],
@@ -41,7 +51,7 @@
     "schema": "forkmesh-issue-v1",
     "startDate": 0,
     "status": "open",
-    "title": "Forgot Password page returns 404",
-    "updatedAt": 1794251941902,
+    "title": "nothing",
+    "updatedAt": 1794252112922,
     "votes": 0
 }
