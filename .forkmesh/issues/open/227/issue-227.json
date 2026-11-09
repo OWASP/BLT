@@ -43,6 +43,16 @@
             "sig": "_FIevfuHj6_yROM4o54XOkuIyxPvtj6PmnL1uGFYPjUXBF4B4V-nWiD_ot0SLul9xrL6Vt9_5cTJOpjFQlKEDg",
             "ts": 1794025420133,
             "type": "labels"
+        },
+        {
+            "author": "INxr7QLX02Q-G3QLtmSnSTTRzatgK2PlWA27JdvomTA",
+            "authorName": "ananya-in-tech",
+            "authorVerified": true,
+            "id": "title-web-1794241206383-13pa99q",
+            "sig": "TbBa64SmRdsWyZkhQAsyJJtfDBNY4amYRv7wD2hdKwWa70HY1Rm3mgVA9pX_yugrBG_PSboEYfr1SJ3j-i_PBA",
+            "title": "my-gsoc-tool: Fix the MY-GSOC-TOOL with anonymous values to the input attributes",
+            "ts": 1794241206383,
+            "type": "title"
         }
     ],
     "labels": [
@@ -55,7 +65,7 @@
     "schema": "forkmesh-issue-v1",
     "startDate": 0,
     "status": "open",
-    "title": "Fix the MY-GSOC-TOOL with anonymous values to the input attributes",
-    "updatedAt": 1794025420133,
+    "title": "my-gsoc-tool: Fix the MY-GSOC-TOOL with anonymous values to the input attributes",
+    "updatedAt": 1794241206383,
     "votes": 0
 }
