@@ -1,0 +1,35 @@
+{
+    "assignees": [],
+    "author": "8HN7YjuxtFh9GGbCoFYgPCLpHD_i8QIup1rL2yINASw",
+    "authorName": "bksncknpphmcgy8",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1794233046153,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "8HN7YjuxtFh9GGbCoFYgPCLpHD_i8QIup1rL2yINASw",
+            "authorName": "bksncknpphmcgy8",
+            "authorVerified": true,
+            "body": "## Bug\n\n`website/utils.py:294` — `safe_redirect_allowed(url, allowed_hosts, allowed_paths)` calls `is_safe_url(...)`, but `is_safe_url` is never imported or defined in the module (no import, no star-import). Every call raises `NameError: name 'is_safe_url' is not defined`.\n\nThis function is the open-redirect guard: it is meant to validate `url` before `redirect(...)`. With the guard itself crashing, any redirect routed through it fails, and a caller that wraps it in a broad `except` could fail open.\n\n## Why the name is missing\n\nDjango removed `django.utils.http.is_safe_url` in Django 4.0 (renamed to `url_has_allowed_host_and_scheme`, with a different signature). This is leftover from a Django upgrade.\n\n## Repro\n\nCall `safe_redirect_allowed(\"https://evil.example/\", {\"legacy.owaspblt.org\"})` → `NameError`.\n\n## Suggested fix\n\nUse the current API instead of re-adding the removed name:\n\n    from django.utils.http import url_has_allowed_host_and_scheme\n    ...\n    if url_has_allowed_host_and_scheme(url, allowed_hosts=allowed_hosts):\n\n(and adapt the `allowed_paths` handling accordingly).\n\nFound by static analysis (ruff F821); confirmed no import or definition exists in the module. AI model used in analysis: Claude Opus 4.8 (Claude Code).",
+            "id": "open-web-1794233046153",
+            "sig": "iOPAD_C4PxmReuX98mFKnsFCGPj5uztqPC0WhIkCACr3Sa1TnuEhUHC_CWhVS6iho6UnE0FmC7GY1bMnUyCiCg",
+            "title": "blt-legacy: safe_redirect_allowed() crashes — is_safe_url is undefined (open-redirect guard broken)",
+            "ts": 1794233046153,
+            "type": "open"
+        }
+    ],
+    "labels": [],
+    "milestone": "",
+    "number": 233,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-legacy: safe_redirect_allowed() crashes — is_safe_url is undefined (open-redirect guard broken)",
+    "updatedAt": 1794233046153,
+    "votes": 0
+}
