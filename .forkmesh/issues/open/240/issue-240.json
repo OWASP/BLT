@@ -19,6 +19,17 @@
             "title": "blt-legacy: AI issue helper crashes — OpenAI not imported",
             "ts": 1794233281811,
             "type": "open"
+        },
+        {
+            "attachments": [],
+            "author": "6uZ9NB7KLf405Wh73TNzj_9GRKchcU6_QJ5Y7XcQHx4",
+            "authorName": "s3dfx-cyber",
+            "authorVerified": true,
+            "body": "@donnieblt are we using openai api for this",
+            "id": "comment-web-1794236584054",
+            "sig": "rk0pcxgoRDj1pCYQ6aD92R3ZQMn8jspAVqb7XSU0N04eb6s1NZr7GTUCMVzTVw1n_VUMf5cnC7Qz9i7X1bGtAw",
+            "ts": 1794236584054,
+            "type": "comment"
         }
     ],
     "labels": [],
@@ -30,6 +41,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-legacy: AI issue helper crashes — OpenAI not imported",
-    "updatedAt": 1794233281811,
+    "updatedAt": 1794236584054,
     "votes": 0
 }
