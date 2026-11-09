@@ -1,0 +1,35 @@
+{
+    "assignees": [],
+    "author": "8HN7YjuxtFh9GGbCoFYgPCLpHD_i8QIup1rL2yINASw",
+    "authorName": "bksncknpphmcgy8",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1794233281811,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "8HN7YjuxtFh9GGbCoFYgPCLpHD_i8QIup1rL2yINASw",
+            "authorName": "bksncknpphmcgy8",
+            "authorVerified": true,
+            "body": "## Bug\n\n`website/views/issue.py:2772` does `client = OpenAI(api_key=openai_api_key)`, but `OpenAI` is never imported in the module. The code checks `OPENAI_API_KEY` just above and proceeds when it is set, so with a key configured this line raises `NameError: name 'OpenAI' is not defined`.\n\n## Repro\n\nSet `OPENAI_API_KEY` and invoke the AI issue helper that reaches line 2772 → NameError instead of calling the API.\n\n## Suggested fix\n\n    from openai import OpenAI\n\nThis is the import pattern already used elsewhere in the codebase.\n\nFound by static analysis (ruff F821); no star-import masks the name. AI model used in analysis: Claude Opus 4.8 (Claude Code).",
+            "id": "open-web-1794233281811",
+            "sig": "Xj90PUw0JmSX7Vp0StNnmxM6pkOy6ao3Ah7mdmQRSmqzUTnc9bX9vxF-YXLyGwJ9hhlpwO1mjLP7ppN4D-cuAw",
+            "title": "blt-legacy: AI issue helper crashes — OpenAI not imported",
+            "ts": 1794233281811,
+            "type": "open"
+        }
+    ],
+    "labels": [],
+    "milestone": "",
+    "number": 240,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-legacy: AI issue helper crashes — OpenAI not imported",
+    "updatedAt": 1794233281811,
+    "votes": 0
+}
