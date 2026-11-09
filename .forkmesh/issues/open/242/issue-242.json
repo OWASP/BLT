@@ -19,6 +19,18 @@
             "title": "Forgot Password page returns 404",
             "ts": 1794251780238,
             "type": "open"
+        },
+        {
+            "attachments": [],
+            "author": "rrnBQwtV95mqysLXxmpZgHEsWNSAfyX_05SRH0Dbymg",
+            "authorName": "preetam",
+            "authorVerified": true,
+            "body": "",
+            "id": "edit-web-1794251941902-12yi2kd",
+            "sig": "kKcC6JOalCWC7HZclXtAXB6R71CLcOGnYHFaK6hx10ErHDCw3vg5UtTK6iW_X8BbDbrtWpFuhJj-Rb6LbeKVAg",
+            "target": "open-web-1794251780238",
+            "ts": 1794251941902,
+            "type": "edit"
         }
     ],
     "labels": [],
@@ -30,6 +42,6 @@
     "startDate": 0,
     "status": "open",
     "title": "Forgot Password page returns 404",
-    "updatedAt": 1794251780238,
+    "updatedAt": 1794251941902,
     "votes": 0
 }
