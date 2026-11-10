@@ -40,6 +40,17 @@
             "target": "gitlab-issue-82715116-6",
             "ts": 1792463360632,
             "type": "edit"
+        },
+        {
+            "attachments": [],
+            "author": "ioTtytvfyjL_PlKVm4I-MtviL0hMsy1_bEMSUJUGXbA",
+            "authorName": "vanshika2720",
+            "authorVerified": true,
+            "body": "Working on it.",
+            "id": "comment-web-1794273265576",
+            "sig": "1_UMe6eYkGNpD9w8_loetFjB3Xom9YFCMcvNBQ3zAsbq9ELWZlmerfVcxGnQxalLJ8fpC1Qu19x_QQWy0L04CA",
+            "ts": 1794273265576,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -53,6 +64,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-jobs: Expand Markdown schemas and validation for jobs, seekers, and organizations",
-    "updatedAt": 1792463360632,
+    "updatedAt": 1794273265576,
     "votes": 0
 }
