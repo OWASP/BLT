@@ -40,6 +40,17 @@
             "target": "gitlab-issue-82715092-8",
             "ts": 1792463360572,
             "type": "edit"
+        },
+        {
+            "attachments": [],
+            "author": "rrnBQwtV95mqysLXxmpZgHEsWNSAfyX_05SRH0Dbymg",
+            "authorName": "preetam",
+            "authorVerified": true,
+            "body": "i am working on it....",
+            "id": "comment-web-1794291133840",
+            "sig": "ZgXNYPcGLJOOlA-HWz4PrP9rQy2ZW6P2kr4T1smKQWfBt04SjUetWUd_xYHWt-MSWrMqMrM_JDN9dUjy8hPGDg",
+            "ts": 1794291133840,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -53,6 +64,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-hackathons: Add open-participation MR and activity/review leaderboard UX",
-    "updatedAt": 1792463360572,
+    "updatedAt": 1794291133840,
     "votes": 0
 }
