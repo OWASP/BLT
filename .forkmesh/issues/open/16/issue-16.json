@@ -40,6 +40,17 @@
             "target": "gitlab-issue-82715116-7",
             "ts": 1792463360642,
             "type": "edit"
+        },
+        {
+            "attachments": [],
+            "author": "ioTtytvfyjL_PlKVm4I-MtviL0hMsy1_bEMSUJUGXbA",
+            "authorName": "vanshika2720",
+            "authorVerified": true,
+            "body": "Working on it",
+            "id": "comment-web-1794273306876",
+            "sig": "hjkA4rYvgp7KEKHW_11J9-sLhVLsEW_60XjM6viEGVd0e8GHiFzq7eilgZ41TYyWKZpMyj7VA8l9fiUEU1INBA",
+            "ts": 1794273306876,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -53,6 +64,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-jobs: Add maintainer review states, source traceability, and board health",
-    "updatedAt": 1792463360642,
+    "updatedAt": 1794273306876,
     "votes": 0
 }
