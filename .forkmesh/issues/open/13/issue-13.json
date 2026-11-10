@@ -40,6 +40,17 @@
             "target": "gitlab-issue-82715116-4",
             "ts": 1792463360612,
             "type": "edit"
+        },
+        {
+            "attachments": [],
+            "author": "ioTtytvfyjL_PlKVm4I-MtviL0hMsy1_bEMSUJUGXbA",
+            "authorName": "vanshika2720",
+            "authorVerified": true,
+            "body": "Raised a PR #36 for this",
+            "id": "comment-web-1794270388802",
+            "sig": "q0w2HBYMgGIvxdKHxcuTFQrZThtD0m0GxJfFmZJdQrRZCh785fSNzTNL_wcCSPzov2mo3niEg8sy2NFv5XvHBQ",
+            "ts": 1794270388802,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -53,6 +64,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-jobs: Apply universal BLT-Jobs design system across all pages",
-    "updatedAt": 1792463360612,
+    "updatedAt": 1794270388802,
     "votes": 0
 }
