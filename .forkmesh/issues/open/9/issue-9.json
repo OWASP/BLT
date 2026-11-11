@@ -51,6 +51,17 @@
             "sig": "ZgXNYPcGLJOOlA-HWz4PrP9rQy2ZW6P2kr4T1smKQWfBt04SjUetWUd_xYHWt-MSWrMqMrM_JDN9dUjy8hPGDg",
             "ts": 1794291133840,
             "type": "comment"
+        },
+        {
+            "attachments": [],
+            "author": "6uZ9NB7KLf405Wh73TNzj_9GRKchcU6_QJ5Y7XcQHx4",
+            "authorName": "s3dfx-cyber",
+            "authorVerified": true,
+            "body": "#244 does a part of this issue",
+            "id": "comment-web-1794409851054",
+            "sig": "zBd2FqTxAg8wnx3eOuNQIgfIzENpJKGhyN7eRaloBM8e47FkuhNHjkxJhVJDId0SRVUVApcRMxKnYjlMrOTHAw",
+            "ts": 1794409851054,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -64,6 +75,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-hackathons: Add open-participation MR and activity/review leaderboard UX",
-    "updatedAt": 1794291133840,
+    "updatedAt": 1794409851054,
     "votes": 0
 }
