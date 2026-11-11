@@ -31,6 +31,18 @@
             "target": "open-web-1794402531728",
             "ts": 1794402580232,
             "type": "edit"
+        },
+        {
+            "attachments": [],
+            "author": "asCxHCiy0QGUc6jW42W2W-x8mJsIhQ3dwUwp5okaYYw",
+            "authorName": "namrata",
+            "authorVerified": true,
+            "body": "While running the unit tests for blt-hackathons (scripts/ci/test.sh blt-hackathons), I ran into a failure in test_project_folders_match_routing_table.\n\nIt looks like when blt-blog was recently introduced and added to scripts/routing/projects.tsv, it wasn't added to the OWASP_BLT_PROJECT_FOLDERS list inside blt-hackathons/public/js/hackathons-config.js. Because of that, the config check fails comparing the two lists.\n\nThe fix should just be adding \"blt-blog\" between \"blt-autopatch\" and \"blt-byte\" in hackathons-config.js so both files match up.",
+            "id": "edit-web-1794402666701-yu6jv7",
+            "sig": "NeOfY-EVHPWcRGo0gGYrRyRKI1pQkH52rbRB4bLnCR4kTszcrNcstT5qMO_5FXv5xUe0w3Z5rfX2w6uaHSoXCw",
+            "target": "open-web-1794402531728",
+            "ts": 1794402666701,
+            "type": "edit"
         }
     ],
     "labels": [],
@@ -42,6 +54,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-hackathons unit test failing after blt-blog was added",
-    "updatedAt": 1794402580232,
+    "updatedAt": 1794402666701,
     "votes": 0
 }
