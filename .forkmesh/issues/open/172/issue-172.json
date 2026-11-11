@@ -113,6 +113,17 @@
             "sig": "LMFY_5XMYyKQoO9hspazuhX8yBI8cBwDMZ1_ISZepIgkZgQr-mMZmnYhErnUfGDPaJ_L56N7Ceg53ab-XlA1DA",
             "ts": 1794386148217,
             "type": "claim"
+        },
+        {
+            "attachments": [],
+            "author": "6I64fbHumctKTTTVZW0cDPBfOLWC46GD_JhZa7h9aX8",
+            "authorName": "owasp-blt-actions",
+            "authorVerified": true,
+            "body": "@harshita8120 you're assigned to this issue. Please open a pull request for it within 24 hours. Without a pull request or an update from you here for 24 hours, you'll be unassigned (after a warning). If you stop working on it, comment `/unassign` so someone else can pick it up. Want guidance along the way? Comment `/mentor` to be matched with a mentor from https://pool.owaspblt.org. \u003c!-- blt-assign:7038c76d4cf248ce3ccc --\u003e",
+            "id": "actions-1794386148340-rVmlhevF",
+            "sig": "Chro0MNyeByr590Uc38IBuzxnn1iThLKRTZbqYnJvGz-usoaFF2G9L8FKUxJggNY5u8_4oIuRLiYdAUoiYAqAg",
+            "ts": 1794386148340,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -131,6 +142,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-dash: fix the `cd` path after `git clone` in the blt-dash, blt-rewards and blt-gitcaster READMEs",
-    "updatedAt": 1794386148217,
+    "updatedAt": 1794386148340,
     "votes": 0
 }
