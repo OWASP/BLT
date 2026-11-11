@@ -19,6 +19,17 @@
             "title": "Batch refresh overwrites existing CI check counts and behind_by with zeros",
             "ts": 1794419241902,
             "type": "open"
+        },
+        {
+            "attachments": [],
+            "author": "VJAr5lCdBD4mHhE9xI32zT-lIIkXDt6C3dZdu7JLqZ0",
+            "authorName": "arnavghai19",
+            "authorVerified": true,
+            "body": "/assign",
+            "id": "comment-web-1794419351744",
+            "sig": "1L-8KQBDPenjzCTHAN721_J2CncRcDjNk8L5VZcbaejevpipZaJD1-GboTIjc09JMz3LPN29sWVO93N4IIZCBQ",
+            "ts": 1794419351744,
+            "type": "comment"
         }
     ],
     "labels": [],
@@ -30,6 +41,6 @@
     "startDate": 0,
     "status": "open",
     "title": "Batch refresh overwrites existing CI check counts and behind_by with zeros",
-    "updatedAt": 1794419241902,
+    "updatedAt": 1794419351744,
     "votes": 0
 }
