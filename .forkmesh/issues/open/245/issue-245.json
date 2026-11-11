@@ -1,5 +1,7 @@
 {
-    "assignees": [],
+    "assignees": [
+        "arnavghai19"
+    ],
     "author": "VJAr5lCdBD4mHhE9xI32zT-lIIkXDt6C3dZdu7JLqZ0",
     "authorName": "arnavghai19",
     "bountyAddress": "",
@@ -30,6 +32,17 @@
             "sig": "1L-8KQBDPenjzCTHAN721_J2CncRcDjNk8L5VZcbaejevpipZaJD1-GboTIjc09JMz3LPN29sWVO93N4IIZCBQ",
             "ts": 1794419351744,
             "type": "comment"
+        },
+        {
+            "assignee": "arnavghai19",
+            "author": "6I64fbHumctKTTTVZW0cDPBfOLWC46GD_JhZa7h9aX8",
+            "authorName": "owasp-blt-actions",
+            "authorVerified": true,
+            "claimState": "assigned",
+            "id": "actions-1794419419233-S4jOZLjZ",
+            "sig": "ZFSL2msuqCnlJB_eWkbfTb5JhfH7Bo_0PMi31o2tmPJk1Wge-J6J08WaFVBouE737yA5Ji1CWyo-c-XsgXehBw",
+            "ts": 1794419419233,
+            "type": "claim"
         }
     ],
     "labels": [],
@@ -41,6 +54,6 @@
     "startDate": 0,
     "status": "open",
     "title": "Batch refresh overwrites existing CI check counts and behind_by with zeros",
-    "updatedAt": 1794419351744,
+    "updatedAt": 1794419419233,
     "votes": 0
 }
