@@ -66,6 +66,17 @@
             "sig": "X2bQpETTBPa1FFIyULAsWUw17-Fow9PdXGBABTBDQ-Z1PzIpHKWF3fxiTTgIh8LNPHVt7eTT0tUU9kJSylQaAw",
             "ts": 1794429907947,
             "type": "claim"
+        },
+        {
+            "attachments": [],
+            "author": "RstIDDJG6C6U1Pai9khxpJmAfEPyL4aIsmU-ctc0kJM",
+            "authorName": "hrinkar01",
+            "authorVerified": true,
+            "body": "Hi @aaudhkumar, i have already raised the pr regarding this issue..\n\nPR: https://git.owaspblt.org/BLT/pull/100",
+            "id": "comment-web-1794433117506",
+            "sig": "2dCTQpnF2RGdJxhsfJjxD6CpupTyvmk4JYV8HRAwEMdzfR0yA8LS-WscwVSw7K1s-syiibnejAGVunoI3kIcAg",
+            "ts": 1794433117506,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -81,6 +92,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-enforcement: label the trademark check as demo data and apply the jurisdiction filter",
-    "updatedAt": 1794429907947,
+    "updatedAt": 1794433117506,
     "votes": 0
 }
