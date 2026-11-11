@@ -1,7 +1,5 @@
 {
-    "assignees": [
-        "hrinkar01"
-    ],
+    "assignees": [],
     "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
     "authorName": "blt-tasks[bot]",
     "bountyAddress": "",
@@ -44,6 +42,17 @@
             "sig": "P2uzU6Kyy1XCoqc-5si7HmbTDa3ze0zm3HPzd28mOedv7ZqfP-i0HBvDl5Z8ig7DIWUdpXZInvM7BzteG-UcDA",
             "ts": 1794242573999,
             "type": "claim"
+        },
+        {
+            "assignee": "hrinkar01",
+            "author": "RstIDDJG6C6U1Pai9khxpJmAfEPyL4aIsmU-ctc0kJM",
+            "authorName": "hrinkar01",
+            "authorVerified": true,
+            "claimState": "released",
+            "id": "claim-web-1794427080759-1inbi7z",
+            "sig": "e8v_S6yH4FMeV5XS3iyR9f0wfXOYWB_-rMqZ-qYqWrCjNjpopFxQTiu97ifQ13i1g_xNfpckuGxIN_J63QYzDw",
+            "ts": 1794427080759,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -59,6 +68,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-enforcement: label the trademark check as demo data and apply the jurisdiction filter",
-    "updatedAt": 1794242573999,
+    "updatedAt": 1794427080759,
     "votes": 0
 }
