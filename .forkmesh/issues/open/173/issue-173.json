@@ -1,5 +1,7 @@
 {
-    "assignees": [],
+    "assignees": [
+        "aaudhkumar"
+    ],
     "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
     "authorName": "blt-tasks[bot]",
     "bountyAddress": "",
@@ -53,6 +55,17 @@
             "sig": "e8v_S6yH4FMeV5XS3iyR9f0wfXOYWB_-rMqZ-qYqWrCjNjpopFxQTiu97ifQ13i1g_xNfpckuGxIN_J63QYzDw",
             "ts": 1794427080759,
             "type": "claim"
+        },
+        {
+            "assignee": "aaudhkumar",
+            "author": "Ns7s3e6VzZyIn5B0E7maANATuOgEsHfbQksHHZHzavg",
+            "authorName": "aaudhkumar",
+            "authorVerified": true,
+            "claimState": "assigned",
+            "id": "claim-web-1794429907947-16pe7mz",
+            "sig": "X2bQpETTBPa1FFIyULAsWUw17-Fow9PdXGBABTBDQ-Z1PzIpHKWF3fxiTTgIh8LNPHVt7eTT0tUU9kJSylQaAw",
+            "ts": 1794429907947,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -68,6 +81,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-enforcement: label the trademark check as demo data and apply the jurisdiction filter",
-    "updatedAt": 1794427080759,
+    "updatedAt": 1794429907947,
     "votes": 0
 }
