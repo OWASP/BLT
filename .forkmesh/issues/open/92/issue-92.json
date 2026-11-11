@@ -1,7 +1,5 @@
 {
-    "assignees": [
-        "namrata"
-    ],
+    "assignees": [],
     "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
     "authorName": "blt-tasks[bot]",
     "bountyAddress": "",
@@ -45,6 +43,17 @@
             "sig": "1k5wSN-PRu-XaoDyaAFIBAzh_RfAtOe3taUKPeMWiYYZeyTaFg-Bvsf9rxzwSHQGCPGCGWTNj015i_PFhRgEDw",
             "ts": 1794391879144,
             "type": "claim"
+        },
+        {
+            "assignee": "namrata",
+            "author": "asCxHCiy0QGUc6jW42W2W-x8mJsIhQ3dwUwp5okaYYw",
+            "authorName": "namrata",
+            "authorVerified": true,
+            "claimState": "released",
+            "id": "claim-web-1794398273683-gtw5z2",
+            "sig": "v4Mu-q9ly6VlO0V_3DBQAfDK82-ddd-Af1a0-NpMcW7Yw10y8RqB4YmbigQ6Xl1fHEU_RhfLVJUfc1bnE62UCA",
+            "ts": 1794398273683,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -61,6 +70,6 @@
     "startDate": 0,
     "status": "open",
     "title": "my-gsoc-tool: show the data's real \"Last updated\" time instead of the browser clock",
-    "updatedAt": 1794391879144,
+    "updatedAt": 1794398273683,
     "votes": 0
 }
