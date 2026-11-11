@@ -89,6 +89,17 @@
             "sig": "PfvqJnJLhoE1T-tcLMDd8cc4lke7-Q79vXTbmqMbhVvZg7B-EIOnwm57cukJMwXDIn_5Uu4OzKQEj4YW35SlCg",
             "ts": 1793882044360,
             "type": "claim"
+        },
+        {
+            "attachments": [],
+            "author": "Kl9Q1HpO9QmNUFBELhuFdtBrzkH6SJUZTGXDNfZrs1E",
+            "authorName": "harshita8120",
+            "authorVerified": true,
+            "body": "/assign",
+            "id": "comment-web-1794386132022",
+            "sig": "q5Q_WY_WxTvQDS40mt5JbLDNHkqCtRniCA8LRour-RssJSIueC732lKIqSW-WMjVzeJYqXLpAfoB-PYajbaHBA",
+            "ts": 1794386132022,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -107,6 +118,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-dash: fix the `cd` path after `git clone` in the blt-dash, blt-rewards and blt-gitcaster READMEs",
-    "updatedAt": 1793882044360,
+    "updatedAt": 1794386132022,
     "votes": 0
 }
