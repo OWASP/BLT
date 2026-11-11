@@ -66,6 +66,17 @@
             "sig": "lf5QqYqL6DJa1nXxS137qQrQmqlystzyVlIUPMCRRZSJHs_qDDPQ6oUBtfcmUZomkJiODgstG2pFdkvvQzfICw",
             "ts": 1792766879520,
             "type": "comment"
+        },
+        {
+            "attachments": [],
+            "author": "rrnBQwtV95mqysLXxmpZgHEsWNSAfyX_05SRH0Dbymg",
+            "authorName": "preetam",
+            "authorVerified": true,
+            "body": "pr pulled #111",
+            "id": "comment-web-1794391581053",
+            "sig": "TrPmOv46-XOu56etNqDga7-6uBxLsvzccqmP3qWAz5-jW7nVn-NZs4Q5iotICVjvnLuYIQGB61AbtGcsF0vpCg",
+            "ts": 1794391581053,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -81,6 +92,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-gitcaster: make channel pills and filter chips keyboard-accessible and label the AI fields",
-    "updatedAt": 1792766879520,
+    "updatedAt": 1794391581053,
     "votes": 0
 }
