@@ -1,5 +1,7 @@
 {
-    "assignees": [],
+    "assignees": [
+        "hrinkar01"
+    ],
     "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
     "authorName": "blt-tasks[bot]",
     "bountyAddress": "",
@@ -31,6 +33,17 @@
             "sig": "noUOFUMnkaVjttUk-5iRPSkT4pJXrZ1gE7-cRv1RewtiIaIq9LfbrwfvtWTrNa6dww-ZQZn2JpMyPFVFmP1uAw",
             "ts": 1792547524570,
             "type": "labels"
+        },
+        {
+            "assignee": "hrinkar01",
+            "author": "RstIDDJG6C6U1Pai9khxpJmAfEPyL4aIsmU-ctc0kJM",
+            "authorName": "hrinkar01",
+            "authorVerified": true,
+            "claimState": "assigned",
+            "id": "claim-web-1794427090164-1dxet4s",
+            "sig": "_1YD-d81A1vk8TbVbt2VTBREf1-rKpTr4bNM7hfQ1giHciJUdfWTk68PlpIFTaW-zhQNB6DHjttlVx8rCZpTBg",
+            "ts": 1794427090164,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -46,6 +59,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-dash: respect prefers-reduced-motion and stop rewriting the tab title every second",
-    "updatedAt": 1792547524570,
+    "updatedAt": 1794427090164,
     "votes": 0
 }
