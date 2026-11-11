@@ -1,0 +1,35 @@
+{
+    "assignees": [],
+    "author": "VJAr5lCdBD4mHhE9xI32zT-lIIkXDt6C3dZdu7JLqZ0",
+    "authorName": "arnavghai19",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1794419241902,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "VJAr5lCdBD4mHhE9xI32zT-lIIkXDt6C3dZdu7JLqZ0",
+            "authorName": "arnavghai19",
+            "authorVerified": true,
+            "body": "## Bug description\n\nBatch PR refresh operations overwrite previously stored CI check counts and `behind_by` values with placeholder zeros.\n\nThe GraphQL batch query does not request CI check or comparison data, but `fetch_multiple_prs_batch()` populates these fields with zero and marks them as incomplete using `_batch_fetch` and `_incomplete_fields`.\n\nThese markers are never consumed. The resulting data is passed to `upsert_pr()`, whose `ON CONFLICT DO UPDATE` unconditionally overwrites the existing database values.\n\nThis causes the application to lose valid CI and behind-base information during normal refresh operations.\n\n## Affected workflows\n\nThe issue was reproduced in all five paths:\n\n1. Hourly scheduled refresh.\n2. Manual \"Refresh PRs\" batch operation.\n3. `check_run`, `check_suite`, and `pull_request_review` webhooks.\n4. Organization refresh.\n5. Repository/organization bulk import when PRs are already tracked.\n\nSingle-PR REST refresh and the `opened`, `reopened`, `synchronize`, and `edited` webhook paths correctly fetch and store actual values.\n\n## Steps to reproduce\n\n1. Track a PR with actual CI data.\n2. Ensure its stored values are:\n   - Checks passed: `5`\n   - Checks failed: `3`\n   - Checks skipped: `1`\n   - Behind base: `4`\n3. Trigger any of the affected batch refresh workflows.\n4. Inspect the stored PR record.\n\n## Expected behavior\n\nRefresh operations should preserve previously stored values for fields that the batch query does not retrieve, or fetch and persist the actual values.\n\nA refresh must not interpret missing data as zero.\n\n## Actual behavior\n\nThe stored values become:\n\n- Checks passed: `0`\n- Checks failed: `0`\n- Checks skipped: `0`\n- Behind base: `0`\n\nThe merge-readiness calculation consequently loses the CI failure information.\n\nIn the reproduced end-to-end scenario, the readiness endpoint changed from:\n\n**Before refresh**\n- Classification: `NEARLY_READY`\n- Merge ready: `false`\n- Score: `68`\n- CI score: `36`\n- Blocker: `3 CI check(s) failing`\n\n**After refresh and readiness-cache expiry**\n- Classification: `READY_TO_MERGE`\n- Merge ready: `true`\n- Score: `74`\n- CI score: `50`\n- Blockers: none\n\n## Root cause\n\n- `blt-leaf/src/github_api.py`: `fetch_multiple_prs_batch()` supplies placeholder zeros for unavailable CI and behind-base fields.\n- The function adds `_batch_fetch` and `_incomplete_fields` metadata, but no consumer uses these markers.\n- `blt-leaf/src/database.py`: `upsert_pr()` unconditionally updates all columns on conflict, replacing valid stored values with the placeholders.\n- Multiple handlers and import workflows pass incomplete batch data directly into this upsert.\n\nGitHub GraphQL can provide CI and comparison information through fields such as `statusCheckRollup` and `Ref.compare`. The current batch query simply does not request them. This is not an API limitation.\n\n## Reproduction evidence\n\nThe issue was reproduced against upstream commit:\n\n`b9417db35daa38189de0243adf9738e0b7525804`\n\nThe audit used the real application handlers and SQLite databases created from the repository's migrations, with GitHub HTTP responses and the Cloudflare runtime mocked.\n\nA positive control confirmed that the normal REST refresh correctly stores the actual CI and behind-base values.\n\nAll five affected batch/import paths reproduced the overwrite.\n\n## Suggested fix direction\n\nPossible approaches:\n\n- Implement partial updates so fields marked incomplete are excluded from the database update.\n- Alternatively, extend the GraphQL query to retrieve the actual CI and comparison values.\n- Ensure bulk imports do not overwrite existing tracked PR data with incomplete placeholders.\n\nPlease also add regression tests covering the affected workflows.\n\n## Environment\n\n- Repository: OWASP BLT\n- Component: `blt-leaf`\n- Audited upstream commit: `b9417db35daa38189de0243adf9738e0b7525804`\n\nA separate readiness-cache invalidation issue was also discovered during the audit and will be investigated independently.",
+            "id": "open-web-1794419241902",
+            "sig": "6n_jio-goykamB6QCOwCqHj1_6Q1IDqyHHHAUUeKZEREbrT8FSPKo94P6Buke-UFRBxOcf1btQS2eivxnUJ3Ag",
+            "title": "Batch refresh overwrites existing CI check counts and behind_by with zeros",
+            "ts": 1794419241902,
+            "type": "open"
+        }
+    ],
+    "labels": [],
+    "milestone": "",
+    "number": 245,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "Batch refresh overwrites existing CI check counts and behind_by with zeros",
+    "updatedAt": 1794419241902,
+    "votes": 0
+}
