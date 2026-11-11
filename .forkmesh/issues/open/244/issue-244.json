@@ -1,5 +1,7 @@
 {
-    "assignees": [],
+    "assignees": [
+        "s3dfx-cyber"
+    ],
     "author": "6uZ9NB7KLf405Wh73TNzj_9GRKchcU6_QJ5Y7XcQHx4",
     "authorName": "s3dfx-cyber",
     "bountyAddress": "",
@@ -19,6 +21,17 @@
             "title": "BLT-Hackathon: Review leaderboard is always empty for provider: \"forkmesh\" events — reviews are discarded with their parent PR",
             "ts": 1794409494481,
             "type": "open"
+        },
+        {
+            "assignee": "s3dfx-cyber",
+            "author": "6uZ9NB7KLf405Wh73TNzj_9GRKchcU6_QJ5Y7XcQHx4",
+            "authorName": "s3dfx-cyber",
+            "authorVerified": true,
+            "claimState": "assigned",
+            "id": "claim-web-1794409541967-1u8dke3",
+            "sig": "JFlLT1GtiqSAgtlspmhy1fhibl7Bbojdv13BJp_RYN_BD7xX5L_Nj-mEgmeFBbpAvVl-7xzrswKu75ob818IAA",
+            "ts": 1794409541967,
+            "type": "claim"
         }
     ],
     "labels": [],
@@ -30,6 +43,6 @@
     "startDate": 0,
     "status": "open",
     "title": "BLT-Hackathon: Review leaderboard is always empty for provider: \"forkmesh\" events — reviews are discarded with their parent PR",
-    "updatedAt": 1794409494481,
+    "updatedAt": 1794409541967,
     "votes": 0
 }
