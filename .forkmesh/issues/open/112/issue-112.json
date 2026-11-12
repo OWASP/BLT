@@ -45,6 +45,17 @@
             "sig": "1SYoCXZIpVH3jJgGX2A2eqXW0YQ6LqNV5zIEgWb1ETwzo6LenO0lyQBrT02q8OSd9cC4dEE20EFjviz06fcJBg",
             "ts": 1794225631537,
             "type": "claim"
+        },
+        {
+            "attachments": [],
+            "author": "5rbjKeqz6VJadn6tLgiWtFiW6cfOIsDQP7ydghv5f5g",
+            "authorName": "hiralmodi",
+            "authorVerified": true,
+            "body": "PR Raised: https://git.owaspblt.org/BLT/pull/92",
+            "id": "comment-web-1794491984786",
+            "sig": "NrC7ZT2KauK7rp06bcXYK9Ag2f-6u-V94D9EVTF6BQgeVwvFfWFNkJkGmPWKFRg2yPOzDcACjXcLaD0LcmyTDQ",
+            "ts": 1794491984786,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -61,6 +72,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-leaf: run test-sorting-security.js as part of npm test",
-    "updatedAt": 1794225631537,
+    "updatedAt": 1794491984786,
     "votes": 0
 }
