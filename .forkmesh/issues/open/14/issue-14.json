@@ -40,6 +40,17 @@
             "target": "gitlab-issue-82715116-5",
             "ts": 1792463360622,
             "type": "edit"
+        },
+        {
+            "attachments": [],
+            "author": "ioTtytvfyjL_PlKVm4I-MtviL0hMsy1_bEMSUJUGXbA",
+            "authorName": "vanshika2720",
+            "authorVerified": true,
+            "body": "Raised PR#106",
+            "id": "comment-web-1794465192986",
+            "sig": "CO1A-cu2UFII9NXWj9Ifm7PLnoMb5usa-RL802gSTZItopemaogbtmkXwI7xJsY04upol6xvF9HwtFfsPEjbDg",
+            "ts": 1794465192986,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -53,6 +64,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-jobs: Rework job and profile submission into Git-native Markdown draft flows",
-    "updatedAt": 1792463360622,
+    "updatedAt": 1794465192986,
     "votes": 0
 }
