@@ -1,5 +1,7 @@
 {
-    "assignees": [],
+    "assignees": [
+        "hiralmodi"
+    ],
     "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
     "authorName": "blt-tasks[bot]",
     "bountyAddress": "",
@@ -32,6 +34,17 @@
             "sig": "aq4xwfDSCNGPSDnkl43ctpQAjnGDv38pnwICBK3q_fv9y2hRhAy2s1OlKK1OrUbOaQEBMrFylVhU--30eH-GDQ",
             "ts": 1792547524500,
             "type": "labels"
+        },
+        {
+            "assignee": "hiralmodi",
+            "author": "5rbjKeqz6VJadn6tLgiWtFiW6cfOIsDQP7ydghv5f5g",
+            "authorName": "hiralmodi",
+            "authorVerified": true,
+            "claimState": "assigned",
+            "id": "claim-web-1794492112293-th8dqg",
+            "sig": "ClYNqThotNNmC4oJqGYzhEQA0_HsCsTn7U9RC6T65StlgtpT7j1wYKrTeuI-JOgNSOx6dz9zxHny6Gz965qABQ",
+            "ts": 1794492112293,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -48,6 +61,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-ossh: label the Community search and filter and announce analysis errors",
-    "updatedAt": 1792547524500,
+    "updatedAt": 1794492112293,
     "votes": 0
 }
