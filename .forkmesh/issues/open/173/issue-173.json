@@ -97,6 +97,18 @@
             "sig": "SevoTnvqilkqQXdvaObF4F2TPOr5G22B78KchYYY2o6-EFfIeUqkzFpjZBw9K1beni7tRb6dyNOJq_c9AR5YAQ",
             "ts": 1794470022197,
             "type": "claim"
+        },
+        {
+            "attachments": [],
+            "author": "Ns7s3e6VzZyIn5B0E7maANATuOgEsHfbQksHHZHzavg",
+            "authorName": "aaudhkumar",
+            "authorVerified": true,
+            "body": "hi @hrinkar01 , i saw it later and then stopped working on it , forgot to unassign myself ",
+            "id": "edit-web-1794470130021-3a1udt",
+            "sig": "PdCMr_7NplLxmzsXHRZD5lVxyZWz1rLTu18zEl__CFWYtCrHPu2laZley9vMO9A40nvIDnSy2EvHMmhbDv6-AQ",
+            "target": "comment-web-1794469999850",
+            "ts": 1794470130021,
+            "type": "edit"
         }
     ],
     "labels": [
@@ -112,6 +124,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-enforcement: label the trademark check as demo data and apply the jurisdiction filter",
-    "updatedAt": 1794470022197,
+    "updatedAt": 1794470130021,
     "votes": 0
 }
