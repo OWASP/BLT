@@ -51,6 +51,17 @@
             "sig": "1_UMe6eYkGNpD9w8_loetFjB3Xom9YFCMcvNBQ3zAsbq9ELWZlmerfVcxGnQxalLJ8fpC1Qu19x_QQWy0L04CA",
             "ts": 1794273265576,
             "type": "comment"
+        },
+        {
+            "attachments": [],
+            "author": "ioTtytvfyjL_PlKVm4I-MtviL0hMsy1_bEMSUJUGXbA",
+            "authorName": "vanshika2720",
+            "authorVerified": true,
+            "body": "Raised PR#108 for this.",
+            "id": "comment-web-1794465114185",
+            "sig": "u9umeNGIRFpxgfggDGNMRXGjrgQhDsMMscVgnIjbgTf8-A1KaVS1H5o_d99XU311JCRwhAJe_SrgqLJZWs0vBw",
+            "ts": 1794465114185,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -64,6 +75,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-jobs: Expand Markdown schemas and validation for jobs, seekers, and organizations",
-    "updatedAt": 1794273265576,
+    "updatedAt": 1794465114185,
     "votes": 0
 }
