@@ -54,6 +54,18 @@
             "target": "comment-web-1793528628617",
             "ts": 1794023952383,
             "type": "edit"
+        },
+        {
+            "attachments": [],
+            "author": "rrnBQwtV95mqysLXxmpZgHEsWNSAfyX_05SRH0Dbymg",
+            "authorName": "preetam",
+            "authorVerified": true,
+            "body": "fixed ",
+            "id": "edit-web-1794467145871-1wrgz63",
+            "sig": "sx7k_ZZO_OQ1ROHnbgBcD69mB__HRa-MsZCSqt2XjNi3pwqVgkTmtrC7182a09r-t3qw0dquJ3soUd_sxSY-CA",
+            "target": "comment-web-1793528628617",
+            "ts": 1794467145871,
+            "type": "edit"
         }
     ],
     "labels": [
@@ -69,6 +81,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-panini: add unit tests for update_slack_apps.py merge and parse helpers",
-    "updatedAt": 1794023952383,
+    "updatedAt": 1794467145871,
     "votes": 0
 }
