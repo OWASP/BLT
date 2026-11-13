@@ -1,0 +1,35 @@
+{
+    "assignees": [],
+    "author": "8HN7YjuxtFh9GGbCoFYgPCLpHD_i8QIup1rL2yINASw",
+    "authorName": "bksncknpphmcgy8",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1794548324078,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "8HN7YjuxtFh9GGbCoFYgPCLpHD_i8QIup1rL2yINASw",
+            "authorName": "bksncknpphmcgy8",
+            "authorVerified": true,
+            "body": "### What happens\n\n`website/views/project.py` reads a repository's license from the GitHub API as:\n\n    repo_data.get(\"license\", {}).get(\"name\")\n\nGitHub returns `\"license\": null` for a repository with no detected license. The key is then *present* with value `None`, so the `{}` default is never used and the expression becomes `None.get(\"name\")`, which raises `AttributeError: 'NoneType' object has no attribute 'get'`.\n\n### Impact\n\n- `RepoDetailView.post` \"technical\" section (line ~1857): the AttributeError is caught by the broad `except Exception` and the technical-info update returns a 500 for every license-less repository.\n- Project creation (line ~737): the same expression is used when building the `Repo`, so adding a project whose repo has a null license fails there too.\n\nA safe variant already exists in the same file (line ~1585): `data.get(\"license\") or {}`.\n\n### Expected\n\nA null license should store `None` (shown as \"Not specified\"), not crash.\n\n### Fix\n\nUse the `(... or {})` idiom at both sites. Surfaced in @vanshika2720's review of #94.\n\nFound with: `uvx ruff` / manual review; reproduced by mocking the GitHub response with `\"license\": null`.",
+            "id": "open-web-1794548324078",
+            "sig": "dhcM3tXL9Ml6E8Z9ouQVgeInimJoj6KznVueyTTXt46F6VojKVWUelMLfraV7f2t3fgD1AAESHhkWDUiMWJODw",
+            "title": "blt-legacy: project.py crashes (AttributeError) when a GitHub repo's license is null",
+            "ts": 1794548324078,
+            "type": "open"
+        }
+    ],
+    "labels": [],
+    "milestone": "",
+    "number": 246,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-legacy: project.py crashes (AttributeError) when a GitHub repo's license is null",
+    "updatedAt": 1794548324078,
+    "votes": 0
+}
