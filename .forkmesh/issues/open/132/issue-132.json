@@ -12,7 +12,7 @@
             "attachments": [],
             "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
             "authorName": "blt-tasks[bot]",
-            "body": "## Context\n\n`public/dashboard.html` shows \"Export started\", \"Import started\" and \"Subscriber suppressed\" toasts, but `src/entry.py` has no such endpoints and `public/docs.html` advertises import/export. Admins are told actions succeeded when nothing happened. Implementing them touches subscriber privacy (#25), so this issue only disables them.\n\n## What to do\n\n1. Disable the three buttons with a \"Not available yet\" title.\n2. Remove the import/export claims from `docs.html`.\n\n## Acceptance criteria\n\n- [ ] No success toast for an action that didn't happen\n\n## How to test locally\n\n```bash\ncd blt-newsletter && wrangler dev --local --port 8794   # open /dashboard\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "body": "## Context\n\n`public/dashboard.html` shows \"Export started\", \"Import started\" and \"Subscriber suppressed\" toasts, but `src/entry.py` has no such endpoints and `public/docs.html` advertises import/export. Admins are told actions succeeded when nothing happened. Implementing them touches subscriber privacy (#25), so this issue only disables them.\n\n## What to do\n\n1. Disable the three buttons with a \"Not available yet\" title.\n2. Remove the import/export claims from `docs.html`.\n\n## Acceptance criteria\n\n- [ ] No success toast for an action that didn't happen\n\n## How to test locally\n\n```bash\ncd blt-newsletter \u0026\u0026 wrangler dev --local --port 8794   # open /dashboard\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
             "id": "blt-tasks-issue-132",
             "sig": "ZAarT_5eq5TEpMr1BVMfiKKJfjfpmSjFkOUZLscQBdo7JLFhSRROy7hFuXnha_KuQ8RUFv237t0PVc_gg2dfAQ",
             "title": "blt-newsletter: stop the dashboard's Import, Export and Suppress buttons showing fake success toasts",
@@ -31,6 +31,17 @@
             "sig": "-5UrwxmY147KHSyeIKfcL-VAo2QlXX69zZaySRjdj8FGqtj3pDRrZuZVFJLiedu8zTCfSHbUJNsJKfwtn72WBg",
             "ts": 1792547524180,
             "type": "labels"
+        },
+        {
+            "attachments": [],
+            "author": "5rbjKeqz6VJadn6tLgiWtFiW6cfOIsDQP7ydghv5f5g",
+            "authorName": "hiralmodi",
+            "authorVerified": true,
+            "body": "raised a pr: https://git.owaspblt.org/BLT/pull/121",
+            "id": "comment-web-1794584953121",
+            "sig": "ld1jnfFAD8aAhdEkjn8XVyS1cicE_dUCeDpxDhcPVn0dsux3XdXb-zaHRk0V06nkVN8BcWW5Mkdb2KWcxnjmDg",
+            "ts": 1794584953121,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -46,6 +57,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-newsletter: stop the dashboard's Import, Export and Suppress buttons showing fake success toasts",
-    "updatedAt": 1792547524180,
+    "updatedAt": 1794584953121,
     "votes": 0
 }
