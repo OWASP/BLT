@@ -1,5 +1,7 @@
 {
-    "assignees": [],
+    "assignees": [
+        "krish"
+    ],
     "author": "8HN7YjuxtFh9GGbCoFYgPCLpHD_i8QIup1rL2yINASw",
     "authorName": "bksncknpphmcgy8",
     "bountyAddress": "",
@@ -19,6 +21,17 @@
             "title": "blt-sizzle: /api/orgs/\u003corg\u003e/settings (POST) and /api/orgs/\u003corg\u003e (DELETE) crash — handlers never defined",
             "ts": 1794142871669,
             "type": "open"
+        },
+        {
+            "assignee": "krish",
+            "author": "Sie42rK1nTcvbTFlhZvv4LytuYI9URg8litQqBahptE",
+            "authorName": "krish",
+            "authorVerified": true,
+            "claimState": "assigned",
+            "id": "claim-web-1794559098591-7k23w5",
+            "sig": "gWWWAaw4djthtDrrSxg5i8JTxFgC5q96z77AkuBZ7HQZyVCTFk1JeL65pTsX4QeaJEQHjFHZrt62ikAraj13Bg",
+            "ts": 1794559098591,
+            "type": "claim"
         }
     ],
     "labels": [],
@@ -30,6 +43,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-sizzle: /api/orgs/\u003corg\u003e/settings (POST) and /api/orgs/\u003corg\u003e (DELETE) crash — handlers never defined",
-    "updatedAt": 1794142871669,
+    "updatedAt": 1794559098591,
     "votes": 0
 }
