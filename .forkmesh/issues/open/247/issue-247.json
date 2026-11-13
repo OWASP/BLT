@@ -1,5 +1,7 @@
 {
-    "assignees": [],
+    "assignees": [
+        "hrinkar01"
+    ],
     "author": "RstIDDJG6C6U1Pai9khxpJmAfEPyL4aIsmU-ctc0kJM",
     "authorName": "hrinkar01",
     "bountyAddress": "",
@@ -19,6 +21,17 @@
             "title": "blt-dash: attach standard security headers (X-Frame-Options, CSP, nosniff) and CORS to asset responses",
             "ts": 1794593422915,
             "type": "open"
+        },
+        {
+            "assignee": "hrinkar01",
+            "author": "RstIDDJG6C6U1Pai9khxpJmAfEPyL4aIsmU-ctc0kJM",
+            "authorName": "hrinkar01",
+            "authorVerified": true,
+            "claimState": "assigned",
+            "id": "claim-web-1794593468276-1ocigpm",
+            "sig": "pajz3ckqDz7VNId5bqivS5pVn1cLWo63OueiSI3rvCg1cX8zEM73Zy9X_pHXkHBEKCoB6VRPA22UpCa6QPuKBA",
+            "ts": 1794593468276,
+            "type": "claim"
         }
     ],
     "labels": [],
@@ -30,6 +43,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-dash: attach standard security headers (X-Frame-Options, CSP, nosniff) and CORS to asset responses",
-    "updatedAt": 1794593422915,
+    "updatedAt": 1794593468276,
     "votes": 0
 }
