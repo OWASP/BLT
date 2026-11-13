@@ -1,0 +1,35 @@
+{
+    "assignees": [],
+    "author": "RstIDDJG6C6U1Pai9khxpJmAfEPyL4aIsmU-ctc0kJM",
+    "authorName": "hrinkar01",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1794593422915,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "RstIDDJG6C6U1Pai9khxpJmAfEPyL4aIsmU-ctc0kJM",
+            "authorName": "hrinkar01",
+            "authorVerified": true,
+            "body": "## Context\n\nIn `blt-dash/src/index.py`, requests to static assets (`/`, `/logo.svg`, etc.) are served by returning `await env.ASSETS.fetch(request)` directly. Because the raw asset response is returned without being wrapped:\n\n1. **Missing Security Headers:** The dashboard is served without `X-Frame-Options`, `X-Content-Type-Options`, or `Content-Security-Policy`, leaving the dashboard unprotected against framing/clickjacking and MIME-sniffing.\n\n2. **Missing CORS on GET:** While `cors_headers` (`Access-Control-Allow-Origin: *`) is defined at the top of `on_fetch` and returned for `OPTIONS` preflight and 500 error responses, it is never attached to the static asset responses returned by `env.ASSETS.fetch(request)`.\n\n3. **Repository Inconsistency:** Other workers in the monorepo (such as `blt-next/workers/main.py`) explicitly define and attach `FRONTEND_SECURITY_HEADERS` to all client-facing responses.",
+            "id": "open-web-1794593422915",
+            "sig": "JTzG1Ah-D6sYsTXm51MYzxfkXW-xYpZSmKOn9Ycaco8u0zkFwltQyJ5jrVr3ssqFvaoysC4RPouqYCNcQjmbCA",
+            "title": "blt-dash: attach standard security headers (X-Frame-Options, CSP, nosniff) and CORS to asset responses",
+            "ts": 1794593422915,
+            "type": "open"
+        }
+    ],
+    "labels": [],
+    "milestone": "",
+    "number": 247,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-dash: attach standard security headers (X-Frame-Options, CSP, nosniff) and CORS to asset responses",
+    "updatedAt": 1794593422915,
+    "votes": 0
+}
