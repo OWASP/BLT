@@ -32,6 +32,17 @@
             "sig": "pajz3ckqDz7VNId5bqivS5pVn1cLWo63OueiSI3rvCg1cX8zEM73Zy9X_pHXkHBEKCoB6VRPA22UpCa6QPuKBA",
             "ts": 1794593468276,
             "type": "claim"
+        },
+        {
+            "attachments": [],
+            "author": "RstIDDJG6C6U1Pai9khxpJmAfEPyL4aIsmU-ctc0kJM",
+            "authorName": "hrinkar01",
+            "authorVerified": true,
+            "body": "PR Raised!\n\nhttps://git.owaspblt.org/BLT/issues/247",
+            "id": "comment-web-1794600017982",
+            "sig": "KaXp90tI6JC3jcRtGKu7tbkAlC5Ep_Da1RKy2nFy8B9i14K9vy7A1a9fJI4YjVtTI6SCL2K2VXXyMmUw4DOnCA",
+            "ts": 1794600017982,
+            "type": "comment"
         }
     ],
     "labels": [],
@@ -43,6 +54,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-dash: attach standard security headers (X-Frame-Options, CSP, nosniff) and CORS to asset responses",
-    "updatedAt": 1794593468276,
+    "updatedAt": 1794600017982,
     "votes": 0
 }
