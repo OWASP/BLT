@@ -1,5 +1,7 @@
 {
-    "assignees": [],
+    "assignees": [
+        "aaudhkumar"
+    ],
     "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
     "authorName": "blt-tasks[bot]",
     "bountyAddress": "",
@@ -12,7 +14,7 @@
             "attachments": [],
             "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
             "authorName": "blt-tasks[bot]",
-            "body": "## Context\n\n`public/chat.html` (about L129-131) `#messageInput` has only a placeholder, which doesn't count as a label.\n\n## What to do\n\n1. Add a visually hidden `<label for=\"messageInput\">` or an `aria-label`.\n\n## Acceptance criteria\n\n- [ ] Lighthouse/axe report no unlabelled form element on /chat\n\n## How to test locally\n\n```bash\ncd blt-byte && npx wrangler dev   # Lighthouse on /chat\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "body": "## Context\n\n`public/chat.html` (about L129-131) `#messageInput` has only a placeholder, which doesn't count as a label.\n\n## What to do\n\n1. Add a visually hidden `\u003clabel for=\"messageInput\"\u003e` or an `aria-label`.\n\n## Acceptance criteria\n\n- [ ] Lighthouse/axe report no unlabelled form element on /chat\n\n## How to test locally\n\n```bash\ncd blt-byte \u0026\u0026 npx wrangler dev   # Lighthouse on /chat\n```\n\n---\nSize: **S** · good first issue. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
             "id": "blt-tasks-issue-115",
             "sig": "DxyrAWj1qHrNqplHE6G9Y3K31ROrIelMK9xykCT66vuFOEm7jWBaZHTGmPE4CqXfJtDHKtvBevjyrYDMpd1iAQ",
             "title": "blt-byte: give the chat textarea an accessible label",
@@ -32,6 +34,17 @@
             "sig": "DZP3oGE-aEcXlEeTrDt7Jmo3WqSTQ-KK07NC8RPyWMs-uI1c6LUZo-vBoR_vlUfx3AECjvYbHN42RXRNyrA6DQ",
             "ts": 1792547524010,
             "type": "labels"
+        },
+        {
+            "assignee": "aaudhkumar",
+            "author": "Ns7s3e6VzZyIn5B0E7maANATuOgEsHfbQksHHZHzavg",
+            "authorName": "aaudhkumar",
+            "authorVerified": true,
+            "claimState": "assigned",
+            "id": "claim-web-1794686172023-1xo0gme",
+            "sig": "XKAuOsnrQUXtXUIAwCnm14fcmNgvQH6_3oEqzP9g-Uo0JGphiWB3fZPy8kWLLcD0tmDmxg7uwD_0mjwm2ybxAA",
+            "ts": 1794686172023,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -48,6 +61,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-byte: give the chat textarea an accessible label",
-    "updatedAt": 1792547524010,
+    "updatedAt": 1794686172023,
     "votes": 0
 }
