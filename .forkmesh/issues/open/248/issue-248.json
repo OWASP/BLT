@@ -19,6 +19,17 @@
             "title": "Approval percentage shows 100% before all requested reviewers approve",
             "ts": 1794659989324,
             "type": "open"
+        },
+        {
+            "attachments": [],
+            "author": "Ns7s3e6VzZyIn5B0E7maANATuOgEsHfbQksHHZHzavg",
+            "authorName": "aaudhkumar",
+            "authorVerified": true,
+            "body": "@himaneeesh ig this is the intended behaviour , not all reviewers need to confirm , any 2 can work . \nmaybe i am wrong also ,should confirm with the maintainers",
+            "id": "comment-web-1794684820773",
+            "sig": "m2Xt_BDpr_AVREcSECnmaeNSczFkUUxpn1SlwZvxrHsrbo1D9ZjYm1KEr_hHxxZUVBDim_tl9uTN-WdFAls0Cg",
+            "ts": 1794684820773,
+            "type": "comment"
         }
     ],
     "labels": [],
@@ -30,6 +41,6 @@
     "startDate": 0,
     "status": "open",
     "title": "Approval percentage shows 100% before all requested reviewers approve",
-    "updatedAt": 1794659989324,
+    "updatedAt": 1794684820773,
     "votes": 0
 }
