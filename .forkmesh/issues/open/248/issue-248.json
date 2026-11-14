@@ -1,0 +1,35 @@
+{
+    "assignees": [],
+    "author": "s3hhVb22t037OCG2vjJx291ljjPDh7-mX6PliP4yDAI",
+    "authorName": "himaneeesh",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1794659989324,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "s3hhVb22t037OCG2vjJx291ljjPDh7-mX6PliP4yDAI",
+            "authorName": "himaneeesh",
+            "authorVerified": true,
+            "body": "## Summary\n\nA pull request can display a green **Approved — 100%** status even though not every requested reviewer has approved it.\n\n## Example\n\nOn PR #107, three reviewers are listed:\n\n- nachiket — approved\n- vanshika2720 — approved\n- s3dfx-cyber — not yet approved\n\nThe PR correctly says **Review met ✓ 2** and **Approved by 2 independent reviewers**, but the PR list/badge displays **Approved 100%** in green.\n\n## Expected behavior\n\nThe percentage and color should reflect approvals from all requested reviewers. With 2 of 3 reviewers approving, it should show the actual completion rate (for example, 67%) and remain pending—not green—until all required reviewers approve.\n\n## Actual behavior\n\nOnce the independent-review requirement is met, the UI shows green **Approved 100%**, despite another requested reviewer still being unapproved.\n\n## Impact\n\nThis makes the review look fully complete when an outstanding requested review remains.\n\n## Steps to reproduce\n\n1. Open or create a PR with three requested reviewers.\n2. Have two reviewers approve while the third has not approved.\n3. Observe the reviewer panel shows only 2 of 3 approvals, while the PR list/badge shows green **Approved 100%**.",
+            "id": "open-web-1794659989324",
+            "sig": "dCfX_-qu2-jh6FZ-xmphUBAmJlGy-HVpqWMm2NideBTRlcMz5I8zR18MhWS2sEKrO8aktOHhnu_hgT7D_wBTCQ",
+            "title": "Approval percentage shows 100% before all requested reviewers approve",
+            "ts": 1794659989324,
+            "type": "open"
+        }
+    ],
+    "labels": [],
+    "milestone": "",
+    "number": 248,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "Approval percentage shows 100% before all requested reviewers approve",
+    "updatedAt": 1794659989324,
+    "votes": 0
+}
