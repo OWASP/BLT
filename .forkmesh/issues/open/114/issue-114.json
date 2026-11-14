@@ -32,6 +32,17 @@
             "sig": "uKaIEqlCOSRSe92OuxYyZaJYl2rRD98jPz4Bjzl89XSQ4q7IBJn5CJckGJBvBM-ScvhmMk16vi5XW045g54xAQ",
             "ts": 1792547524000,
             "type": "labels"
+        },
+        {
+            "attachments": [],
+            "author": "asCxHCiy0QGUc6jW42W2W-x8mJsIhQ3dwUwp5okaYYw",
+            "authorName": "namrata",
+            "authorVerified": true,
+            "body": "/assign",
+            "id": "comment-web-1794637395651",
+            "sig": "LxittRRSVYLHPTgHfGsdaFDn5RsS4EfHSbNQ6eBMidHCX0HhbPR3y6hRgG-h46kRwuOC7794TPLe3GNno4jTAg",
+            "ts": 1794637395651,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -48,6 +59,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-byte: stop the system prompt advertising MCP tools and scan checks that don't exist",
-    "updatedAt": 1792547524000,
+    "updatedAt": 1794637395651,
     "votes": 0
 }
