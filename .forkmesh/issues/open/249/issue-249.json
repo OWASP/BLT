@@ -1,0 +1,35 @@
+{
+    "assignees": [],
+    "author": "1IjcdW9JCaXjDBlKkyQReX4pPsdod5yjrnO8WZhfwh0",
+    "authorName": "granger",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1794690834233,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "1IjcdW9JCaXjDBlKkyQReX4pPsdod5yjrnO8WZhfwh0",
+            "authorName": "granger",
+            "authorVerified": true,
+            "body": "## Problem / Motivation\nCurrently, the right side of the homepage hero section displays a single static phone mockup, leaving a noticeable amount of empty visual space and only showcasing the app's home screen. Upgrading this area will make the landing page more visually balanced and immediately highlight core app features to first-time visitors.\n\n## Proposed Solution\nUpdate the hero section's phone showcase to feature **three overlapping phone mockups** with a smooth, autonomous 3D carousel animation—while keeping the rest of the landing page layout, background, navbar, typography, and footer stats unchanged:\n\n* **Multi-Screen Preview:** Showcase the main app screens (`Home`, `Browse Issues`, `Leaderboard`, and `Report a Bug`) directly in the hero section.\n* **Autonomous Animation:** Gently float and cycle focus across the three overlapping devices on a continuous loop without requiring user clicks or manual controls.\n* **Responsive \u0026 Symmetrical Layout:** Center the overlapping device stage cleanly within the hero column so none of the frames clip on standard desktop viewports.",
+            "id": "open-web-1794690834233",
+            "sig": "EkakcHMbwAqB9rqdZ7kNdfUUVei2HRiPLzMUVfBHdS3uvIZAS-uX8kOu5u64XCz5CH-4qlFjKX6Tt7KYDyjrBg",
+            "title": "UI Enhancement: Replace single static phone mockup with an animated 3-phone overlapping showcase in the hero section",
+            "ts": 1794690834233,
+            "type": "open"
+        }
+    ],
+    "labels": [],
+    "milestone": "",
+    "number": 249,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "UI Enhancement: Replace single static phone mockup with an animated 3-phone overlapping showcase in the hero section",
+    "updatedAt": 1794690834233,
+    "votes": 0
+}
