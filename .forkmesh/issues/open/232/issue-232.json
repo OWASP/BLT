@@ -32,6 +32,17 @@
             "sig": "gWWWAaw4djthtDrrSxg5i8JTxFgC5q96z77AkuBZ7HQZyVCTFk1JeL65pTsX4QeaJEQHjFHZrt62ikAraj13Bg",
             "ts": 1794559098591,
             "type": "claim"
+        },
+        {
+            "attachments": [],
+            "author": "6I64fbHumctKTTTVZW0cDPBfOLWC46GD_JhZa7h9aX8",
+            "authorName": "owasp-blt-actions",
+            "authorVerified": true,
+            "body": "@krish there's been no pull request or comment from you here for 18 hours. If you're still working on this issue, please comment with an update or open a pull request; otherwise you'll be unassigned in about 6 hours so someone else can pick it up. \u003c!-- blt-assign-stale-warning:krish:1794559098591 --\u003e",
+            "id": "actions-1794624796752-BI9rQ3Us",
+            "sig": "9rdTXqfRFmvP8JdW1I32WTafwUzCuqByvOW9ia5xVdpB5gnIFWZLXMpHVl59Pix4feENe9-tGZb95T7qx7D_CA",
+            "ts": 1794624796752,
+            "type": "comment"
         }
     ],
     "labels": [],
@@ -43,6 +54,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-sizzle: /api/orgs/\u003corg\u003e/settings (POST) and /api/orgs/\u003corg\u003e (DELETE) crash — handlers never defined",
-    "updatedAt": 1794559098591,
+    "updatedAt": 1794624796752,
     "votes": 0
 }
