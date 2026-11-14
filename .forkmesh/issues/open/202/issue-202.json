@@ -45,6 +45,17 @@
             "sig": "X-qoJWgMgJpN5PpvUTJWTLFLSZ-5JF1kynnzKnjCN0CkUVNpAt-sb3lig44Qrd-kT56ztqoD_p2VQnp8xBkmCw",
             "ts": 1794687506491,
             "type": "claim"
+        },
+        {
+            "assignee": "granger",
+            "author": "1IjcdW9JCaXjDBlKkyQReX4pPsdod5yjrnO8WZhfwh0",
+            "authorName": "granger",
+            "authorVerified": true,
+            "claimState": "assigned",
+            "id": "claim-web-1794687506916-1ckcvzm",
+            "sig": "PoWdERXP_P1yxWKbWIGkbK6cMojJl8RznaTxIlbGnO3gKuicICrszK62YmNf0RkRDZMz6fHbneY3RJFfxPO6Dg",
+            "ts": 1794687506916,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -61,6 +72,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-flutter: reach the gold standard (bronze today, 1 step)",
-    "updatedAt": 1794687506491,
+    "updatedAt": 1794687506916,
     "votes": 0
 }
