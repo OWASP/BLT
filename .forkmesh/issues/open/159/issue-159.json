@@ -1,5 +1,7 @@
 {
-    "assignees": [],
+    "assignees": [
+        "krish"
+    ],
     "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
     "authorName": "blt-tasks[bot]",
     "bountyAddress": "",
@@ -54,6 +56,17 @@
             "sig": "FdkVa9Do_GgzH31uBMsj-xSK0Ld53dnBANMWRWD6rRgku1caR-UjzpfSPRXsqsoQj1qwPgorQ_cQ-LrSmF9SCQ",
             "ts": 1794646428919,
             "type": "claim"
+        },
+        {
+            "assignee": "krish",
+            "author": "Sie42rK1nTcvbTFlhZvv4LytuYI9URg8litQqBahptE",
+            "authorName": "krish",
+            "authorVerified": true,
+            "claimState": "assigned",
+            "id": "claim-web-1794647202275-bn1vbk",
+            "sig": "GRCImGocc9gcExYqsyyQ-c2-FJ10OZU4yhvdQlFGshACppYywNBvzZutBUwfZDnLJ3xYlEF9LIx0ug10O81vBQ",
+            "ts": 1794647202275,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -70,6 +83,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-pages: make extract_domain accept CRLF and single-newline \"### URL\" sections",
-    "updatedAt": 1794646428919,
+    "updatedAt": 1794647202275,
     "votes": 0
 }
