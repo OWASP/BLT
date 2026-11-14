@@ -67,6 +67,17 @@
             "sig": "F6FqlxNhZF0ApZuBrP8EizuyxekaNYSG_2kTSUExDm_T8vNx0Z5ZNRym3r96VQ20LJXeDO9PL3KeMD5l45DlCA",
             "ts": 1794637430827,
             "type": "comment"
+        },
+        {
+            "attachments": [],
+            "author": "asCxHCiy0QGUc6jW42W2W-x8mJsIhQ3dwUwp5okaYYw",
+            "authorName": "namrata",
+            "authorVerified": true,
+            "body": "i have raised PR #124",
+            "id": "comment-web-1794642621814",
+            "sig": "T3mKjJmsFo7xKZMR8NOZquTNysJ2_ihDrY0ACIDYL0eHTopiSYewUiHd_QZMF8xk0AQ76UEfIriGJnJ1IEk2CA",
+            "ts": 1794642621814,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -83,6 +94,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-byte: stop the system prompt advertising MCP tools and scan checks that don't exist",
-    "updatedAt": 1794637430827,
+    "updatedAt": 1794642621814,
     "votes": 0
 }
