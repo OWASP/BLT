@@ -56,6 +56,17 @@
             "sig": "iTyV0uyA1gnisPk08wJ98GMaBqKDXcd9XaCorRF--NOM3mjUuPtrn-GV_OOX_wsB7aUnSMOKQYak5f06ZaSrAQ",
             "ts": 1794637430665,
             "type": "claim"
+        },
+        {
+            "attachments": [],
+            "author": "6I64fbHumctKTTTVZW0cDPBfOLWC46GD_JhZa7h9aX8",
+            "authorName": "owasp-blt-actions",
+            "authorVerified": true,
+            "body": "@namrata you're assigned to this issue. Please open a pull request for it within 24 hours. Without a pull request or an update from you here for 24 hours, you'll be unassigned (after a warning). If you stop working on it, comment `/unassign` so someone else can pick it up. Want guidance along the way? Comment `/mentor` to be matched with a mentor from https://pool.owaspblt.org. \u003c!-- blt-assign:2b5f411f56c95fae80c5 --\u003e",
+            "id": "actions-1794637430827-QZfVTzCv",
+            "sig": "F6FqlxNhZF0ApZuBrP8EizuyxekaNYSG_2kTSUExDm_T8vNx0Z5ZNRym3r96VQ20LJXeDO9PL3KeMD5l45DlCA",
+            "ts": 1794637430827,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -72,6 +83,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-byte: stop the system prompt advertising MCP tools and scan checks that don't exist",
-    "updatedAt": 1794637430665,
+    "updatedAt": 1794637430827,
     "votes": 0
 }
