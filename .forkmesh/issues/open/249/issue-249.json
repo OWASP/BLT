@@ -19,6 +19,17 @@
             "title": "UI Enhancement: Replace single static phone mockup with an animated 3-phone overlapping showcase in the hero section",
             "ts": 1794690834233,
             "type": "open"
+        },
+        {
+            "attachments": [],
+            "author": "1IjcdW9JCaXjDBlKkyQReX4pPsdod5yjrnO8WZhfwh0",
+            "authorName": "granger",
+            "authorVerified": true,
+            "body": "Linked pull request #127",
+            "id": "comment-web-1794691311403",
+            "sig": "bPJiuWbcfyhOYHZzVRs_mwvYqNxzTN8R7n5y0FIPZb4rT33DrWcBX_Z_WocPsiFEi9Rn4a1WfIA4waExWs-cCw",
+            "ts": 1794691311403,
+            "type": "comment"
         }
     ],
     "labels": [],
@@ -30,6 +41,6 @@
     "startDate": 0,
     "status": "open",
     "title": "UI Enhancement: Replace single static phone mockup with an animated 3-phone overlapping showcase in the hero section",
-    "updatedAt": 1794690834233,
+    "updatedAt": 1794691311403,
     "votes": 0
 }
