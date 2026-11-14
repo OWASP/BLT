@@ -1,7 +1,5 @@
 {
-    "assignees": [
-        "namrata"
-    ],
+    "assignees": [],
     "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
     "authorName": "blt-tasks[bot]",
     "bountyAddress": "",
@@ -78,6 +76,17 @@
             "sig": "T3mKjJmsFo7xKZMR8NOZquTNysJ2_ihDrY0ACIDYL0eHTopiSYewUiHd_QZMF8xk0AQ76UEfIriGJnJ1IEk2CA",
             "ts": 1794642621814,
             "type": "comment"
+        },
+        {
+            "assignee": "namrata",
+            "author": "asCxHCiy0QGUc6jW42W2W-x8mJsIhQ3dwUwp5okaYYw",
+            "authorName": "namrata",
+            "authorVerified": true,
+            "claimState": "released",
+            "id": "claim-web-1794642627556-534siw",
+            "sig": "cG0S_5N0IkRilCqO9uStreS2Kj-HpecFnzTDmFwBf4MMpWfbzWyW7HDt_EpBYQ3LQOJsGvQrbs460Pvvjb1OCg",
+            "ts": 1794642627556,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -94,6 +103,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-byte: stop the system prompt advertising MCP tools and scan checks that don't exist",
-    "updatedAt": 1794642621814,
+    "updatedAt": 1794642627556,
     "votes": 0
 }
