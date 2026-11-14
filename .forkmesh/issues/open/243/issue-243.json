@@ -1,7 +1,5 @@
 {
-    "assignees": [
-        "namrata"
-    ],
+    "assignees": [],
     "author": "asCxHCiy0QGUc6jW42W2W-x8mJsIhQ3dwUwp5okaYYw",
     "authorName": "namrata",
     "bountyAddress": "",
@@ -122,6 +120,17 @@
             "sig": "d11oAqhlWUMHRq2-zO690ndbDZUIzc5s7oJiUOyYPS7SGe1ZEVLBRRvoEwfsAKpV9GmHOEA-cenIJmx6aWX_BQ",
             "ts": 1794404534284,
             "type": "comment"
+        },
+        {
+            "assignee": "namrata",
+            "author": "asCxHCiy0QGUc6jW42W2W-x8mJsIhQ3dwUwp5okaYYw",
+            "authorName": "namrata",
+            "authorVerified": true,
+            "claimState": "released",
+            "id": "claim-web-1794635964926-1jvcxqg",
+            "sig": "emYN8r0R-e8lfsRsGN_fWd5umQYXEKhK6EV78W28kMbi0snuFEppOZ3ztWLrbOmqumVqXwcDO-cUpGjt1haxAg",
+            "ts": 1794635964926,
+            "type": "claim"
         }
     ],
     "labels": [],
@@ -133,6 +142,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-hackathons unit test failing after blt-blog was added",
-    "updatedAt": 1794404534284,
+    "updatedAt": 1794635964926,
     "votes": 0
 }
