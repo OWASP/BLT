@@ -1,5 +1,7 @@
 {
-    "assignees": [],
+    "assignees": [
+        "aaudhkumar"
+    ],
     "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
     "authorName": "blt-tasks[bot]",
     "bountyAddress": "",
@@ -32,6 +34,17 @@
             "sig": "v4HlfcoEGOF937ZuYg74lJQzASYn23WgKjQ31e8AByLDIjT82v1SjkulNeTM3gb8XPfpMD6UJFIbYqUaS9mvCA",
             "ts": 1792547523550,
             "type": "labels"
+        },
+        {
+            "assignee": "aaudhkumar",
+            "author": "Ns7s3e6VzZyIn5B0E7maANATuOgEsHfbQksHHZHzavg",
+            "authorName": "aaudhkumar",
+            "authorVerified": true,
+            "claimState": "assigned",
+            "id": "claim-web-1794771405350-1xp3jwj",
+            "sig": "xNG_yJGqOajesKMc6z9Gt0FmwkpdnA3Yq0mif8_7XK2qKbsdmyxH6oPcIFomcDSs_M_VksJu34fmffJ7exAAAA",
+            "ts": 1794771405350,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -48,6 +61,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-preflight: rename tests/tests_cli.py so pytest collects it",
-    "updatedAt": 1792547523550,
+    "updatedAt": 1794771405350,
     "votes": 0
 }
