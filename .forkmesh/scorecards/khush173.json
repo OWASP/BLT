@@ -1,9 +1,9 @@
 {
  "schema": "blt-scorecard-v1",
  "login": "khush173",
- "generated": "2026-11-07",
- "model": "Claude Code",
- "inputs": "b068ebe15c9fab40",
+ "generated": "2026-11-15",
+ "model": "llama-3.3-70b-instruct-fp8-fast",
+ "inputs": "881407eb005f1566",
  "score": 23,
  "level": "Getting started",
  "areas": [
@@ -30,20 +30,20 @@
   {
    "key": "momentum",
    "label": "Momentum",
-   "score": 99
+   "score": 96
   }
  ],
- "headline": "You opened your first blt-next pull request. Welcome to BLT!",
+ "headline": "You started strong with blt-next this month.",
  "strengths": [
-  "1 pull request opened in blt-next",
-  "Opened an issue to share an idea",
-  "3 comments joining the conversation"
+  "1 opened pull request in blt-next",
+  "2 thoughtful comments on pull requests",
+  "1 issue opened for discussion"
  ],
  "grow": [
-  "Coming back for a small fix is a great way to land your first merge",
-  "Commenting on an open blt-next issue helps you find the next task"
+  "Reviewing others' pull requests can help you learn from their code",
+  "Adding a bio to your profile can help others get to know you"
  ],
- "next_step": "Pick an open blt-next issue on git.owaspblt.org and say you would like to work on it",
+ "next_step": "Leave a comment on an open issue in blt-next or try reviewing a teammate's pull request this week on git.owaspblt.org",
  "stats": {
   "commits": 0,
   "pulls_merged": 0,

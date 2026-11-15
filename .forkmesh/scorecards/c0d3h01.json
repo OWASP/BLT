@@ -1,9 +1,9 @@
 {
  "schema": "blt-scorecard-v1",
  "login": "c0d3h01",
- "generated": "2026-11-07",
- "model": "Claude Code",
- "inputs": "d9bc379cddca646a",
+ "generated": "2026-11-15",
+ "model": "llama-3.3-70b-instruct-fp8-fast",
+ "inputs": "3c60a5db5eb49e80",
  "score": 27,
  "level": "Getting started",
  "areas": [
@@ -30,20 +30,19 @@
   {
    "key": "momentum",
    "label": "Momentum",
-   "score": 98
+   "score": 95
   }
  ],
- "headline": "Your 5 commits to blt and blt-jobs are part of BLT's history now.",
+ "headline": "You started strong with 5 commits to BLT projects.",
  "strengths": [
-  "5 commits across blt and blt-jobs",
-  "Contributing since May",
-  "2 links on your profile so people can find your work"
+  "5 commits to blt and blt-jobs",
+  "2 links on your profile"
  ],
  "grow": [
-  "Sending your next change as a pull request gets it reviewed and merged quickly",
-  "Saying hello on an open issue is an easy way back into the project"
+  "Try opening a pull request to share your code changes with the team",
+  "Adding a bio to your profile can help others get to know you"
  ],
- "next_step": "Browse open blt-jobs issues on git.owaspblt.org and pick one that sparks your interest",
+ "next_step": "Explore open issues in blt or blt-jobs and consider commenting or opening a pull request on git.owaspblt.org",
  "stats": {
   "commits": 5,
   "pulls_merged": 0,
