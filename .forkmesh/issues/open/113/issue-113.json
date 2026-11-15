@@ -1,5 +1,7 @@
 {
-    "assignees": [],
+    "assignees": [
+        "aaudhkumar"
+    ],
     "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
     "authorName": "blt-tasks[bot]",
     "bountyAddress": "",
@@ -31,6 +33,17 @@
             "sig": "qizq4jPdm4tt2CW_pJIscX4-sHHMa59TdVSB4GM0wr5c5jgSVDldsgYSk_GjZ9Ae5W-LJvMWeALNSG3sopGDAA",
             "ts": 1792547523990,
             "type": "labels"
+        },
+        {
+            "assignee": "aaudhkumar",
+            "author": "Ns7s3e6VzZyIn5B0E7maANATuOgEsHfbQksHHZHzavg",
+            "authorName": "aaudhkumar",
+            "authorVerified": true,
+            "claimState": "assigned",
+            "id": "claim-web-1794728265220-vz28jn",
+            "sig": "_9I2z30B__LE4nirvXA4sKgLRnNi-r2DvE5r4RyU0Z1q8bVR08RfbMHEED2_lIBWSP1lPyx89YS01DAiCAbcDw",
+            "ts": 1794728265220,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -46,6 +59,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-byte: fix the README: no package.json, wrong structure and a route that doesn't exist",
-    "updatedAt": 1792547523990,
+    "updatedAt": 1794728265220,
     "votes": 0
 }
