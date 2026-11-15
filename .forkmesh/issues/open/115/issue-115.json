@@ -45,6 +45,17 @@
             "sig": "XKAuOsnrQUXtXUIAwCnm14fcmNgvQH6_3oEqzP9g-Uo0JGphiWB3fZPy8kWLLcD0tmDmxg7uwD_0mjwm2ybxAA",
             "ts": 1794686172023,
             "type": "claim"
+        },
+        {
+            "attachments": [],
+            "author": "Ns7s3e6VzZyIn5B0E7maANATuOgEsHfbQksHHZHzavg",
+            "authorName": "aaudhkumar",
+            "authorVerified": true,
+            "body": "Raised an PR for this issue https://git.owaspblt.org/BLT/pull/128",
+            "id": "comment-web-1794728719198",
+            "sig": "XEsHHGX4SeP3XzjmBgBifQ85Qc1ZuKnySQczPN0Xl4NZNyboOC9YNjHYbK5rvC8la81xsrxJgkRgLWewe03oDA",
+            "ts": 1794728719198,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -61,6 +72,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-byte: give the chat textarea an accessible label",
-    "updatedAt": 1794686172023,
+    "updatedAt": 1794728719198,
     "votes": 0
 }
