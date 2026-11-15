@@ -75,6 +75,16 @@
             "title": "Fix broken Forgot Password page returning 404",
             "ts": 1794730864549,
             "type": "title"
+        },
+        {
+            "author": "rrnBQwtV95mqysLXxmpZgHEsWNSAfyX_05SRH0Dbymg",
+            "authorName": "preetam",
+            "authorVerified": true,
+            "id": "title-web-1794730865039-t9jxc3",
+            "sig": "Cc3bCt1U066apE1GwR29ZGatwATdHL9FEFHUk1NvazWuPmpsBVvO_KWb57zDt3bmYpTq5QTwIXRuW6OLIFBACQ",
+            "title": "Fix broken Forgot Password page returning 404",
+            "ts": 1794730865039,
+            "type": "title"
         }
     ],
     "labels": [],
@@ -86,6 +96,6 @@
     "startDate": 0,
     "status": "open",
     "title": "Fix broken Forgot Password page returning 404",
-    "updatedAt": 1794730864549,
+    "updatedAt": 1794730865039,
     "votes": 0
 }
