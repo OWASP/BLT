@@ -44,6 +44,17 @@
             "sig": "_9I2z30B__LE4nirvXA4sKgLRnNi-r2DvE5r4RyU0Z1q8bVR08RfbMHEED2_lIBWSP1lPyx89YS01DAiCAbcDw",
             "ts": 1794728265220,
             "type": "claim"
+        },
+        {
+            "attachments": [],
+            "author": "Ns7s3e6VzZyIn5B0E7maANATuOgEsHfbQksHHZHzavg",
+            "authorName": "aaudhkumar",
+            "authorVerified": true,
+            "body": "Raised an PR for this issue https://git.owaspblt.org/BLT/pull/130",
+            "id": "comment-web-1794770968590",
+            "sig": "HjCWGe2Kz8lt35ZhoVZhbQzFroYI7i5QHta0IMyENkaXJJncDVyY2qNnAzqkU_JB-aKZHXFt-tzDNmgZlwtwAQ",
+            "ts": 1794770968590,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -59,6 +70,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-byte: fix the README: no package.json, wrong structure and a route that doesn't exist",
-    "updatedAt": 1794728265220,
+    "updatedAt": 1794770968590,
     "votes": 0
 }
