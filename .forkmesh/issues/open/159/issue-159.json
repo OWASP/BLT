@@ -67,6 +67,17 @@
             "sig": "GRCImGocc9gcExYqsyyQ-c2-FJ10OZU4yhvdQlFGshACppYywNBvzZutBUwfZDnLJ3xYlEF9LIx0ug10O81vBQ",
             "ts": 1794647202275,
             "type": "claim"
+        },
+        {
+            "attachments": [],
+            "author": "6I64fbHumctKTTTVZW0cDPBfOLWC46GD_JhZa7h9aX8",
+            "authorName": "owasp-blt-actions",
+            "authorVerified": true,
+            "body": "@krish there's been no pull request or comment from you here for 18 hours. If you're still working on this issue, please comment with an update or open a pull request; otherwise you'll be unassigned in about 6 hours so someone else can pick it up. \u003c!-- blt-assign-stale-warning:krish:1794647202275 --\u003e",
+            "id": "actions-1794714805827-abLeLkc0",
+            "sig": "Mcoc00l3ke2LcjZYrWrbAysxF10e5y14-FPOup12L0ppRxOan2jVVLj8AD3BUl0u5NO4P4INYVfbzYHY8dxZAw",
+            "ts": 1794714805827,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -83,6 +94,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-pages: make extract_domain accept CRLF and single-newline \"### URL\" sections",
-    "updatedAt": 1794647202275,
+    "updatedAt": 1794714805827,
     "votes": 0
 }
