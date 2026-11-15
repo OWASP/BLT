@@ -55,6 +55,16 @@
             "target": "open-web-1794251660709",
             "ts": 1794729290535,
             "type": "edit"
+        },
+        {
+            "author": "rrnBQwtV95mqysLXxmpZgHEsWNSAfyX_05SRH0Dbymg",
+            "authorName": "preetam",
+            "authorVerified": true,
+            "id": "title-web-1794729413597-1watp0g",
+            "sig": "dVrRQxAVbd5VCTn0Mu-wFONQM5H8HmA4k21FxzkO2b07orTb4GWEEyYtQynFgLtl6fXat2ROTJ6wB_wfRkkJDQ",
+            "title": "Fix broken Forgot Password page returning 404",
+            "ts": 1794729413597,
+            "type": "title"
         }
     ],
     "labels": [],
@@ -66,6 +76,6 @@
     "startDate": 0,
     "status": "open",
     "title": "Fix broken Forgot Password page returning 404",
-    "updatedAt": 1794729290535,
+    "updatedAt": 1794729413597,
     "votes": 0
 }
