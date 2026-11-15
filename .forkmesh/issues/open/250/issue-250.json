@@ -55,6 +55,17 @@
             "target": "open-web-1794730960564",
             "ts": 1794731103333,
             "type": "edit"
+        },
+        {
+            "attachments": [],
+            "author": "rrnBQwtV95mqysLXxmpZgHEsWNSAfyX_05SRH0Dbymg",
+            "authorName": "preetam",
+            "authorVerified": true,
+            "body": "working on it",
+            "id": "comment-web-1794731154186",
+            "sig": "Cbzab8yjC-1cFjppYaSttjOUMs7l46-ema_O2KT7oa8LxIP_vd4pG7OHxa_3YNQwiGN6kem4R5BJXqmc92RFDg",
+            "ts": 1794731154186,
+            "type": "comment"
         }
     ],
     "labels": [],
@@ -66,6 +77,6 @@
     "startDate": 0,
     "status": "open",
     "title": "Implement backend authentication integration with BLT API",
-    "updatedAt": 1794731103333,
+    "updatedAt": 1794731154186,
     "votes": 0
 }
