@@ -1,0 +1,35 @@
+{
+    "assignees": [],
+    "author": "rrnBQwtV95mqysLXxmpZgHEsWNSAfyX_05SRH0Dbymg",
+    "authorName": "preetam",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1794730960564,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "rrnBQwtV95mqysLXxmpZgHEsWNSAfyX_05SRH0Dbymg",
+            "authorName": "preetam",
+            "authorVerified": true,
+            "body": "Parent issue: #241\n\nmplement the BLT-Next Worker backend integration with the existing BLT authentication API.\n\nScope\n\nReview the existing authentication API contract.\n\nImplement signup and login API integration.\n\nImplement logout and session validation.\n\nHandle API responses and errors correctly.\n\nUse secure session cookies with appropriate security attributes.\n\nAvoid exposing session tokens to frontend JavaScript.\n\nAcceptance Criteria\n\nSignup and login requests integrate with the supported BLT API endpoints.\n\nLogout invalidates or clears the session appropriately.\n\nSession validation works correctly.\n\nAPI errors are handled safely.\n\nSession cookies use appropriate security settings.\n\nBackend authentication tests are included.\n\nNotes\n\nVerify the actual BLT API endpoints and request/response formats before implementation. Do not assume undocumented API behavior or introduce a separate account system.",
+            "id": "open-web-1794730960564",
+            "sig": "oA5Nm9OHtHSD-YeBL5HCiToiGW4y0GJItLdKjoRoxzuu8xZ3MU8Wey_3xjTSwHU9beVd8F2Rb5awJPqlubAVCQ",
+            "title": "Implement backend authentication integration with BLT API",
+            "ts": 1794730960564,
+            "type": "open"
+        }
+    ],
+    "labels": [],
+    "milestone": "",
+    "number": 250,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "Implement backend authentication integration with BLT API",
+    "updatedAt": 1794730960564,
+    "votes": 0
+}
