@@ -85,6 +85,16 @@
             "title": "Fix broken Forgot Password page returning 404",
             "ts": 1794730865039,
             "type": "title"
+        },
+        {
+            "author": "rrnBQwtV95mqysLXxmpZgHEsWNSAfyX_05SRH0Dbymg",
+            "authorName": "preetam",
+            "authorVerified": true,
+            "id": "title-web-1794730878644-8q3ngu",
+            "sig": "qLSVg9FNvEiaMEwqfMo-S8xzEdbtlKwWv2QI5R5gRBN2opvc5tYZZpQI8OxOi_6GVpSpBeaYa9yjPV6R4RVQBg",
+            "title": "Fix broken Forgot Password page returning 404 / Improve BLT-Next Authentication and Account Recovery",
+            "ts": 1794730878644,
+            "type": "title"
         }
     ],
     "labels": [],
@@ -95,7 +105,7 @@
     "schema": "forkmesh-issue-v1",
     "startDate": 0,
     "status": "open",
-    "title": "Fix broken Forgot Password page returning 404",
-    "updatedAt": 1794730865039,
+    "title": "Fix broken Forgot Password page returning 404 / Improve BLT-Next Authentication and Account Recovery",
+    "updatedAt": 1794730878644,
     "votes": 0
 }
