@@ -19,6 +19,18 @@
             "title": "Implement backend authentication integration with BLT API",
             "ts": 1794730960564,
             "type": "open"
+        },
+        {
+            "attachments": [],
+            "author": "rrnBQwtV95mqysLXxmpZgHEsWNSAfyX_05SRH0Dbymg",
+            "authorName": "preetam",
+            "authorVerified": true,
+            "body": "Parent issue: #241\n\nImplement the BLT-Next Worker backend integration with the existing BLT authentication API.\n\nScope\n\nReview the existing authentication API contract.\n\nImplement signup and login API integration.\n\nImplement logout and session validation.\n\nHandle API responses and errors correctly.\n\nUse secure session cookies with appropriate security attributes.\n\nAvoid exposing session tokens to frontend JavaScript.\n\nAcceptance Criteria\n\nSignup and login requests integrate with the supported BLT API endpoints.\n\nLogout invalidates or clears the session appropriately.\n\nSession validation works correctly.\n\nAPI errors are handled safely.\n\nSession cookies use appropriate security settings.\n\nBackend authentication tests are included.\n\nNotes\n\nVerify the actual BLT API endpoints and request/response formats before implementation. Do not assume undocumented API behavior or introduce a separate account system.",
+            "id": "edit-web-1794731010092-14vn0mf",
+            "sig": "RqhUeXY8pJ70UR_IbmvnP9gKtJdHRYAHNC74qLbbQSCUySpd_0U8X2VTa3xZ2ZDSr5t-n52-xUYq-wGM78qJDg",
+            "target": "open-web-1794730960564",
+            "ts": 1794731010092,
+            "type": "edit"
         }
     ],
     "labels": [],
@@ -30,6 +42,6 @@
     "startDate": 0,
     "status": "open",
     "title": "Implement backend authentication integration with BLT API",
-    "updatedAt": 1794730960564,
+    "updatedAt": 1794731010092,
     "votes": 0
 }
