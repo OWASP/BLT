@@ -78,6 +78,17 @@
             "sig": "Mcoc00l3ke2LcjZYrWrbAysxF10e5y14-FPOup12L0ppRxOan2jVVLj8AD3BUl0u5NO4P4INYVfbzYHY8dxZAw",
             "ts": 1794714805827,
             "type": "comment"
+        },
+        {
+            "attachments": [],
+            "author": "Sie42rK1nTcvbTFlhZvv4LytuYI9URg8litQqBahptE",
+            "authorName": "krish",
+            "authorVerified": true,
+            "body": "I'm actively working on issue #159. I've cloned the repository and reproduced the reported issue locally. I'm currently working on the fix and will add regression tests covering LF, CRLF, and single-newline cases. I'll open a PR once the changes are tested.",
+            "id": "comment-web-1794728927535",
+            "sig": "9fDlgv7quU4DZvhXYS99RP9CBCPaZKORwBHj0Hsqh490JTQFFZQweQyQgPoKFBhYnPoKgTpZX-6YkaYf-X8gBg",
+            "ts": 1794728927535,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -94,6 +105,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-pages: make extract_domain accept CRLF and single-newline \"### URL\" sections",
-    "updatedAt": 1794714805827,
+    "updatedAt": 1794728927535,
     "votes": 0
 }
