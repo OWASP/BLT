@@ -45,6 +45,17 @@
             "sig": "xNG_yJGqOajesKMc6z9Gt0FmwkpdnA3Yq0mif8_7XK2qKbsdmyxH6oPcIFomcDSs_M_VksJu34fmffJ7exAAAA",
             "ts": 1794771405350,
             "type": "claim"
+        },
+        {
+            "attachments": [],
+            "author": "Ns7s3e6VzZyIn5B0E7maANATuOgEsHfbQksHHZHzavg",
+            "authorName": "aaudhkumar",
+            "authorVerified": true,
+            "body": "Raised a pr for this issue https://git.owaspblt.org/BLT/pull/132",
+            "id": "comment-web-1794827613664",
+            "sig": "9pDam847tn5CmD72WSlWtK3UynNtg5BDmVQ1Emv61r7plJ5XJwJ45ipryNkpknZC3VhJ0uN2kmH0wxrLmIaMAA",
+            "ts": 1794827613664,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -61,6 +72,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-preflight: rename tests/tests_cli.py so pytest collects it",
-    "updatedAt": 1794771405350,
+    "updatedAt": 1794827613664,
     "votes": 0
 }
