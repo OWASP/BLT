@@ -45,6 +45,17 @@
             "sig": "is1ZO1-7YR9V8_ZoAejbgE9_GpM66Ge9717Wl9TBHM5dHxDVnifycR3vYRmJ7d-hXx70oaTglFuGivyxBQpxBw",
             "ts": 1794812188132,
             "type": "claim"
+        },
+        {
+            "attachments": [],
+            "author": "Ns7s3e6VzZyIn5B0E7maANATuOgEsHfbQksHHZHzavg",
+            "authorName": "aaudhkumar",
+            "authorVerified": true,
+            "body": "Raised a Pr for this issue https://git.owaspblt.org/BLT/pull/134",
+            "id": "comment-web-1794858286521",
+            "sig": "B0zOEI_bcotyfUqkO7wwzGgcb5qVniC1Lb-_bdU1XoJ_YNWVoTGAICnfRu23Iymz4bMdmXEjMLsQpHfjD9gdBQ",
+            "ts": 1794858286521,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -61,6 +72,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-mayo: make `blt-mayo report` fail cleanly on a missing file or invalid JSON",
-    "updatedAt": 1794812188132,
+    "updatedAt": 1794858286521,
     "votes": 0
 }
