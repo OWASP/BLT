@@ -1,7 +1,5 @@
 {
-    "assignees": [
-        "aaudhkumar"
-    ],
+    "assignees": [],
     "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
     "authorName": "blt-tasks[bot]",
     "bountyAddress": "",
@@ -56,6 +54,17 @@
             "sig": "B0zOEI_bcotyfUqkO7wwzGgcb5qVniC1Lb-_bdU1XoJ_YNWVoTGAICnfRu23Iymz4bMdmXEjMLsQpHfjD9gdBQ",
             "ts": 1794858286521,
             "type": "comment"
+        },
+        {
+            "assignee": "aaudhkumar",
+            "author": "Ns7s3e6VzZyIn5B0E7maANATuOgEsHfbQksHHZHzavg",
+            "authorName": "aaudhkumar",
+            "authorVerified": true,
+            "claimState": "released",
+            "id": "claim-web-1794858294396-im6qxb",
+            "sig": "MxL5ta7-XiAKOs7TBPSMW8QCb6_xEHs9a86dcxuWySF1M7V-cLDp0xcRH2vmcbImQAeW1RXOYBFBoxLFqIxmCg",
+            "ts": 1794858294396,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -72,6 +81,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-mayo: make `blt-mayo report` fail cleanly on a missing file or invalid JSON",
-    "updatedAt": 1794858286521,
+    "updatedAt": 1794858294396,
     "votes": 0
 }
