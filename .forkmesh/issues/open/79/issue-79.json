@@ -1,5 +1,7 @@
 {
-    "assignees": [],
+    "assignees": [
+        "aaudhkumar"
+    ],
     "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
     "authorName": "blt-tasks[bot]",
     "bountyAddress": "",
@@ -12,7 +14,7 @@
             "attachments": [],
             "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
             "authorName": "blt-tasks[bot]",
-            "body": "## Context\n\nIn `frontend/src/pages/Triage.jsx` the refresh buttons have only `title`, the filter buttons don't expose `aria-pressed`, and the \"Unable to connect to backend API\" banner has no `role=\"status\"`. The Sidebar mobile toggle has no `aria-expanded`/`aria-controls`.\n\n## What to do\n\n1. Add `aria-label`s to the refresh buttons and `aria-pressed={filter === f}` to the filters.\n2. Add `role=\"status\"` to the fallback banners in Triage.jsx and Overview.jsx.\n3. Add `aria-expanded`/`aria-controls` to the Sidebar toggle.\n\n## Acceptance criteria\n\n- [ ] No \"button has no accessible name\" on /triage in Lighthouse\n- [ ] Filter state is announced\n- [ ] API-down banner is announced\n\n## How to test locally\n\n```bash\ncd blt-toasty/frontend && npm ci && npm run dev\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "body": "## Context\n\nIn `frontend/src/pages/Triage.jsx` the refresh buttons have only `title`, the filter buttons don't expose `aria-pressed`, and the \"Unable to connect to backend API\" banner has no `role=\"status\"`. The Sidebar mobile toggle has no `aria-expanded`/`aria-controls`.\n\n## What to do\n\n1. Add `aria-label`s to the refresh buttons and `aria-pressed={filter === f}` to the filters.\n2. Add `role=\"status\"` to the fallback banners in Triage.jsx and Overview.jsx.\n3. Add `aria-expanded`/`aria-controls` to the Sidebar toggle.\n\n## Acceptance criteria\n\n- [ ] No \"button has no accessible name\" on /triage in Lighthouse\n- [ ] Filter state is announced\n- [ ] API-down banner is announced\n\n## How to test locally\n\n```bash\ncd blt-toasty/frontend \u0026\u0026 npm ci \u0026\u0026 npm run dev\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
             "id": "blt-tasks-issue-79",
             "sig": "6AIkaz3hCal66iLSJOqZWSugu8iiloduiiaqB9BZ-Z8tO30XRTNdF0F-eFZvPsfHd-RbMuBorcVaWwXzcUi_Cw",
             "title": "blt-toasty: give the dashboard's icon-only and toggle buttons accessible names and state",
@@ -31,6 +33,17 @@
             "sig": "x0_Pqjh8IWc5adX-0PcdquaGDZcJE14VMSgEaTaVOLn6GMJza25yE4FXacNvB5wAOVOewS2oYLbLTbOp6nRSBg",
             "ts": 1792547523650,
             "type": "labels"
+        },
+        {
+            "assignee": "aaudhkumar",
+            "author": "Ns7s3e6VzZyIn5B0E7maANATuOgEsHfbQksHHZHzavg",
+            "authorName": "aaudhkumar",
+            "authorVerified": true,
+            "claimState": "assigned",
+            "id": "claim-web-1794858181182-s2z7s4",
+            "sig": "cvRWLhGALIRUUN5aEUivjDlJWklxAyTfqHvdi3KprO3Lq8MZz6dlLsZq4WETtpzzOQezwXfWOzfdMnepd5R3CA",
+            "ts": 1794858181182,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -46,6 +59,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-toasty: give the dashboard's icon-only and toggle buttons accessible names and state",
-    "updatedAt": 1792547523650,
+    "updatedAt": 1794858181182,
     "votes": 0
 }
