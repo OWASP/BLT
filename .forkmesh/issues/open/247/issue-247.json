@@ -1,7 +1,5 @@
 {
-    "assignees": [
-        "hrinkar01"
-    ],
+    "assignees": [],
     "author": "RstIDDJG6C6U1Pai9khxpJmAfEPyL4aIsmU-ctc0kJM",
     "authorName": "hrinkar01",
     "bountyAddress": "",
@@ -55,6 +53,17 @@
             "target": "comment-web-1794600017982",
             "ts": 1794600198597,
             "type": "edit"
+        },
+        {
+            "assignee": "hrinkar01",
+            "author": "RstIDDJG6C6U1Pai9khxpJmAfEPyL4aIsmU-ctc0kJM",
+            "authorName": "hrinkar01",
+            "authorVerified": true,
+            "claimState": "released",
+            "id": "claim-web-1795008426574-4l4lcy",
+            "sig": "A9sN6B8-VPRlAijcQld-TtPxuJ5rGDP4hjDTWnTkHJ7eDymlRAuuETxtI8lrB40vZkvnaTiT6uCvQLUVgSOXBw",
+            "ts": 1795008426574,
+            "type": "claim"
         }
     ],
     "labels": [],
@@ -66,6 +75,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-dash: attach standard security headers (X-Frame-Options, CSP, nosniff) and CORS to asset responses",
-    "updatedAt": 1794600198597,
+    "updatedAt": 1795008426574,
     "votes": 0
 }
