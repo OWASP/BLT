@@ -45,6 +45,17 @@
             "sig": "akSGIFhuRPgnB2GNGYXdx7BDl4Pwz5cvYnbVBbdzeoPv3p750ZEH0f96ivyb3zhqy90Z45Hd-GvzxdUL7oXoBA",
             "ts": 1794993414203,
             "type": "claim"
+        },
+        {
+            "attachments": [],
+            "author": "hIZOCyGlNH-Ms19a3Ti59lm2obnjWP3WoC22xtrPc1g",
+            "authorName": "jay24",
+            "authorVerified": true,
+            "body": "/assign",
+            "id": "comment-web-1794993435577",
+            "sig": "aFFLHVLeSCH_B1LCRbs6kgfOQAvvaZsetnzkFIuTzJ3nsQTDyajhSGfoKUoed_v_KszC8owhkiRGUJ6r0MBmAQ",
+            "ts": 1794993435577,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -61,6 +72,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-ketchup: add the missing Font Awesome webfonts so icons render",
-    "updatedAt": 1794993414203,
+    "updatedAt": 1794993435577,
     "votes": 0
 }
