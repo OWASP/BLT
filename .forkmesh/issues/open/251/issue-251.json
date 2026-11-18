@@ -1,5 +1,7 @@
 {
-    "assignees": [],
+    "assignees": [
+        "hrinkar01"
+    ],
     "author": "RstIDDJG6C6U1Pai9khxpJmAfEPyL4aIsmU-ctc0kJM",
     "authorName": "hrinkar01",
     "bountyAddress": "",
@@ -19,6 +21,17 @@
             "title": "blt-api: add access control to organization integrations and prevent manager email leakage",
             "ts": 1795024623943,
             "type": "open"
+        },
+        {
+            "assignee": "hrinkar01",
+            "author": "RstIDDJG6C6U1Pai9khxpJmAfEPyL4aIsmU-ctc0kJM",
+            "authorName": "hrinkar01",
+            "authorVerified": true,
+            "claimState": "assigned",
+            "id": "claim-web-1795024693603-lfrgt6",
+            "sig": "A03-VnWiuSr-fOCaLvPNSAFB8Xk5dAD45h7fq0bFM_Lm2QnLNx7iIaR6o-T2CfFdMe2NQiJe4CuAivOlgIjyCQ",
+            "ts": 1795024693603,
+            "type": "claim"
         }
     ],
     "labels": [],
@@ -30,6 +43,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-api: add access control to organization integrations and prevent manager email leakage",
-    "updatedAt": 1795024623943,
+    "updatedAt": 1795024693603,
     "votes": 0
 }
