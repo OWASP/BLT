@@ -65,6 +65,17 @@
             "sig": "IYFSRsitSJI-AG6-muazexMHH3eLmScGV73z4AlnH8M-GThigWmk_l3c-aP6gWrTufyL3F8E6AP6uxP_pRVxAA",
             "ts": 1794993441830,
             "type": "claim"
+        },
+        {
+            "attachments": [],
+            "author": "6I64fbHumctKTTTVZW0cDPBfOLWC46GD_JhZa7h9aX8",
+            "authorName": "owasp-blt-actions",
+            "authorVerified": true,
+            "body": "@jay24 you are already assigned to this issue. \u003c!-- blt-assign-refused:jay24 --\u003e \u003c!-- blt-assign:590ab0ef79e52927a45d --\u003e",
+            "id": "actions-1794993456831-Or_Rijvg",
+            "sig": "XoPQ3ZT7SHQOJKQSss5lsVyFwDVRSb6mxEQLcepd67C0uRlGmiZs8KluQvbhxmEtQiUuE7gwHQGKgS_9zBkUAw",
+            "ts": 1794993456831,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -81,6 +92,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-ketchup: add the missing Font Awesome webfonts so icons render",
-    "updatedAt": 1794993441830,
+    "updatedAt": 1794993456831,
     "votes": 0
 }
