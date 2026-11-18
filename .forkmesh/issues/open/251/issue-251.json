@@ -1,0 +1,35 @@
+{
+    "assignees": [],
+    "author": "RstIDDJG6C6U1Pai9khxpJmAfEPyL4aIsmU-ctc0kJM",
+    "authorName": "hrinkar01",
+    "bountyAddress": "",
+    "bountyStatus": "",
+    "bountyUsd": 0,
+    "createdAt": 1795024623943,
+    "endDate": 0,
+    "events": [
+        {
+            "attachments": [],
+            "author": "RstIDDJG6C6U1Pai9khxpJmAfEPyL4aIsmU-ctc0kJM",
+            "authorName": "hrinkar01",
+            "authorVerified": true,
+            "body": "### Summary\nIn `blt-api/src/handlers/organizations.py`, two endpoints lack proper access control and data minimization checks.\n\n### Actual Behavior\n- **`GET /organizations/{id}/integrations`**: Can be accessed without authentication. It returns raw integration details, including plaintext `webhook_url` values that contain embedded secret tokens.\n- **`GET /organizations/{id}/managers`**: Automatically decrypts `email_encrypted` and exposes personal manager email addresses to any unauthenticated caller.\n\n### Expected Behavior\n- **`GET /organizations/{id}/integrations`**: Should require authentication, verify that the caller is an organization admin or manager (returning 401/403 otherwise), and mask webhook tokens in read responses.\n- **`GET /organizations/{id}/managers`**: Should only return public profile information (username, score, avatar, join date) without decrypting or including personal emails.\n\n### Potential Impact\n- Leaked incoming webhook URLs allow unauthorized parties to post arbitrary messages to private internal channels (e.g., Slack, Discord), impersonate alerts, or abuse rate limits.\n- Exposing personal manager email addresses leads to PII leakage and targeted phishing risks for organization leads.",
+            "id": "open-web-1795024623943",
+            "sig": "DvVIX5MRDH6rFi2CjKVBieOCm6P-TIwjU66nD1yJ4ZP5w7wMEt1ml-snvgmaxYqGPJn0OCQ6u6w1eES8knULCg",
+            "title": "blt-api: add access control to organization integrations and prevent manager email leakage",
+            "ts": 1795024623943,
+            "type": "open"
+        }
+    ],
+    "labels": [],
+    "milestone": "",
+    "number": 251,
+    "priority": 0,
+    "progress": 0,
+    "schema": "forkmesh-issue-v1",
+    "startDate": 0,
+    "status": "open",
+    "title": "blt-api: add access control to organization integrations and prevent manager email leakage",
+    "updatedAt": 1795024623943,
+    "votes": 0
+}
