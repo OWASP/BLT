@@ -1,5 +1,7 @@
 {
-    "assignees": [],
+    "assignees": [
+        "jay24"
+    ],
     "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
     "authorName": "blt-tasks[bot]",
     "bountyAddress": "",
@@ -76,6 +78,17 @@
             "sig": "XoPQ3ZT7SHQOJKQSss5lsVyFwDVRSb6mxEQLcepd67C0uRlGmiZs8KluQvbhxmEtQiUuE7gwHQGKgS_9zBkUAw",
             "ts": 1794993456831,
             "type": "comment"
+        },
+        {
+            "assignee": "jay24",
+            "author": "hIZOCyGlNH-Ms19a3Ti59lm2obnjWP3WoC22xtrPc1g",
+            "authorName": "jay24",
+            "authorVerified": true,
+            "claimState": "assigned",
+            "id": "claim-web-1794993499219-x38v3g",
+            "sig": "-5joSvD5Q_usBqjaV4UJns9jCmWcuda4VHtoYaHxrAaKM_6cruCZooOqheyGUU2Q01Z-NJ9yYOTfvBaSf6o_CQ",
+            "ts": 1794993499219,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -92,6 +105,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-ketchup: add the missing Font Awesome webfonts so icons render",
-    "updatedAt": 1794993456831,
+    "updatedAt": 1794993499219,
     "votes": 0
 }
