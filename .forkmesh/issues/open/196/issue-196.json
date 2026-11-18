@@ -1,7 +1,5 @@
 {
-    "assignees": [
-        "hrinkar01"
-    ],
+    "assignees": [],
     "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
     "authorName": "blt-tasks[bot]",
     "bountyAddress": "",
@@ -44,6 +42,17 @@
             "sig": "rRefIH5syRtbM8507IURIrgppsJ3UR11f01z-z9CJ0w4c7LZY5sU4BtKa2Ja-wEWs4eSXbMDoQ9gDYPTLhbWBg",
             "ts": 1794515361449,
             "type": "claim"
+        },
+        {
+            "assignee": "hrinkar01",
+            "author": "RstIDDJG6C6U1Pai9khxpJmAfEPyL4aIsmU-ctc0kJM",
+            "authorName": "hrinkar01",
+            "authorVerified": true,
+            "claimState": "released",
+            "id": "claim-web-1795008444970-12zph8s",
+            "sig": "AEyAnuR47D9HEeUEEiBs8ncFkwESbBZbdY1CwzxAFh8xoG2Tnez2Tn79GReDbPPMcnQpf66xMvNr-tEw5p7MCw",
+            "ts": 1795008444970,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -59,6 +68,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-dash: reach the gold standard (bronze today, 2 steps)",
-    "updatedAt": 1794515361449,
+    "updatedAt": 1795008444970,
     "votes": 0
 }
