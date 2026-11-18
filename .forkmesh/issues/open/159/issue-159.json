@@ -100,6 +100,17 @@
             "sig": "vGFUGmr27clZ-cRM3slIpp28gQaaSe2pzfcHLCN9DvJCaZiavoo0IHdJyVj4a1Tk7MVi5-ZOD6ZMENHZdRTPBw",
             "ts": 1794993385225,
             "type": "comment"
+        },
+        {
+            "attachments": [],
+            "author": "Sie42rK1nTcvbTFlhZvv4LytuYI9URg8litQqBahptE",
+            "authorName": "krish",
+            "authorVerified": true,
+            "body": "Hello @jay24 I have worked on this issue and have already submitted PR #129. Thanks for checking in!",
+            "id": "comment-web-1794993722720",
+            "sig": "zKEQfhzBKX3XL8gr1xGyaPFarFcCKUzcD_-LiIR7R_JdcieNIPWY-x8Grngz6lGrJ3gEtNwzfH3vKyqbLNvmAQ",
+            "ts": 1794993722720,
+            "type": "comment"
         }
     ],
     "labels": [
@@ -116,6 +127,6 @@
     "startDate": 0,
     "status": "open",
     "title": "blt-pages: make extract_domain accept CRLF and single-newline \"### URL\" sections",
-    "updatedAt": 1794993385225,
+    "updatedAt": 1794993722720,
     "votes": 0
 }
