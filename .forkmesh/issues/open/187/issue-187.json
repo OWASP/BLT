@@ -1,5 +1,7 @@
 {
-    "assignees": [],
+    "assignees": [
+        "hiralmodi"
+    ],
     "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
     "authorName": "blt-tasks[bot]",
     "bountyAddress": "",
@@ -12,7 +14,7 @@
             "attachments": [],
             "author": "57n0Jzw6X_ZXGKepvtU22m2lizrPDrmq4ko2gUUSlmk",
             "authorName": "blt-tasks[bot]",
-            "body": "## Context\n\n`scripts/readme/update_readme.py` `describe()` strips `*`, `_` and backticks, which turns blt-cron's `` `* * * * *` `` into \"(    )\" in the root README's BLT-Cron row. `blog_section()` emits `<img>` without `alt`. `scripts/readme/` has no tests.\n\n## What to do\n\n1. In `describe`, convert inline code spans to text before stripping emphasis.\n2. Add `alt` (escaped title) in `blog_section`.\n3. Add `scripts/readme/test_update_readme.py` for `describe`, `replace_section`, and `is_bot`/`slugify` from contributors.py; extend the `scripts` row in tests.tsv with `python3 -m unittest discover -s readme -p 'test_*.py'`.\n\n## Acceptance criteria\n\n- [ ] Regenerated README shows \"(* * * * *)\" in the cron row\n- [ ] Blog images have alt text\n- [ ] `scripts/ci/test.sh scripts` passes\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh scripts\npython3 scripts/readme/update_readme.py --offline && git diff README.md\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
+            "body": "## Context\n\n`scripts/readme/update_readme.py` `describe()` strips `*`, `_` and backticks, which turns blt-cron's `` `* * * * *` `` into \"(    )\" in the root README's BLT-Cron row. `blog_section()` emits `\u003cimg\u003e` without `alt`. `scripts/readme/` has no tests.\n\n## What to do\n\n1. In `describe`, convert inline code spans to text before stripping emphasis.\n2. Add `alt` (escaped title) in `blog_section`.\n3. Add `scripts/readme/test_update_readme.py` for `describe`, `replace_section`, and `is_bot`/`slugify` from contributors.py; extend the `scripts` row in tests.tsv with `python3 -m unittest discover -s readme -p 'test_*.py'`.\n\n## Acceptance criteria\n\n- [ ] Regenerated README shows \"(* * * * *)\" in the cron row\n- [ ] Blog images have alt text\n- [ ] `scripts/ci/test.sh scripts` passes\n\n## How to test locally\n\n```bash\nscripts/ci/test.sh scripts\npython3 scripts/readme/update_readme.py --offline \u0026\u0026 git diff README.md\n```\n\n---\nSize: **S**. Comment `/assign` to claim this issue; claims with no activity are released after 7 days. Clone from https://git.owaspblt.org/BLT.git and open your pull request there.\n",
             "id": "blt-tasks-issue-187",
             "sig": "ljQVOWQhS4XAEGsguFd6Ts5RGhRLGGWDYqtkJuX5DcAcjIuNlXsfqnT_vKOcAkENpwnjF1imxEH213DqK9kBDw",
             "title": "scripts: keep inline code in README project descriptions and add tests for scripts/readme",
@@ -31,6 +33,17 @@
             "sig": "EiLkJ9OVP9U-S5wxrYwt1JOJ8S6tfRTTU49txnxG2SloeSpfbY3UCgz6CH7B42hpduGvVcfmZfbNvGaRzuOtDA",
             "ts": 1792547524730,
             "type": "labels"
+        },
+        {
+            "assignee": "hiralmodi",
+            "author": "z8umhj46U08jgUGw9mp2y-DMtqQIANQ7fXaMUtEJzEY",
+            "authorName": "hiralmodi",
+            "authorVerified": true,
+            "claimState": "assigned",
+            "id": "claim-web-1795018424696-13v60wk",
+            "sig": "2qyLwJR_Gc47lNEvcRj-f6qmACoJ5HJzKPOBlSDlMdHlqxLrqElugrKI5raO8p8u5iFvlNZXJzswP6HrHfcuAA",
+            "ts": 1795018424696,
+            "type": "claim"
         }
     ],
     "labels": [
@@ -46,6 +59,6 @@
     "startDate": 0,
     "status": "open",
     "title": "scripts: keep inline code in README project descriptions and add tests for scripts/readme",
-    "updatedAt": 1792547524730,
+    "updatedAt": 1795018424696,
     "votes": 0
 }
